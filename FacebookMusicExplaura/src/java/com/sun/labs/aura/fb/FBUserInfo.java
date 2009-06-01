@@ -32,9 +32,10 @@ public class FBUserInfo {
     protected String name;
     protected String musicString;
     protected boolean isAppUser;
+    protected String friendAppUserIds;
     protected boolean hasMusic;
 
-    public FBUserInfo(Long uid, String name, String musicString, boolean isAppUser) {
+    public FBUserInfo(Long uid, String name, String musicString, boolean isAppUser, String appUserIds) {
         this.uid = uid;
         this.name = name;
         this.musicString = musicString;
@@ -44,6 +45,7 @@ public class FBUserInfo {
         } else {
             hasMusic = true;
         }
+        friendAppUserIds = appUserIds;
     }
 
     /**
@@ -117,5 +119,12 @@ public class FBUserInfo {
      */
     public void setUID(Long uid) {
         this.uid = uid;
+    }
+
+    /**
+     * @return the friendAppUserIds
+     */
+    public String getFriendAppUserIds() {
+        return friendAppUserIds;
     }
 }

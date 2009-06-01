@@ -353,6 +353,12 @@ public class SteeringSwidget extends Swidget {
             dP.add(mainNorthMenuPanel, DockPanel.NORTH);
 
             //
+            // Add a little help text to the north
+            dP.add(new Label("Drag the tags to change their importance.  Use " +
+                    "the search box to the right to find tags to add.  Right-" +
+                    "click a tag for more options."), DockPanel.NORTH);
+
+            //
             // North 2
             tagLand = new TagWidgetContainer(this, cdm);
             tagLand.init(new ResizableTagWidget(this, cdm,

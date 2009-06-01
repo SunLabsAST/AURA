@@ -69,6 +69,10 @@ public class Canvas extends HttpServlet {
     protected Logger logger = Logger.getLogger("");
     protected ExpiringLRACache<Long,List<Artist>> uidToArtists =
             new ExpiringLRACache<Long,List<Artist>>(5000, 30 * 60 * 1000);
+
+    protected ExpiringLRACache<Long,FBUserInfo> uidToUserInfo =
+            new ExpiringLRACache<Long,FBUserInfo>(5000, 5 * 60 * 1000);
+
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -96,6 +100,18 @@ public class Canvas extends HttpServlet {
 
             try {
                 long uid = client.users_getLoggedInUser();
+                FBUserInfo currUser = null;
+                //
+                // Get the user info from facebook, skipping the cache
+                try {
+                    currUser = getUserInfo(apiKey, secretKey, fbSession, uid, false);
+                } catch (FacebookException e) {
+                    logger.log(Level.WARNING, "Failed to get FB music taste", e);
+                    JSONArray err = getJSONError("Sorry, we were unable to read " +
+                            "your musical taste from Facebook");
+                    sendJSON(err, response);
+                    return;
+                }
 
                 String compareTo = request.getParameter("compareTo");
                 if (compareTo != null && !compareTo.isEmpty()) {
@@ -104,6 +120,7 @@ public class Canvas extends HttpServlet {
                 request.setAttribute("server", Util.getRootPath(request, false));
                 request.setAttribute("fbSession", fbSession);
                 request.setAttribute("fbUID", uid);
+                request.setAttribute("friendAppUsers", currUser.getFriendAppUserIds());
             } catch (FacebookException e) {
 
             }
@@ -122,7 +139,7 @@ public class Canvas extends HttpServlet {
             // we never use the cache.  This way if the user updates their
             // music taste, we'll always find it.
             try {
-                currUser = getUserInfo(apiKey, secretKey, fbSession, uid);
+                currUser = getUserInfo(apiKey, secretKey, fbSession, uid, false);
             } catch (FacebookException e) {
                 logger.log(Level.WARNING, "Failed to get FB music taste", e);
                 JSONArray err = getJSONError("Sorry, we were unable to read " +
@@ -251,7 +268,7 @@ public class Canvas extends HttpServlet {
             props.put("fbml_profile", getAddToProfileFBML());
             props.put("hasmusic", Boolean.toString(currUser.hasMusic()));
             props.put("artists", artistStr);
-            props.put("fbml_steerLink", "<span style=\"font-size: 14px\">View in the <a href=\"" +
+            props.put("fbml_steerLink", "<span style=\"font-size: 14px\">Explore this cloud in the <a target=\"_blank\" href=\"" +
                     Util.getWMELink(cloud) +
                     "\">full Music Explaura</a></span>");
             JSONArray result = getJSONResponse(props);
@@ -301,7 +318,7 @@ public class Canvas extends HttpServlet {
             FBUserInfo friend = null;
             List<Artist> friendArtists = null;
             try {
-                friend = getUserInfo(apiKey, secretKey, fbSession, friendID);
+                friend = getUserInfo(apiKey, secretKey, fbSession, friendID, true);
                 //
                 // If the friend has no music, stop now
                 if (!friend.hasMusic()) {
@@ -368,7 +385,7 @@ public class Canvas extends HttpServlet {
             FBUserInfo friend = null;
             List<Artist> friendArtists = null;
             try {
-                friend = getUserInfo(apiKey, secretKey, fbSession, friendID);
+                friend = getUserInfo(apiKey, secretKey, fbSession, friendID, true);
                 if (!friend.hasMusic()) {
                     JSONArray json = getJSONErrorWithInvite("Sorry, " + friend.getName() +
                             " has not entered any favorite music.", friend);
@@ -531,8 +548,19 @@ public class Canvas extends HttpServlet {
     protected FBUserInfo getUserInfo(String apiKey,
                                      String secretKey,
                                      String fbSession,
-                                     long fbUserId)
+                                     long fbUserId,
+                                     boolean useCache)
         throws FacebookException {
+
+        //
+        // Do we have this user info cached?
+        if (useCache) {
+            FBUserInfo info = uidToUserInfo.get(fbUserId);
+            if (info != null) {
+                return info;
+            }
+        }
+
         //
         // Dig up the artist info for the FBUID
         FacebookJsonRestClient client =
@@ -540,6 +568,7 @@ public class Canvas extends HttpServlet {
         String friendMusic = null;
         String friendName = null;
         boolean isAppUser = false;
+        String appUserIds = "";
         try {
             List<Long> list = Collections.singletonList(fbUserId);
             client.beginBatch();
@@ -547,14 +576,26 @@ public class Canvas extends HttpServlet {
                     EnumSet.of(ProfileField.FIRST_NAME,
                                ProfileField.MUSIC));
             client.users_isAppUser(fbUserId);
-            List results = client.executeBatch(true);
+            client.friends_getAppUsers();
+            List results = client.executeBatch(false);
 
             JSONArray res = (JSONArray)results.get(0);
             JSONObject user = res.getJSONObject(0);
             friendName = user.getString(ProfileField.FIRST_NAME.toString());
             friendMusic = user.getString(ProfileField.MUSIC.toString());
-
             isAppUser = (Boolean)results.get(1);
+            Object obj = results.get(2);
+            if (obj instanceof JSONArray) {
+                //
+                // We get an array when there are users.  Otherwise, a JSONObject
+                JSONArray appUsers = (JSONArray)obj;
+                for (int i = 0; i < appUsers.length(); i++) {
+                    appUserIds += appUsers.getString(i);
+                    if (i + 1 < appUsers.length()) {
+                        appUserIds += ",";
+                    }
+                }
+            }
         } catch (FacebookException e) {
             logger.log(Level.WARNING, "Failed to talk to FB", e);
         } catch (JSONException e) {
@@ -562,7 +603,9 @@ public class Canvas extends HttpServlet {
             throw new FacebookException(1,
                     "JSON Exception in client, see server log for details");
         }
-        return new FBUserInfo(fbUserId, friendName, friendMusic, isAppUser);
+        FBUserInfo ret = new FBUserInfo(fbUserId, friendName, friendMusic, isAppUser, appUserIds);
+        uidToUserInfo.put(fbUserId, ret);
+        return ret;
     }
 
 
@@ -576,7 +619,7 @@ public class Canvas extends HttpServlet {
         
         //
         // Get the music taste from facebook.
-        FBUserInfo user = getUserInfo(apiKey, secretKey, fbSession, uid);
+        FBUserInfo user = getUserInfo(apiKey, secretKey, fbSession, uid, true);
         return getArtistsForUser(dm, user);
     }
 

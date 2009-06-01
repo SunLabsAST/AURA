@@ -81,12 +81,16 @@
 The Music Explaura looks at the info in the "Favorite Music" section of your
 profile.  It tries to identify each band listed by name, then builds a tag
 cloud by combining the most distinctive terms that describe each band.
+To explore bands and get customized recommendations, visit the full
+<a href="http://music.tastekeeper.com">Music Explaura</a>.
+
 <br/><br/><br/>
 
 <!-- The "tabs" -->
 <div style="border-bottom: 1px solid #d8dfea; padding-bottom:3px; padding-left:10px;">
     <span class="fakeTabCurr" id="cloudTab">My Cloud</span>&nbsp;
-    <span class="fakeTab" id="compareTab">Compare</span>
+    <span class="fakeTab" id="compareTab">Compare</span>&nbsp;
+    <span class="fakeTab" id="shareTab">Share</span>
 </div>
 
 <!-- The main display area (below the tabs) -->
@@ -109,11 +113,14 @@ cloud by combining the most distinctive terms that describe each band.
 
 <!-- The credits -->
 <div style="padding: 3px; font-size: 8px; text-align: center; border: 1px solid #222222">
-    <a href="http://www.sun.com/"><img src="${server}/image/sun_logo.png"/></a><br/>
+    <!-- <a href="http://www.sun.com/"><img src="${server}/image/sun_logo.png"/></a><br/> -->
+    <table><tr><td>
+    <a href="http://research.sun.com"><img src="${server}/image/sponsored_sl.6.png"/></a><br/>
+    </td><td width="100%" style="text-align: center;">
     The Music Explaura is developed by <a href="http://research.sun.com/">Sun
     Labs</a> as part of <a href="http://www.tastekeeper.com/">The AURA Project</a>.<br/>
-    Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a>
-
+    Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a><br/>
+    </td></tr></table>
 </div>
 
 <!-- pre-rendered content to be used in the page -->
@@ -131,6 +138,24 @@ cloud by combining the most distinctive terms that describe each band.
     </form>
     <div id="compareResults">
     </div>
+</fb:js-string>
+
+<fb:js-string var="shareWidget">
+    <fb:request-form action="http://apps.facebook.com/musicexplaura" type="Music Explaura"
+                     content="Use the Music Explaura to add your personal music
+                             tag cloud to your profile and compare your taste
+                             in music with your friends' taste.  Make sure you
+                             have your favorite bands listed in the &quot;Favorite
+                             Music&quot; section of your profile.
+                             <fb:req-choice
+                             url=&quot;http://apps.facebook.com/musicexplaura&quot;
+                             label=&quot;Explore!&quot;>">
+        <fb:multi-friend-selector actiontext="Select the friends to send a Music Explaura invitation to (those who have already used it are not listed):"
+                                  showborder="false"
+                                  exclude_ids="${friendAppUsers}"
+                                  bypass="cancel"
+                                  email_invite="false"/>
+    </fb:request-form>
 </fb:js-string>
 
 <script type="text/javascript">
@@ -294,10 +319,7 @@ cloud by combining the most distinctive terms that describe each band.
     function cloudTabClicked() {
         //
         // Switch "selected" tab
-        var cloudTab = document.getElementById("cloudTab");
-        var compareTab = document.getElementById("compareTab");
-        cloudTab.setClassName("fakeTabCurr");
-        compareTab.setClassName("fakeTab");
+        setSelectedTab(cloudTab);
 
         //
         // Fetch the cloud data
@@ -305,29 +327,42 @@ cloud by combining the most distinctive terms that describe each band.
         switchToLoader(main);
         fetchAndShowCloud();
 
-        //
-        // Clear the invite area
-        var inv = document.getElementById("inviteArea");
-        clearDiv(inv);
     }
 
     function compareTabClicked() {
         //
         // Switch "selected" tab
-        var cloudTab = document.getElementById("cloudTab");
-        var compareTab = document.getElementById("compareTab");
-        cloudTab.setClassName("fakeTab");
-        compareTab.setClassName("fakeTabCurr");
+        setSelectedTab(compareTab);
 
         //
         // Show the area where you can choose a friend
-        var main = document.getElementById('mainSection');
-        clearDiv(main);
         main.setInnerFBML(friendPicker);
         var goBtn = document.getElementById('compareGoBtn');
         goBtn.addEventListener('click', fetchAndShowCompare);
         var seeBtn = document.getElementById('seeOtherBtn');
         seeBtn.addEventListener('click', fetchAndShowFriendCloud);
+    }
+
+    function shareTabClicked() {
+        //
+        // Switch the "selected" tab
+        setSelectedTab(shareTab);
+
+        main.setInnerFBML(shareWidget);
+    }
+
+    function setSelectedTab(selectedTab) {
+        cloudTab.setClassName("fakeTab");
+        compareTab.setClassName("fakeTab");
+        shareTab.setClassName("fakeTab");
+        selectedTab.setClassName("fakeTabCurr");
+
+        //
+        // Clear the main and invite areas
+        var main = document.getElementById('mainSection');
+        clearDiv(main);
+        var inv = document.getElementById("inviteArea");
+        clearDiv(inv);
 
         //
         // Clear the add to profile area and the WME link
@@ -338,6 +373,8 @@ cloud by combining the most distinctive terms that describe each band.
     }
 
     function ajaxError() {
+        var thediv = document.getElementById('mainSection');
+        clearDiv(thediv);
         showDialog("Error", "Sorry, an error has occurred.  Please try again later.");
     }
 
@@ -410,6 +447,18 @@ cloud by combining the most distinctive terms that describe each band.
     // Run this when the page loads:
     var main = document.getElementById('mainSection');
     switchToLoader(main);
+
+    //
+    // Get handles to each of the "tab" objects
+    var cloudTab = document.getElementById("cloudTab");
+    cloudTab.addEventListener('click', cloudTabClicked);
+
+    var compareTab = document.getElementById("compareTab");
+    compareTab.addEventListener('click', compareTabClicked);
+
+    var shareTab = document.getElementById("shareTab");
+    shareTab.addEventListener('click', shareTabClicked);
+
     <c:if test="${compareTo != null}">
     //
     // Switch to compare tab
@@ -420,11 +469,6 @@ cloud by combining the most distinctive terms that describe each band.
     fetchAndShowCloud();
     </c:if>
 
-    var cloudTab = document.getElementById("cloudTab");
-    cloudTab.addEventListener('click', cloudTabClicked);
-
-    var compareTab = document.getElementById("compareTab");
-    compareTab.addEventListener('click', compareTabClicked);
 
 //-->
 </script>
