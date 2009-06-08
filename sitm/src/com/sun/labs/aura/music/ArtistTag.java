@@ -32,7 +32,6 @@ import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -71,12 +70,18 @@ public class ArtistTag extends ItemAdapter {
         super(item, Item.ItemType.ARTIST_TAG);
     }
 
+    /**
+     * Constructor used by ArtistTagRaw
+     */
+    protected ArtistTag(Item item, Item.ItemType it) {
+        super(item, it);
+    }
+
     public ArtistTag() {
     }
 
     /**
      * Creates a new ArtistTag
-     * @param key the key for the ArtistTag
      * @param name the name of the ArtistTag
      * @throws com.sun.labs.aura.aardvark.util.AuraException
      */

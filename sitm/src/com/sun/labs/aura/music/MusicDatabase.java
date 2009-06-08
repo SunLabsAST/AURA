@@ -90,6 +90,7 @@ public class MusicDatabase {
         new Album().defineFields(getDataStore());
         new Artist().defineFields(getDataStore());
         new ArtistTag().defineFields(getDataStore());
+        new ArtistTagRaw().defineFields(getDataStore());
         new Event().defineFields(getDataStore());
         new Photo().defineFields(getDataStore());
         new Track().defineFields(getDataStore());
@@ -124,6 +125,7 @@ public class MusicDatabase {
     private void initSimTypes() {
         List<SimType> stypes = new ArrayList();
         stypes.add(new FieldSimType("Social Tags", "Similarity based upon Social Tags", Artist.FIELD_SOCIAL_TAGS));
+        stypes.add(new FieldSimType("Raw Social Tags", "Similarity based upon Raw Social Tags", Artist.FIELD_SOCIAL_TAGS_RAW));
         stypes.add(new FieldSimType("Bio Tags", "Similarity based upon BIO tags", Artist.FIELD_BIO_TAGS));
         stypes.add(new FieldSimType("Blurb Tags", "Similarity based upon tags extracted from reviews", Artist.FIELD_BLURB_TAGS));
         stypes.add(new FieldSimType("Auto Tags", "Similarity based upon Auto tags", Artist.FIELD_AUTO_TAGS));

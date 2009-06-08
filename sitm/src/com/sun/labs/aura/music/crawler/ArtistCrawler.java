@@ -965,9 +965,15 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
         SocialTag[] tags = lastFM.getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
+
+            int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
+
+            // Add raw tag
+            artist.setSocialTagRaw(tag.getName(), normFreq);
+
+            // Add social tag
             String tagName = tagFilter.mapTagName(tag.getName());
             if (tagName != null) {
-                int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
                 artist.setSocialTag(tagName, normFreq);
             }
         }
