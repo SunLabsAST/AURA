@@ -57,6 +57,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_POPULARITY = "popularity";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
+    public final static String FIELD_SOCIAL_TAGS_RAW = "socialTagsRaw";
     public final static String FIELD_BIO_TAGS = "bioTags";
     public final static String FIELD_BLURB_TAGS = "blurbTags";
     public final static String FIELD_URLS = "urls";
@@ -115,6 +116,7 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_POPULARITY, Item.FieldType.FLOAT, StoreFactory.INDEXED);
             ds.defineField(FIELD_RELATED_ARTISTS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BIO_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BLURB_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_URLS);
@@ -303,6 +305,39 @@ public class Artist extends ItemAdapter {
      */
     public void clearSocialTags() {
         clearTags(FIELD_SOCIAL_TAGS);
+    }
+
+    /**
+     * Gets the artist's raw social tags
+     * @return tag map
+     */
+    public List<Tag> getSocialTagsRaw() {
+        return getTagsAsList(FIELD_SOCIAL_TAGS_RAW);
+    }
+
+    /**
+     * Adds a raw social tag to the artist
+     * @param tag tag name of the tag
+     * @param count tag count
+     */
+    public void addSocialTagRaw(String tag, int count) {
+        addTag(FIELD_SOCIAL_TAGS_RAW, tag, count);
+    }
+
+    /**
+     * Sets a raw social tag to the artists
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setSocialTagRaw(String tag, int count) {
+        setTag(FIELD_SOCIAL_TAGS_RAW, tag, count);
+    }
+
+    /**
+     * Clears the raw social tags
+     */
+    public void clearSocialTagsRaw() {
+        clearTags(FIELD_SOCIAL_TAGS_RAW);
     }
 
     /**
