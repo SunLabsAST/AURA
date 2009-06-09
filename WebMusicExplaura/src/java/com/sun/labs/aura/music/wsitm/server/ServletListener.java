@@ -81,5 +81,9 @@ public class ServletListener implements ServletContextListener {
         if (cm != null) {
             cm.shutdown();
         }
+        DataManager dm = (DataManager) sce.getServletContext().getAttribute("DataManager");
+        if (dm!=null) {
+            dm.onDestroy();
+        }
     }
 }
