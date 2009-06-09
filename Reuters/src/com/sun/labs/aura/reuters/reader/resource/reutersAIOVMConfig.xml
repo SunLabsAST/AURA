@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+ * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+ * 
+ * This code is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2
+ * only, as published by the Free Software Foundation.
+ * 
+ * This code is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License version 2 for more details (a copy is
+ * included in the LICENSE file that accompanied this code).
+ * 
+ * You should have received a copy of the GNU General Public License
+ * version 2 along with this work; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ * 
+ * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
+ * Park, CA 94025 or visit www.sun.com if you need additional
+ * information or have any questions.
+ */
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/files/stgreen/reuters/aura"/>
+    <property name="logLevel" value="INFO"/>
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.DataStoreHead" export="false">
+        <property name="logLevel" value="WARNING"/>
+    </component>
+    
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" />
+    
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster0" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="0"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
+        <property name="processManager" value="processManager"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster1" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl">
+        <property name="prefix" value="1"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
+        <property name="processManager" value="processManager"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant0" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="0"/>
+        <property name="dbEnv" value="${auraHome}/db/0/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine0"/>
+        <property name="partitionCluster" value="partitionCluster0"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
+        <property name="statService" value="statService"/>
+        <property name="logLevel" value="INFO"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="replicant1" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore">
+        <property name="prefix" value="1"/>
+        <property name="dbEnv" value="${auraHome}/db/1/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine1"/>
+        <property name="partitionCluster" value="partitionCluster1"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
+        <property name="statService" value="statService"/>
+        <property name="logLevel" value="INFO"/>
+    </component>
+
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine0" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/db/0/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <!-- <property name="engineLogLevel" value="3"/> -->
+        <property name="flushInterval" value="300000"/>
+        <property name="logLevel" value="WARNING"/>
+    </component>
+
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${auraHome}/db/1/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+        <!-- <property name="engineLogLevel" value="3"/> -->
+        <property name="logLevel" value="WARNING"/>
+    </component>
+
+    <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl">
+    </component>
+    
+    <!-- Reuters Components -->
+
+    <component name="articleImporter" type="com.sun.labs.aura.reuters.reader.Import">
+        <property name="dataStore" value="dataStoreHead"/>
+    </component>
+    
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>processManager</item>
+            <item>partitionCluster0</item>
+            <item>partitionCluster1</item>
+            <item>replicant0</item>
+            <item>replicant1</item>
+            <item>statService</item>
+            <item>articleImporter</item>
+        </propertylist>
+    </component>
+
+</config>
