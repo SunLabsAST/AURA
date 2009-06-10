@@ -61,8 +61,7 @@ public class ReutersShell implements AuraService, Configurable {
         shell = new CommandInterpreter();
         shell.setPrompt("reuters% ");
         sutils = new ShellUtils(shell, dataStore, statService);
-
-
+        sutils.setDisplayFields(new String[] {"_score", "aura-key", "headline"});
 
         Thread t = new Thread() {
 
