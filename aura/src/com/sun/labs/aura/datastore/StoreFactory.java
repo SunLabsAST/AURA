@@ -283,4 +283,26 @@ public class StoreFactory {
         return attn;
     }
 
+    /**
+     * Constructs a new attention object with the given attributes
+     *
+     * @param sourceKey the key of the item paying attention
+     * @param targetKey the key of the item attended to
+     * @param type the type of attention paid
+     * @param time the time at which the attention occurred
+     * @param num a number associated with the attention type
+     * @param data a string associated with the attention type
+     *
+     * @return the attention object
+     */
+    public static Attention newAttention(String sourceKey, String targetKey,
+                                         Attention.Type type, Date time, Long num,
+                                         String data) {
+        PersistentAttention attn =
+                new PersistentAttention(sourceKey, targetKey,
+                                        type, time.getTime());
+        attn.setNumber(num);
+        attn.setString(data);
+        return attn;
+    }
 }

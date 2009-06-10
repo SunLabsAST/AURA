@@ -83,10 +83,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -107,12 +107,13 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     private Spotify spotify;
     private EchoNest echoNest;
     private Amazon amazon;
-    private PriorityQueue<QueuedArtist> artistQueue;
+    private PriorityBlockingQueue<QueuedArtist> artistQueue;
     private Logger logger;
     private RemoteComponentManager rcm;
     private Util util;
     private final static String CRAWLER_STATE_FILE = "crawler.state";
     private final static int FLUSH_COUNT = 10;
+    private static int MODIFS_COUNT = 0;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
     private int minBlurbCount = 3;
@@ -185,7 +186,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             upcoming = new Upcoming();
             spotify = new Spotify();
             echoNest = new EchoNest();
-            artistQueue = new PriorityQueue(1000, QueuedArtist.PRIORITY_ORDER);
+            artistQueue = new PriorityBlockingQueue(1000, QueuedArtist.PRIORITY_ORDER);
             rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
@@ -200,6 +201,8 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             threadPool = Executors.newCachedThreadPool();
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
+        } catch (AuraException ae) {
+            throw new PropertyException(ae, "ArtistCrawler", ps.getInstanceName(), "");
         }
     }
 
@@ -282,7 +285,6 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
      */
     private void discoverArtists() {
         long lastTime = 0L;
-        int count = 0;
         try {
             primeArtistQueue("The Beatles");
         } catch (AuraException ae) {
@@ -306,9 +308,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
 
                 Artist artist = collectArtistInfo(queuedArtist);
                 if (artist != null) {
-                    if (count++ % FLUSH_COUNT == 0) {
-                        saveState();
-                    }
+                    incrementModCounter();
                 }
             } catch (AuraException ex) {
                 logger.warning("Aura Trouble during crawl " + ex);
@@ -567,13 +567,13 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             }
         });
 
-        runner.add(new Commander("spotify") {
+        /*runner.add(new Commander("spotify") {
 
             @Override
             public void go() throws Exception {
                 addSpotifyInfo(artist);
             }
-        });
+        });*/
 
         runner.add(new Commander("echonest") {
 
@@ -691,15 +691,25 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
      * @param artist the artist to be queued
      * @param popularity the popularity of the artist
      */
-    private void enqueue(LastArtist artist, int popularity) {
-        artistQueue.add(new QueuedArtist(artist, popularity));
+    public synchronized void enqueue(LastArtist artist, int popularity) {
+        if (!artistQueue.contains(artist)) {
+            artistQueue.add(new QueuedArtist(artist, popularity));
+            incrementModCounter();
+        }
+    }
+
+    private synchronized void incrementModCounter() {
+        MODIFS_COUNT++;
+        if (MODIFS_COUNT==FLUSH_COUNT) {
+            saveState();
+            MODIFS_COUNT=0;
+        }
     }
 
     /**
      * Loads the previously saveed priority queue
      */
     private void loadState() {
-
 
         ObjectInputStream ois = null;
         try {
@@ -740,6 +750,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(acs);
             oos.close();
+            logger.fine("ArtistCrawler: Saved state with "+artistQueue.size()+" entries");
         } catch (IOException ex) {
             logger.warning("Can't save the state of the crawler " + ex);
         } finally {
@@ -1038,6 +1049,7 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
     protected int newCrawlPeriod;
 }
 
+
 /**
  * Represents an artist in the queue. The queue is sorted by inverse popularity
  * (highly popular artists move to the head of the queue).
@@ -1056,6 +1068,22 @@ class QueuedArtist implements Serializable {
     private int popularity;
 
     public QueuedArtist() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof QueuedArtist) {
+            return ((QueuedArtist)obj).getMBaid().equals(this.getMBaid());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + (this.lastArtist != null ? this.lastArtist.hashCode() : 0);
+        return hash;
     }
 
     /**
@@ -1105,7 +1133,6 @@ class QueuedArtist implements Serializable {
         return getPopularity() + "/" + getArtistName();
     }
 }
-
 /**
  * Represents the state of the crawler so it can be easily saved
  * and restored

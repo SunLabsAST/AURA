@@ -45,6 +45,7 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_LAST_FM_NAME =     "LISTENER_LAST_FM_NAME";
     public final static String FIELD_PANDORA_NAME =     "LISTENER_PANDORA_NAME";
     public final static String FIELD_LOCALE_COUNTRY =   "LISTENER_LOCALE_COUNTRY";
+    public final static String FIELD_CRAWLED_PLAY_HISTORY =   "FIELD_CRAWLED_PLAY_HISTORY";
     public final static String FIELD_ARTIST =           "LISTENER_ARTIST";
     public final static String FIELD_LAST_CRAWL =       "lastCrawl";
     public final static String FIELD_SOCIAL_TAGS =      Artist.FIELD_SOCIAL_TAGS;
@@ -61,6 +62,7 @@ public class Listener extends ItemAdapter {
             ds.defineField(FIELD_LAST_FM_NAME);
             ds.defineField(FIELD_PANDORA_NAME);
             ds.defineField(FIELD_LOCALE_COUNTRY);
+            ds.defineField(FIELD_CRAWLED_PLAY_HISTORY);
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_ARTIST, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_YOB, Item.FieldType.INTEGER, StoreFactory.INDEXED);
@@ -166,6 +168,19 @@ public class Listener extends ItemAdapter {
 
     public void clearFavoriteArtists() {
         clearTagMap(FIELD_ARTIST);
+    }
+
+    public void addCrawledPlayHistoryDate(long timestamp) {
+        appendToField(FIELD_CRAWLED_PLAY_HISTORY, String.valueOf(timestamp));
+    }
+
+    /**
+     * Verifies if we already crawled the play history for a certain week
+     * @param timestamp
+     * @return
+     */
+    public boolean crawledPlayHistory(long timestamp) {
+        return getFieldAsStringSet(FIELD_CRAWLED_PLAY_HISTORY).contains(String.valueOf(timestamp));
     }
 
     /**

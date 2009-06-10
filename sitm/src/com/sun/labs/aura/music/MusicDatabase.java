@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -181,6 +182,15 @@ public class MusicDatabase {
         Attention attention = StoreFactory.newAttention(listenerID, artistID,
                 Attention.Type.PLAYED, Long.valueOf(playCount));
         getDataStore().attend(attention);
+    }
+
+    public void addPlayAttentionsWithDetails(String listenerID, String artistID,
+            String details, int playCount, long timestamp) throws AuraException, RemoteException {
+        for (int i=0; i<playCount; i++) {
+            Attention attention = StoreFactory.newAttention(listenerID, artistID,
+                    Attention.Type.PLAYED, new Date(timestamp), Long.valueOf(playCount), details);
+            getDataStore().attend(attention);
+        }
     }
 
     public void addViewedAttention(String listenerID, String artistID) throws AuraException, RemoteException {

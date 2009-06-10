@@ -38,16 +38,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-/*
- * LastFM.java
- *
- * Created on Aug 27, 2007, 6:39:44 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
 /**
- *
+ * Wrapper for Last.fm API 1.0
  * @author plamere
  */
 public class LastFM {

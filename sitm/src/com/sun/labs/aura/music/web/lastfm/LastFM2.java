@@ -26,25 +26,40 @@ package com.sun.labs.aura.music.web.lastfm;
 
 import com.sun.labs.aura.music.web.Commander;
 import com.sun.labs.aura.music.web.XmlUtil;
+import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- *
+ * Wrapper for Last.fm API 2.0
  * @author plamere
  */
 public class LastFM2 {
 
-    private String API_KEY = "0d89e322b86fa8e4f68bf446e64b95fc";
+    private String API_KEY = null;
     private Commander commander;
 
-    public LastFM2() throws IOException {
+    public LastFM2() throws AuraException, IOException {
+
+        try {
+            Properties properties = new Properties();
+            properties.load(this.getClass().getClassLoader().getResourceAsStream("com/sun/labs/aura/music/resource/api.properties"));
+            API_KEY = properties.getProperty("LASTFM_API_KEY");
+        } catch (IOException ex) {
+            throw new AuraException("No Last.fm API key available. " +
+                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+        } catch (NullPointerException ex2) {
+            throw new AuraException("No Last.fm API key available. " +
+                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+        }
+
         commander = new Commander("last.fm", "http://ws.audioscrobbler.com/2.0/", "&api_key=" + API_KEY);
         commander.setRetries(1);
         commander.setTimeout(10000);
@@ -98,6 +113,38 @@ public class LastFM2 {
     public SocialTag[] getTrackTopTagsByMBID(String mbid) throws IOException {
         String url = getTrackTopTagsByMbidURL(mbid);
         return getTrackTopTagsFromLastFM(url);
+    }
+
+    /**
+     * Get a list of available charts for this user, expressed as date ranges
+     * which can be sent to the getWeeklyArtistChartByUser() function
+     * @param user lastfm username
+     * @return array where index 0 is the date range's lower bound and index 1 is it's upper bound
+     * @throws java.io.IOException
+     */
+    public ArrayList<Integer[]> getWeeklyChartListByUser(String user) throws IOException {
+        String url = getWeeklyChartListURL(user);
+        return getWeeklyChartListFromLastFM(url);
+    }
+
+    public List<LastItem> getWeeklyArtistChartByUser(String user) throws IOException {
+        return getWeeklyArtistChartByUser(user, 0, 0);
+    }
+
+    /**
+     * Get an artist chart for a user profile, for a given date range. If no date
+     * range is supplied, it will return the most recent artist chart for this user.
+     * Call getWeeklyChartListByUser() to get the list of available date ranges.
+     * 
+     * @param user lastfm username
+     * @param from The date at which the chart should start from in posix time
+     * @param to The date at which the chart should end on in posix time
+     * @return Map mbid->playcount
+     * @throws java.io.IOException
+     */
+    public List<LastItem> getWeeklyArtistChartByUser(String user, int from, int to) throws IOException {
+        String url = getWeeklyArtistChartURL(user, from, to);
+        return getWeeklyArtistChartFromLastFM(url);
     }
 
     private LastArtist2 getArtistInfoFromLastFM(String url) throws IOException {
@@ -210,6 +257,57 @@ public class LastFM2 {
             }
         }
         return album;
+    }
+
+    private ArrayList<Integer[]> getWeeklyChartListFromLastFM(String url) throws IOException {
+        ArrayList<Integer[]> chartList = new ArrayList<Integer[]>();
+        Document doc = commander.sendCommand(url);
+
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element weekChartListNode = (Element) XmlUtil.getDescendent(docElement, "weeklychartlist");
+        List<Node> chartNodes = XmlUtil.getDescendents(weekChartListNode, "chart");
+
+        if (chartNodes != null) {
+            for (int i=0; i<chartNodes.size(); i++) {
+                Element chart = (Element) chartNodes.get(i);
+                try {
+                    Integer[] chartArray = new Integer[2];
+                    chartArray[0] = Integer.parseInt(chart.getAttribute("from"));
+                    chartArray[1] = Integer.parseInt(chart.getAttribute("to"));
+
+                    chartList.add(chartArray);
+                } catch (NumberFormatException e) {}
+            }
+        }
+        return chartList;
+    }
+
+    private List<LastItem> getWeeklyArtistChartFromLastFM(String url) throws IOException {
+        List<LastItem> artistChart = new ArrayList<LastItem>();
+        Document doc = commander.sendCommand(url);
+
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element weekArtistChartNode = (Element) XmlUtil.getDescendent(docElement, "weeklyartistchart");
+        List<Node> artistsNodes = XmlUtil.getDescendents(weekArtistChartNode, "artist");
+        if (artistsNodes != null) {
+            for (int i=0; i<artistsNodes.size(); i++) {
+                try {
+                    Element artist = (Element) artistsNodes.get(i);
+
+                    String mbid = XmlUtil.getElementContents(artist, "mbid");
+                    if (mbid.length()>0) {
+                        artistChart.add(new LastItem(XmlUtil.getElementContents(artist, "name"),
+                                XmlUtil.getElementContents(artist, "mbid"),
+                                XmlUtil.getElementContentsAsInteger(artist, "playcount")));
+                    }
+                } catch (NumberFormatException e) {}
+            }
+        }
+        return artistChart;
     }
 
     private LastTrack getTrackInfoFromLastFM(String url) throws IOException {
@@ -335,6 +433,18 @@ public class LastFM2 {
         return "?method=track.getinfo&mbid=" + mbid;
     }
 
+    private String getWeeklyChartListURL(String user) {
+        return "?method=user.getweeklychartlist&user=" + user;
+    }
+
+    private String getWeeklyArtistChartURL(String user, int from, int to) {
+        String url = "?method=user.getweeklyartistchart&user=" + user;
+        if (from>0 && to>0) {
+            url += "&from=" + from + "&to=" + to;
+        }
+        return url;
+    }
+
     private String getTrackInfoByNameURL(String artistName, String trackName) {
         String encodedArtistName = encodeName(artistName);
         String encodedTrackName = encodeName(trackName);
@@ -360,8 +470,6 @@ public class LastFM2 {
     private String encodeName(String artistName) {
         try {
             String encodedName = URLEncoder.encode(artistName, "UTF-8");
-            // lastfm double encodes things (Crazy!)
-            //  encodedName = URLEncoder.encode(encodedName, "UTF-8");
             return encodedName;
         } catch (UnsupportedEncodingException e) {
             return "";
@@ -379,7 +487,25 @@ public class LastFM2 {
         return i;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, AuraException {
+        LastFM2 lfm2 = new LastFM2();
+
+        ArrayList<Integer[]> c = lfm2.getWeeklyChartListByUser("ddcarnage");
+        int cnt=0;
+        for (Integer[] i : c) {
+            System.out.println(i[0]+"->"+i[1]);
+
+            List<LastItem> m = lfm2.getWeeklyArtistChartByUser("ddcarnage", i[0], i[1]);
+            for (LastItem lI : m) {
+                System.out.println("  "+lI.getName()+" ("+lI.getMBID()+")->"+lI.getFreq());
+            }
+            if (cnt++>=2) {
+                break;
+            }
+        }
+    }
+
+    public static void main2(String[] args) throws IOException, AuraException {
         LastFM2 lfm2 = new LastFM2();
 
         if (false) { // artist test

@@ -82,7 +82,7 @@
         <property name="partitionCluster" value="partitionCluster0"/>
         <property name="cacheSizeMemPercentage" value="30"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="WARNING"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
@@ -93,7 +93,7 @@
         <property name="partitionCluster" value="partitionCluster1"/>
         <property name="cacheSizeMemPercentage" value="30"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="WARNING"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -142,7 +142,8 @@
 
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
         <property name="dataStore" value="dataStoreHead"/>
-        <property name="logLevel" value="INFO"/>
+        <property name="artistCrawler" value="artistCrawler"/>
+        <property name="logLevel" value="FINE"/>
         <property name="defaultPeriod" value="604800"/>
     </component>
 

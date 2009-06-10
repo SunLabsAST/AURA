@@ -70,6 +70,8 @@ public class CommandRunner {
             }
             if (c.getException() != null) {
                 trace(c, "exception");
+                System.out.println("exception running " + c.getName());
+                c.getException().printStackTrace();
                 throw new Exception("while running " + c.getName(), c.getException());
             }
         }

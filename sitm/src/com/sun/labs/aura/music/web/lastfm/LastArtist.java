@@ -50,4 +50,9 @@ public class LastArtist implements Serializable {
         return mbaid;
     }
 
+    @Override
+    public int hashCode() {
+        return mbaid.hashCode();
+    }
+
 }

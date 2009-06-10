@@ -26,6 +26,7 @@ package com.sun.labs.aura.music.web.echonest;
 
 import com.sun.labs.aura.music.web.Commander;
 import com.sun.labs.aura.music.web.XmlUtil;
+import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,10 +48,23 @@ import org.w3c.dom.NodeList;
 public class EchoNest {
 
     private Commander commander;
-    private String API_KEY = "EHY4JJEGIOFA1RCJP";
+    private String API_KEY = null;
     private final static int MAX_ROWS = 15;
 
-    public EchoNest() throws IOException {
+    public EchoNest() throws IOException, AuraException {
+
+        try {
+            Properties properties = new Properties();
+            properties.load(this.getClass().getClassLoader().getResourceAsStream("com/sun/labs/aura/music/resource/api.properties"));
+            API_KEY = properties.getProperty("ECHONEST_API_KEY");
+        } catch (IOException ex) {
+            throw new AuraException("No EchoNest API key available. " +
+                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+        } catch (NullPointerException ex2) {
+            throw new AuraException("No EchoNest API key available. " +
+                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+        }
+
         commander = new Commander("EchoNest", "http://developer.echonest.com/api/", "&api_key=" + API_KEY);
         commander.setRetries(0);
         commander.setTimeout(10000);
@@ -297,7 +312,7 @@ public class EchoNest {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, AuraException {
         EchoNest echoNest = new EchoNest();
         echoNest.crawl("echocrawl.txt");
     //dump(echoNest, "11eabe0c-2638-4808-92f9-1dbd9c453429");
