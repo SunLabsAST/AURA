@@ -89,6 +89,8 @@ public class ArticleFactory extends DefaultHandler {
             art.setByline(chars.toString());
         } else if(qName.equals("p")) {
             pars.append(chars.toString());
+        } else if(qName.equals("text")) {
+            art.setText(pars.toString());
         }
     }
 

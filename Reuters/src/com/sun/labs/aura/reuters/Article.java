@@ -26,21 +26,27 @@ public class Article extends ItemAdapter implements Serializable {
 
     public static final String FIELD_TEXT = "text";
 
-    public static final String FIELD_COUNTRIES = "countries";
+    public static final String FIELD_COUNTRIES = "country";
 
-    public static final String FIELD_INDUSTRIES = "industries";
+    public static final String FIELD_INDUSTRIES = "industry";
 
-    public static final String FIELD_TOPICS = "topics";
+    public static final String FIELD_TOPICS = "topic";
 
     public static final String FIELD_PUBLISHED = "published";
 
     public static final String FIELD_COUNTRY = "country";
 
     public static final String[] INDEXED_FIELDS = {
-        FIELD_ITEM_ID, FIELD_TITLE, FIELD_HEADLINE,
-        FIELD_BYLINE, FIELD_TEXT, FIELD_COUNTRIES,
+        FIELD_ITEM_ID, FIELD_COUNTRIES,
         FIELD_INDUSTRIES, FIELD_TOPICS, 
         FIELD_COUNTRY
+    };
+
+    public static final String[] TOKENIZED_FIELDS = {
+        FIELD_TITLE,
+        FIELD_HEADLINE,
+        FIELD_BYLINE,
+        FIELD_TEXT
     };
 
     public static Logger logger = Logger.getLogger(Article.class.getName());
@@ -99,9 +105,20 @@ public class Article extends ItemAdapter implements Serializable {
             for(String field : INDEXED_FIELDS) {
                 ds.defineField(field, FieldType.STRING, StoreFactory.INDEXED);
             }
+            for(String field : TOKENIZED_FIELDS) {
+                ds.defineField(field, FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
+            }
             ds.defineField(FIELD_PUBLISHED, FieldType.DATE, null);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining article fields", ex);
         }
+    }
+
+    public void setText(String text) {
+        setField(FIELD_TEXT, text);
+    }
+
+    public String getText() {
+        return getFieldAsString(FIELD_TEXT);
     }
 }

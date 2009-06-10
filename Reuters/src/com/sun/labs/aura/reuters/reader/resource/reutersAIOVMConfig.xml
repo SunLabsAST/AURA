@@ -103,7 +103,12 @@
     <component name="articleImporter" type="com.sun.labs.aura.reuters.reader.Import">
         <property name="dataStore" value="dataStoreHead"/>
     </component>
-    
+
+    <component name="shell" type="com.sun.labs.aura.reuters.util.ReutersShell">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
+    </component>
+
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>dataStoreHead</item>
@@ -114,6 +119,19 @@
             <item>replicant1</item>
             <item>statService</item>
             <item>articleImporter</item>
+        </propertylist>
+    </component>
+
+    <component name="sshell" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>processManager</item>
+            <item>partitionCluster0</item>
+            <item>partitionCluster1</item>
+            <item>replicant0</item>
+            <item>replicant1</item>
+            <item>statService</item>
+            <item>shell</item>
         </propertylist>
     </component>
 
