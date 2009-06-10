@@ -46,7 +46,8 @@ public interface Item extends Serializable, Iterable<Map.Entry<String,Serializab
         EVENT,
         VENUE,
         ARTIST_TAG,
-        TAG_CLOUD
+        TAG_CLOUD,
+        ARTICLE
     }
     
     /**
