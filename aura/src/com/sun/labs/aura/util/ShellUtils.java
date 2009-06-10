@@ -36,6 +36,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
+import com.sun.labs.minion.util.Util;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import java.rmi.RemoteException;
@@ -58,6 +59,29 @@ public class ShellUtils {
     
     private double skimPercentage = 0.25;
 
+    private String[] displayFields;
+
+    private String displayFormat;
+
+    private Object[] displayVals;
+
+    public String[] getDisplayFields() {
+        return displayFields;
+    }
+
+    public void setDisplayFields(String[] displayFields) {
+        this.displayFields = displayFields;
+        displayVals = new Object[displayFields.length];
+    }
+
+    public String getDisplayFormat() {
+        return displayFormat;
+    }
+
+    public void setDisplayFormat(String displayFormat) {
+        this.displayFormat = displayFormat;
+    }
+
     /**
      * Adds aura specific commands to the shell
      * @param shell the shell of interest
@@ -68,6 +92,38 @@ public class ShellUtils {
             StatService aStatService) {
         this.dataStore = aDataStore;
         this.statService = aStatService;
+        setDisplayFields(new String[] {"_score", "aura-type", "aura-key"});
+        setDisplayFormat(" %.3s %s %s\n");
+        shell.add("displayFields",
+                new CommandInterface() {
+
+            @Override
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String[] fields = new String[args.length-1];
+                System.arraycopy(args, 1, fields, 0, fields.length);
+                setDisplayFields(fields);
+                return "";
+            }
+
+            @Override
+            public String getHelp() {
+                return "Space separated list of field names to display for items";
+            }
+        });
+
+        shell.add("displayFormat", new CommandInterface() {
+
+            @Override
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                setDisplayFormat(args[1]);
+                return "";
+            }
+
+            @Override
+            public String getHelp() {
+                return "Set the format string to use when displaying field values";
+            }
+        });
 
         shell.add("setN",
                 new CommandInterface() {
@@ -721,8 +777,11 @@ public class ShellUtils {
 
     public void dumpScoredItems(List<Scored<Item>> items) {
         for(Scored<Item> item : items) {
-            System.out.printf("%.3f ", item.getScore());
-            dumpItem(item.getItem());
+            try {
+                dumpScoredItem(item);
+            } catch(Exception ex) {
+                System.out.printf("Error dumping item %s\n", ex);
+            }
         }
     }
 
@@ -768,8 +827,18 @@ public class ShellUtils {
         if(scoredItem == null) {
             System.out.println("null");
         } else {
-            System.out.printf(" %.0f %s\n", scoredItem.getScore(),
-                    scoredItem.getItem().getKey());
+
+            for(int i = 0; i < displayFields.length; i++) {
+                String field = displayFields[i];
+                if(field.equals("_score")) {
+                    displayVals[i] = scoredItem.getScore();
+                } else if(field.equals("aura-key")) {
+                    displayVals[i] = scoredItem.getItem().getKey();
+                } else {
+                    displayVals[i] = scoredItem.getItem().getField(field);
+                }
+            }
+            System.out.printf(displayFormat, displayVals);
         }
     }
 

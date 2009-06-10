@@ -334,7 +334,7 @@ public abstract class ItemAdapter implements Serializable {
     /**
      * Sets the named field to the given value. If the new value is different
      * than the previous value, then this item is considered to be modified.
-     * @param name the name of the field
+     * @param fieldName the name of the field
      * @param value the new value.
      */
     protected void setField(String fieldName, long value) {
