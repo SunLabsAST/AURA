@@ -27,9 +27,12 @@ package com.sun.labs.aura.fb;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.fb.util.ExpiringLRACache;
 import com.sun.labs.aura.fb.util.Util;
+import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.MusicDatabase;
+import com.sun.labs.aura.music.MusicDatabase.Popularity;
+import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
@@ -41,7 +44,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,6 +65,31 @@ public class DataManager {
         this.mdb = mdb;
         nameToArtist = new ExpiringLRACache<String,Artist>(1000, 6 * 60 * 60 * 1000);
         artistsToCloud = new ExpiringLRACache<String,ItemInfo[]>(1000,  6 * 60 * 60 * 1000);
+    }
+
+    public List<Scored<Artist>> getSimilarArtists(List<String> artistKeys,
+                                          int count, Popularity popularity) {
+        List<Scored<Artist>> ret = null;
+        try {
+            List<Scored<Artist>> results = mdb.artistFindSimilar(artistKeys, count + artistKeys.size(), popularity);
+            //
+            // We need to manually filter out the original artists
+            ret = new ArrayList<Scored<Artist>>();
+            for (Scored<Artist> sa : results) {
+                Artist a = sa.getItem();
+                if (!artistKeys.contains(a.getKey())) {
+                    ret.add(sa);
+                }
+            }
+            if (ret.size() > count) {
+                ret = ret.subList(0, count);
+            }
+        } catch (AuraException e) {
+            logger.log(Level.WARNING, "Failed to get similar artists", e);
+            return new ArrayList<Scored<Artist>>();
+        }
+        sortByArtistPopularity(ret);
+        return ret;
     }
 
     public Artist guessArtist(String artistName) {
@@ -245,6 +272,35 @@ public class DataManager {
         return infos.toArray(new ItemInfo[0]);
     }
 
+    /**
+     * Get the URL for a thumbnail of the provided artist.
+     * 
+     * @param a the artist
+     * @return a thumbnail URL or null if we couldn't get one
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public String getThumbnailImageURL(Artist a) throws AuraException {
+        String url = null;
+
+        if (url == null) {
+            Set<String> photoIDs = a.getPhotos();
+            if (photoIDs.size() > 0) {
+                String[] ids = photoIDs.toArray(new String[photoIDs.size()]);
+                url = Photo.idToThumbnail(ids[0]);
+            }
+        }
+
+        if (url == null) {
+            Set<String> albumIDs = a.getAlbums();
+            if (albumIDs.size() > 0) {
+                String[] ids = albumIDs.toArray(new String[albumIDs.size()]);
+                Album album = mdb.albumLookup(ids[0]);
+                url = album.getAlbumArt();
+            }
+        }
+        return url;
+    }
+
     private Set<String> getNameSet(ItemInfo[] itemInfo) {
         Set<String> set = new HashSet<String>();
         for (int i = 0; i < itemInfo.length; i++) {
@@ -263,4 +319,23 @@ public class DataManager {
         return com.sun.labs.minion.util.Util.levenshteinDistance(str1, str2);
     }
 
+    private void sortByArtistPopularity(List<Scored<Artist>> scoredArtists) {
+        Collections.sort(scoredArtists, new ArtistPopularitySorter());
+        Collections.reverse(scoredArtists);
+    }
+
+    class ArtistPopularitySorter implements Comparator<Scored<Artist>> {
+
+        public int compare(Scored<Artist> o1, Scored<Artist> o2) {
+            double s1 = o1.getItem().getPopularity();
+            double s2 = o2.getItem().getPopularity();
+            if (s1 > s2) {
+                return 1;
+            } else if (s1 < s2) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
 }

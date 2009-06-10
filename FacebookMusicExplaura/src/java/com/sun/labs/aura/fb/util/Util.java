@@ -25,6 +25,7 @@
 package com.sun.labs.aura.fb.util;
 
 import com.sun.labs.aura.fb.ItemInfo;
+import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.util.Scored;
 import java.io.StringWriter;
 import java.text.DecimalFormat;
@@ -69,12 +70,17 @@ public class Util {
         return context;
     }
 
-    public static String getWMELink(ItemInfo[] tags) {
+    public static String getWMECloudLink(ItemInfo[] tags) {
         String url = "http://music.tastekeeper.com/#steering:cloud:";
         for (ItemInfo tag : tags) {
             url += "(" + tag.getItemName() + "," +
                     scoreFormat.format(tag.getScore()) + ")";
         }
+        return url;
+    }
+
+    public static String getWMEArtistLink(Artist a) {
+        String url = "http://music.tastekeeper.com/#artist:" + a.getKey();
         return url;
     }
 

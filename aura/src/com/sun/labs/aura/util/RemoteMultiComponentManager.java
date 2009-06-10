@@ -63,6 +63,9 @@ public class RemoteMultiComponentManager extends RemoteComponentManager {
             getComponents();
         }
         synchronized(this) {
+            if (components.length == 0) {
+                throw new AuraException("Failed to find any matching components");
+            }
             p %= components.length;
             return components[p++];
         }

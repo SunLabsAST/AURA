@@ -26,6 +26,10 @@
     white-space: nowrap;
 }
 
+.fakeTabCurrDisabled {
+    color: #bbbbbb;
+}
+
 .fakeTab {
     background-color: #d8dfea;
     color: #3b5998;
@@ -52,6 +56,19 @@
     color: #ffffff;
 }
 
+.fakeTabDisabled {
+    color: #bbbbbb;
+}
+
+.fakeTabDisabled:hover {
+    background-color: #d8dfea;
+    border-top: 1px solid #d8dfea;
+    border-right: 1px solid #d8dfea;
+    border-left: 1px solid #d8dfea;
+    border-bottom-width: 0pt;
+    color: #bbbbbb;
+}
+
 .controlBtn {
     border: 1px solid #7f93bc;
     padding: 3px 15px 3px 15px;
@@ -67,11 +84,47 @@
     border: 1px solid #d8dfea;
     width: 600px;
     padding: 4px;
-    margin-top: 12px;
     margin-left: auto;
     margin-right: auto;
     color: #888888;
     text-align: center;
+}
+
+.topMargin {
+    margin-top: 12px;
+}
+
+.similarScrollWidget {
+    border: 1px solid #7f93bc;
+    height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 7px;
+}
+
+.similarResultsWidget {
+    border: 1px solid #7f93bc;
+    height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 7px;
+}
+
+.checkBoxLabel {
+    vertical-align: middle;
+}
+
+.altBackground {
+    background-color: #d8dfea;
+}
+
+.similarBandBox {
+    padding: 3px;
+    margin: 5px;
+    text-align: center;
+    display: inline-block;
+    width: 82px;
+    vertical-align: top;
 }
 
 </style>
@@ -89,6 +142,7 @@ To explore bands and get customized recommendations, visit the full
 <!-- The "tabs" -->
 <div style="border-bottom: 1px solid #d8dfea; padding-bottom:3px; padding-left:10px;">
     <span class="fakeTabCurr" id="cloudTab">My Cloud</span>&nbsp;
+    <span class="fakeTab" id="similarTab">Similar</span>&nbsp;
     <span class="fakeTab" id="compareTab">Compare</span>&nbsp;
     <span class="fakeTab" id="shareTab">Share</span>
 </div>
@@ -136,7 +190,7 @@ To explore bands and get customized recommendations, visit the full
         <span class="controlBtn" id="seeOtherBtn">See Cloud</span>
         </td></tr></table>
     </form>
-    <div id="compareResults">
+    <div id="compareResults" style="min-height: 175px">
     </div>
 </fb:js-string>
 
@@ -158,16 +212,40 @@ To explore bands and get customized recommendations, visit the full
     </fb:request-form>
 </fb:js-string>
 
+<fb:js-string var="similarWidget">
+    <form id="similarSelector">
+        <table>
+        <tr><td colspan="2" width="80%">
+            <div class="infoText">Check band names on the left to see similar bands
+            on the right.  Tags for each selected band are combined to create the
+            similar band list.  Selecting too many may not be a great idea.
+            Click band names to explore further.</div></td></tr>
+        <tr>
+        <td width="25%">
+            <div class="similarScrollWidget" id="similarCheckList"></div>
+        </td>
+        <td width="75%">
+            <div class="similarResultsWidget" id="similarResults"></div>
+        </td>
+        </tr>
+        <tr>
+        <td><span class="controlBtn" id="similarGoBtn">Show Similar Bands</span></td>
+        </tr>
+        </table>
+    </form>
+</fb:js-string>
+
 <script type="text/javascript">
 <!--
     var server = "${server}";
     var canvasPath = "${server}/canvas";
     var fbSession = "${fbSession}";
     var fbUID = "${fbUID}";
-    
-    var artistIDs = [];
-    <c:forEach items="${artists}" var="artist" varStatus="loop">
-        artistIDs[${loop.index}] = "${artist.key}";
+
+    var artistItems = [];
+    <c:forEach items="${artistItems}" var="artist" varStatus="loop">
+        artistItems[${loop.index}] = {name : "${artist.name}",
+                                      key : "${artist.key}"};
     </c:forEach>
 
     //
@@ -183,12 +261,33 @@ To explore bands and get customized recommendations, visit the full
     }
 
     //
+    // This ridiculous function exists because its scope will preserve the
+    // tagname parameter when the anonymous inner function here is given
+    // to an event handler.
+    function getLaunchWmeForTag(tagName) {
+        return function () {
+            //
+            // We want to do this:
+            //window.open("http://music.tastekeeper.com/#tag:artist-tag:" + tagName,
+            //            "wme");
+            // but we can't because of facebook, so instead we need to do this:
+            var f = document.createElement("form");
+            f.setTarget("wme");
+            f.setMethod("get");
+            f.setAction("http://music.tastekeeper.com/#tag:" + tagName);
+            main.appendChild(f);
+            f.submit();
+        };
+    }
+
+    //
     // Creates the DOM that represents a cloud from cloud JSON data
     function getDOMForCloud(cloudData, cloudDesc) {
         var cloud = document.createElement("div");
         for (var i=0; i < cloudData.length; i++) {
             var curr = document.createElement("span");
             curr.setTextValue(cloudData[i].name + " ");
+            curr.setStyle("cursor", "pointer");
             var size = cloudData[i].size;
             var orange = '#f8981d';
             var blue = '#5382a1';
@@ -205,6 +304,10 @@ To explore bands and get customized recommendations, visit the full
             } else {
                 curr.setStyle({'fontSize': fontsize, 'color': blue});
             }
+
+            //
+            // Make a clickable link to the WME
+            curr.addEventListener('click', getLaunchWmeForTag(cloudData[i].key));
             cloud.appendChild(curr);
         }
 
@@ -214,6 +317,7 @@ To explore bands and get customized recommendations, visit the full
             var desc = document.createElement("div");
             desc.setTextValue(cloudDesc);
             desc.setClassName("infoText");
+            desc.addClassName("topMargin");
             var container = document.createElement("div");
             container.appendChild(cloud);
             container.appendChild(desc);
@@ -230,6 +334,7 @@ To explore bands and get customized recommendations, visit the full
         var status = data.shift();
         if (status.error != null) {
             showDialog("Oops", status.error);
+            enableTabs();
             return;
         }
 
@@ -251,6 +356,7 @@ To explore bands and get customized recommendations, visit the full
         // Put in the add-to-profile button if relevant
         var profile = document.getElementById("addToProfileArea");
         profile.setInnerFBML(status.fbml_profile);
+        enableTabs();
     }
 
     function displayCompareCallback(data) {
@@ -274,6 +380,7 @@ To explore bands and get customized recommendations, visit the full
             var inv = document.getElementById("inviteArea");
             inv.setInnerFBML(status.fbml_invite);
         }
+        enableTabs();
     }
 
     function displayFriendCloudCallback(data) {
@@ -295,6 +402,45 @@ To explore bands and get customized recommendations, visit the full
             var inv = document.getElementById("inviteArea");
             inv.setInnerFBML(status.fbml_invite);
         }
+        enableTabs();
+    }
+
+    function displaySimilarCallback(data) {
+        var thediv = document.getElementById("similarResults");
+        clearDiv(thediv);
+
+        //
+        // Check for an error
+        var status = data.shift();
+        if (status.error != null) {
+            showDialog("Oops", status.error);
+            clearDiv(thediv);
+            enableTabs();
+            return;
+        }
+
+        //
+        // Display the results.  second arg is an array of artist objects
+        var artists = data.shift();
+        for (var i =0; i < artists.length; i++) {
+            var artist = artists[i];
+            var box = document.createElement("div");
+            box.setClassName("similarBandBox");
+            var link = document.createElement("a");
+            link.setHref(artist.wmeLink);
+            link.setTarget("wme");
+            var thumb = document.createElement("img");
+            thumb.setSrc(artist.thumbURL);
+            thumb.setStyle({width : '75px', height : '75px'});
+            link.appendChild(thumb);
+            link.appendChild(document.createElement("br"));
+            var text = document.createElement("span");
+            text.setTextValue(artist.name);
+            link.appendChild(text);
+            box.appendChild(link);
+            thediv.appendChild(box);
+        }
+        enableTabs();
     }
 
     function showDialog(title, msg) {
@@ -311,8 +457,10 @@ To explore bands and get customized recommendations, visit the full
     function switchToLoader(thediv) {
         clearDiv(thediv);
         var loader = document.createElement("img");
+        var top = Math.round((thediv.getClientHeight() / 2) - 16);
+        var left = Math.round((thediv.getClientWidth() / 2) - 16);
         loader.setSrc(server + "/image/loader.gif");
-        loader.setStyle({'position': 'relative', 'top': '90px', 'left': '340px'});
+        loader.setStyle({'position': 'relative', 'top': top + "px", 'left': left + "px"});
         thediv.appendChild(loader);
     }
 
@@ -351,11 +499,61 @@ To explore bands and get customized recommendations, visit the full
         main.setInnerFBML(shareWidget);
     }
 
+    function similarTabClicked() {
+        //
+        // Switch the "selected" tab
+        setSelectedTab(similarTab);
+
+        //
+        // Fill in the tab content.  Create a list of bands and check
+        // boxes, and a panel to show results.
+        main.setInnerFBML(similarWidget);
+        var listDiv = document.getElementById('similarCheckList');
+        clearDiv(listDiv);
+        var table = document.createElement("table");
+        table.setStyle('borderSpacing', "0");
+        for (var i = 0; i < artistItems.length; i++) {
+            var row = document.createElement("tr");
+            if (i % 2 == 1) {
+                row.addClassName("altBackground");
+            }
+            var cell = document.createElement("td");
+            cell.setStyle('verticalAlign', 'middle');
+            var cb = document.createElement("input");
+            cb.setType("checkbox");
+            cb.setName("similarCheckBoxes");
+            cb.setId("scb-" + i);
+            cb.setValue(i);
+            if (i == 0) {
+                cb.setChecked("true");
+            }
+            cell.appendChild(cb);
+            row.appendChild(cell);
+            cell = document.createElement("td");
+            var text = document.createElement("a").setTextValue(artistItems[i].name);
+            text.setHref("http://music.tastekeeper.com/#artist:" + artistItems[i].key);
+            text.setTarget("wme");
+            cell.appendChild(text);
+            row.appendChild(cell);
+            table.appendChild(row);
+        }
+        listDiv.appendChild(table);
+
+        var btn = document.getElementById('similarGoBtn');
+        btn.addEventListener('click', fetchAndShowSimilar);
+
+        //
+        // If we have any artists, send the request to get similar artists
+        if (artistItems.length > 0) {
+            fetchAndShowSimilar();
+        }
+    }
+
+
     function setSelectedTab(selectedTab) {
-        cloudTab.setClassName("fakeTab");
-        compareTab.setClassName("fakeTab");
-        shareTab.setClassName("fakeTab");
+        currentTab.setClassName("fakeTab");
         selectedTab.setClassName("fakeTabCurr");
+        currentTab = selectedTab;
 
         //
         // Clear the main and invite areas
@@ -372,10 +570,81 @@ To explore bands and get customized recommendations, visit the full
         clearDiv(wmeLink);
     }
 
+    function enableTabs() {
+        cloudTab.addEventListener('click', cloudTabClicked);
+        cloudTab.removeClassName("fakeTabDisabled");
+        compareTab.addEventListener('click', compareTabClicked);
+        compareTab.removeClassName("fakeTabDisabled");
+        shareTab.addEventListener('click', shareTabClicked);
+        shareTab.removeClassName("fakeTabDisabled");
+        similarTab.addEventListener('click', similarTabClicked);
+        similarTab.removeClassName("fakeTabDisabled");
+
+        currentTab.removeClassName("fakeTabCurrDisabled");
+    }
+
+    function disableTabs() {
+        cloudTab.removeEventListener('click', cloudTabClicked);
+        cloudTab.addClassName("fakeTabDisabled")
+        compareTab.removeEventListener('click', compareTabClicked);
+        compareTab.addClassName("fakeTabDisabled")
+        shareTab.removeEventListener('click', shareTabClicked);
+        shareTab.addClassName("fakeTabDisabled")
+        similarTab.removeEventListener('click', similarTabClicked);
+        similarTab.addClassName("fakeTabDisabled")
+
+        currentTab.removeClassName("fakeTabDisabled");
+        currentTab.addClassName("fakeTabCurrDisabled");
+    }
+
     function ajaxError() {
         var thediv = document.getElementById('mainSection');
         clearDiv(thediv);
         showDialog("Error", "Sorry, an error has occurred.  Please try again later.");
+        enableTabs();
+    }
+
+    /*
+     * Fetch the bands similar to the checked bands and show then in the
+     * appropriate region as links to the WME
+     */
+    function fetchAndShowSimilar() {
+        disableTabs();
+        //
+        // Get the selected bands.  There should be a checkbox for each artist.
+        // Iterate to check the value for each one.
+        var ids = [];
+        for (var i = 0; i < artistItems.length; i++) {
+            var checkbox = document.getElementById("scb-" + i);
+            if (checkbox.getChecked() == true) {
+                ids.push(artistItems[i].key);
+            }
+        }
+
+        //
+        // Make sure we got at least one band
+        if (ids.length == 0) {
+            showDialog("Error", "Please select at least one band from the left column");
+            return;
+        }
+
+        //
+        // Clear the results panel and set it to loading
+        var res = document.getElementById("similarResults");
+        switchToLoader(res);
+
+        //
+        // Make the AJAX call
+        var ajax = new Ajax();
+        ajax.responseType = Ajax.JSON;
+        ajax.ondone = displaySimilarCallback;
+        ajax.onerror = function() {
+            var thediv = document.getElementById('similarResults');
+            clearDiv(thediv);
+            showDialog("Error", "Sorry, an error has occurred.  Please try again later.");
+        };
+        var query = {'artists' : ids.join("+")};
+        ajax.post(canvasPath + "/ajax/getSimilarBands", query);
     }
 
     /*
@@ -383,6 +652,7 @@ To explore bands and get customized recommendations, visit the full
      * friend.
      */
     function fetchAndShowCompare(friendID) {
+        disableTabs();
         //
         // Clear the invite area
         var inv = document.getElementById("inviteArea");
@@ -411,6 +681,7 @@ To explore bands and get customized recommendations, visit the full
      * Shows a cloud for the logged-in user and updates their profile FBML
      */
     function fetchAndShowCloud() {
+        disableTabs();
         var ajax = new Ajax();
         ajax.responseType = Ajax.JSON;
         ajax.ondone = displayCloudCallback;
@@ -425,6 +696,7 @@ To explore bands and get customized recommendations, visit the full
      * friend's musical tastes
      */
     function fetchAndShowFriendCloud() {
+        disableTabs();
         //
         // Clear the invite area
         var inv = document.getElementById("inviteArea");
@@ -451,13 +723,11 @@ To explore bands and get customized recommendations, visit the full
     //
     // Get handles to each of the "tab" objects
     var cloudTab = document.getElementById("cloudTab");
-    cloudTab.addEventListener('click', cloudTabClicked);
-
     var compareTab = document.getElementById("compareTab");
-    compareTab.addEventListener('click', compareTabClicked);
-
     var shareTab = document.getElementById("shareTab");
-    shareTab.addEventListener('click', shareTabClicked);
+    var similarTab = document.getElementById("similarTab");
+
+    var currentTab = cloudTab;
 
     <c:if test="${compareTo != null}">
     //

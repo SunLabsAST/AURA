@@ -31,6 +31,9 @@ import com.google.code.facebookapi.FacebookWebappHelper;
 import com.google.code.facebookapi.ProfileField;
 import com.sun.labs.aura.fb.util.ExpiringLRACache;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.MusicDatabase.Popularity;
+import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -121,9 +124,16 @@ public class Canvas extends HttpServlet {
                 request.setAttribute("fbSession", fbSession);
                 request.setAttribute("fbUID", uid);
                 request.setAttribute("friendAppUsers", currUser.getFriendAppUserIds());
+
+                //
+                // Put the recognized artists and artist IDs into the page for
+                // rendering the "Related" (recommendations) tab.
+                List<Artist> artistItems = getArtistsForUser(dm, currUser);
+                request.setAttribute("artistItems", artistItems);
             } catch (FacebookException e) {
 
             }
+
             
             RequestDispatcher dispatcher = request.getRequestDispatcher("/canvas/main.jsp");
             dispatcher.forward(request, response);
@@ -186,69 +196,7 @@ public class Canvas extends HttpServlet {
             // Build and update the user's cloud in their profile
             FacebookJsonRestClient client =
                     new FacebookJsonRestClient(apiKey, secretKey, fbSession);
-            try {
-                DocumentBuilder db = DocumentBuilderFactory.newInstance().
-                        newDocumentBuilder();
-                Document doc = db.newDocument();
-                DocumentFragment frag = doc.createDocumentFragment();
-                //
-                // Draw the cloud
-                Element cloudDiv = doc.createElement("div");
-                for (int i = 0; i < cloud.length; i++) {
-                    ItemInfo item = cloud[i];
-                    Element span = doc.createElement("span");
-                    String color = (i % 2 == 0) ? "#f8981d" : "#5382a1";
-                    span.setAttribute("style",
-                            "color: " + color +
-                                "; font-size: "
-                                + Math.round(
-                                          (item.getScore() * 3.0 + 1) * 8)
-                                + "px;");
-                    span.appendChild(
-                            doc.createTextNode(item.getItemName()));
-                    cloudDiv.appendChild(span);
-                    cloudDiv.appendChild(
-                            doc.createTextNode(" "));
-                }
-                frag.appendChild(cloudDiv);
-                //
-                // Add some links
-                Element launch = doc.createElement("a");
-                launch.setAttribute("href",
-                        "http://apps.facebook.com/musicexplaura");
-                launch.setTextContent("Launch");
-                Element compare = doc.createElement("a");
-                compare.setAttribute("href",
-                        "http://apps.facebook.com/musicexplaura/?compareTo=" +
-                        client.users_getLoggedInUser());
-                compare.setTextContent("Compare");
-                Element ldata = doc.createElement("td");
-                ldata.appendChild(launch);
-                ldata.setAttribute("style", "text-align: center;");
-                Element tdata = doc.createElement("td");
-                tdata.appendChild(compare);
-                tdata.setAttribute("style", "text-align: center;");
-                Element row = doc.createElement("tr");
-                row.appendChild(ldata).appendChild(tdata);
-                Element table = doc.createElement("table");
-                table.appendChild(row);
-                table.setAttribute("style", "width: 100%; text-align: center;");
-                Element buttons = doc.createElement("div");
-                buttons.setAttribute("style", "margin-top: 4px; border: 1px solid #d8dfea;");
-                buttons.appendChild(table);
-                frag.appendChild(buttons);
-
-                String fbml = Util.xmlToString(frag);
-                
-                if (!client.profile_setFBML(null, fbml, null, null, fbml)) {
-                    logger.info("failed to set profile FBML to " + fbml);
-                }
-            } catch (ParserConfigurationException e) {
-                logger.log(Level.WARNING,
-                        "Failed to construct DOM for FBML", e);
-            } catch (FacebookException e) {
-                logger.log(Level.WARNING, "Failed to set Profile FBML", e);
-            }
+            setProfileFBML(client, cloud);
 
             //
             // Make a string representation of the artists we used so we can
@@ -269,7 +217,7 @@ public class Canvas extends HttpServlet {
             props.put("hasmusic", Boolean.toString(currUser.hasMusic()));
             props.put("artists", artistStr);
             props.put("fbml_steerLink", "<span style=\"font-size: 14px\">Explore this cloud in the <a target=\"_blank\" href=\"" +
-                    Util.getWMELink(cloud) +
+                    Util.getWMECloudLink(cloud) +
                     "\">full Music Explaura</a></span>");
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, cloud);
@@ -439,10 +387,112 @@ public class Canvas extends HttpServlet {
             JSONArray result = getJSONResponse(props);
             result = addCloudJSON(result, friendCloud);
             sendJSON(result, response);
+        } else if (canvasPath.equals("/getSimilarBands")) {
+            //
+            // Gets bands related to the bands with the given artist IDs.
+            // Returns a JSON array of JSON objects, one per band
+            String artistIDsParam = request.getParameter("artists");
+            String[] ids = artistIDsParam.split("\\+");
+            List<String> idList = Arrays.asList(ids);
+            List<Scored<Artist>> similarArtists = dm.getSimilarArtists(idList, 15, Popularity.ALL);
+            JSONArray result = getJSONResponse(new HashMap<String,String>());
+            JSONArray data = new JSONArray();
+            try {
+                for (Scored<Artist> sa : similarArtists) {
+                    JSONObject artist = new JSONObject();
+                    Artist a = sa.getItem();
+                    artist.put("name", a.getName());
+                    artist.put("wmeLink", Util.getWMEArtistLink(a));
+                    try {
+                        String url = dm.getThumbnailImageURL(a);
+                        if (url != null) {
+                            artist.put("thumbURL", url);
+                        }
+                    } catch (AuraException e) {
+                        logger.log(Level.INFO, "Error getting thumbnail for " + a.getKey(), e);
+                    }
+                    data.put(artist);
+                }
+                result.put(data);
+            } catch (JSONException e) {
+                logger.log(Level.WARNING, "Error marshalling", e);
+                result = getJSONError("Error marshalling results, please try again later");
+            }
+            sendJSON(result, response);
         } else {
             logger.warning("No code to handle " + canvasPath);
         }
     } 
+
+    private void setProfileFBML(FacebookJsonRestClient client,
+                                ItemInfo[] cloud) {
+        try {
+            DocumentBuilder db = DocumentBuilderFactory.newInstance().
+                    newDocumentBuilder();
+            Document doc = db.newDocument();
+            DocumentFragment frag = doc.createDocumentFragment();
+            //
+            // Add some links
+            Element launch = doc.createElement("a");
+            launch.setAttribute("href",
+                    "http://apps.facebook.com/musicexplaura");
+            launch.setTextContent("Launch");
+            Element compare = doc.createElement("a");
+            compare.setAttribute("href",
+                    "http://apps.facebook.com/musicexplaura/?compareTo=" +
+                    client.users_getLoggedInUser());
+            compare.setTextContent("Compare");
+            Element ldata = doc.createElement("td");
+            ldata.appendChild(launch);
+            ldata.setAttribute("style", "text-align: center;");
+            Element tdata = doc.createElement("td");
+            tdata.appendChild(compare);
+            tdata.setAttribute("style", "text-align: center;");
+            Element row = doc.createElement("tr");
+            row.appendChild(ldata).appendChild(tdata);
+            Element table = doc.createElement("table");
+            table.appendChild(row);
+            table.setAttribute("style", "width: 100%; text-align: center; " +
+                    "border-spacing: 0px;");
+            Element buttons = doc.createElement("div");
+            buttons.setAttribute("style", "border: 1px solid #d8dfea; " +
+                    "max-width: 160px; margin-left: auto; margin-right: auto;");
+            buttons.appendChild(table);
+            frag.appendChild(buttons);
+
+            //
+            // Draw the cloud
+            Element cloudDiv = doc.createElement("div");
+            for (int i = 0; i < cloud.length; i++) {
+                ItemInfo item = cloud[i];
+                Element span = doc.createElement("span");
+                String color = (i % 2 == 0) ? "#f8981d" : "#5382a1";
+                span.setAttribute("style",
+                        "color: " + color +
+                            "; font-size: "
+                            + Math.round(
+                                      (item.getScore() * 3.0 + 1) * 8)
+                            + "px;");
+                span.appendChild(
+                        doc.createTextNode(item.getItemName()));
+                cloudDiv.appendChild(span);
+                cloudDiv.appendChild(
+                        doc.createTextNode(" "));
+            }
+            frag.appendChild(cloudDiv);
+
+            String fbml = Util.xmlToString(frag);
+
+            if (!client.profile_setFBML(null, fbml, null, null, fbml)) {
+                logger.info("failed to set profile FBML to " + fbml);
+            }
+        } catch (ParserConfigurationException e) {
+            logger.log(Level.WARNING,
+                    "Failed to construct DOM for FBML", e);
+        } catch (FacebookException e) {
+            logger.log(Level.WARNING, "Failed to set Profile FBML", e);
+        }
+    }
 
     private JSONArray addCloudJSON(JSONArray result, ItemInfo[] tags) {
         try {
@@ -458,6 +508,7 @@ public class Canvas extends HttpServlet {
                     size = (size * 3.0 + 1.0) * 14.0;
                 }
                 curr.put("size", Math.round(size));
+                curr.put("key", i.getId());
                 result.put(curr);
             }
         } catch (JSONException e) {
@@ -502,6 +553,13 @@ public class Canvas extends HttpServlet {
         return result;
     }
 
+    /**
+     * Get a response to send back, putting any parameters desired into
+     * the properties of the first object in the array.  To return an
+     * error, use getJSONError (which will put an error property in).
+     * @param props
+     * @return
+     */
     private JSONArray getJSONResponse(Map<String,String> props) {
         JSONArray result = new JSONArray();
         try {
@@ -579,20 +637,31 @@ public class Canvas extends HttpServlet {
             client.friends_getAppUsers();
             List results = client.executeBatch(false);
 
-            JSONArray res = (JSONArray)results.get(0);
-            JSONObject user = res.getJSONObject(0);
-            friendName = user.getString(ProfileField.FIRST_NAME.toString());
-            friendMusic = user.getString(ProfileField.MUSIC.toString());
-            isAppUser = (Boolean)results.get(1);
-            Object obj = results.get(2);
-            if (obj instanceof JSONArray) {
+            Object res = results.get(0);
+            if (res instanceof JSONObject) {
                 //
-                // We get an array when there are users.  Otherwise, a JSONObject
-                JSONArray appUsers = (JSONArray)obj;
-                for (int i = 0; i < appUsers.length(); i++) {
-                    appUserIds += appUsers.getString(i);
-                    if (i + 1 < appUsers.length()) {
-                        appUserIds += ",";
+                // Apparently, facebook can just return us an empty object
+                // as a result of the profile query.  I can't figure out
+                // why it does this.
+                logger.info("Failed to get any data about user " + fbUserId);
+                friendName = "Unknown";
+                friendMusic = "";
+            } else {
+                JSONArray users = (JSONArray)res;
+                JSONObject user = users.getJSONObject(0);
+                friendName = user.getString(ProfileField.FIRST_NAME.toString());
+                friendMusic = user.getString(ProfileField.MUSIC.toString());
+                isAppUser = (Boolean)results.get(1);
+                Object obj = results.get(2);
+                if (obj instanceof JSONArray) {
+                    //
+                    // We get an array when there are users.  Otherwise, a JSONObject
+                    JSONArray appUsers = (JSONArray)obj;
+                    for (int i = 0; i < appUsers.length(); i++) {
+                        appUserIds += appUsers.getString(i);
+                        if (i + 1 < appUsers.length()) {
+                            appUserIds += ",";
+                        }
                     }
                 }
             }
