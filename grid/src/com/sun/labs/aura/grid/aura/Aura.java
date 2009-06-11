@@ -370,7 +370,8 @@ public abstract class Aura extends ServiceAdapter {
             String.format("%s/pc/part-%s.%%g.out", GridUtil.logFSMntPnt, prefix),
         };
 
-        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(), cmdLine, getPartitionName(prefix), null, false);
+        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(),
+                cmdLine, getPartitionName(prefix), null, true);
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
         md.put("monitor", "true");
