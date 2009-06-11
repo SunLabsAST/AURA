@@ -46,6 +46,11 @@
         <propertylist name="groupList">
             <item>${auraGroup}</item>
         </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>sitm.jar</item>
+        </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
