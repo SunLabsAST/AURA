@@ -146,7 +146,7 @@ public class Listener extends ItemAdapter {
     }
     
     public int getCurrentYear() {
-        return 2008;        // FIX ME
+        return java.util.Calendar.YEAR;
     }
 
     /**
@@ -175,7 +175,7 @@ public class Listener extends ItemAdapter {
     }
 
     /**
-     * Verifies if we already crawled the play history for a certain week
+     * Verifies if we already crawled the last.fm play history for a certain week
      * @param timestamp
      * @return
      */
