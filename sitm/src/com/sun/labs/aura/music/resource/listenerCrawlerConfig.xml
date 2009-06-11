@@ -50,9 +50,12 @@
     
     <!-- The configuration for a partition cluster. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
-    
+
+    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawlerInterface"/>
+
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="artistCrawler" value="artistCrawler"/>
         <property name="logLevel" value="INFO"/>
         <property name="defaultPeriod" value="604800"/>
     </component>

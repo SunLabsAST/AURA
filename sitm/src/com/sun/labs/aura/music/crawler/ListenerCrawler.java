@@ -41,6 +41,7 @@ import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.pandora.Pandora;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigComponent;
@@ -52,7 +53,9 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,11 +69,27 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     private LastFM2 lastfm2;
     private Pandora pandora;
     private MusicDatabase mdb;
-    private ArtistCrawler ac;
+    private RemoteComponentManager rcm;
     private boolean running = false;
     private Logger logger;
+    private Set<String> crawlsInProgress = new HashSet<String>();
 
-    public void start() {
+
+    
+    private synchronized void removeFromCrawlList(String uid) {
+        crawlsInProgress.remove(uid);
+    }
+
+    private synchronized boolean addToCrawlList(String uid) {
+        if (crawlsInProgress.contains(uid)) {
+            return false;
+        } else {
+            crawlsInProgress.add(uid);
+            return true;
+        }
+    }
+
+    public synchronized void start() {
         if (!running) {
             running = true;
             {
@@ -97,7 +116,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
     }
 
     @Override
-    public void stop() {
+    public synchronized void stop() {
         running = false;
     }
 
@@ -133,7 +152,7 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         logger = ps.getLogger();
         defaultPeriod = ps.getInt(PROP_DEFAULT_PERIOD);
         newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
-        ac = (ArtistCrawler) ps.getComponent(PROP_ARTIST_CRAWLER);
+        rcm = new RemoteComponentManager(ps.getConfigurationManager(), ArtistCrawler.class);
         try {
             lastfm = new LastFM();
             lastfm.setTrace(false);
@@ -148,8 +167,8 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
         }
     }
 
-    private void enqueueArtistToCrawler(LastArtist lA, int popularity) throws AuraException {
-        ac.enqueue(lA, popularity);
+    private boolean enqueueArtistToCrawler(LastArtist lA, int popularity) throws AuraException, RemoteException {
+        return ((ArtistCrawler)rcm.getComponent()).enqueue(lA, popularity);
     }
 
     private void periodicallyCrawlAllListeners() {
@@ -229,21 +248,28 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
 
     public void crawlListener(Listener listener, boolean force) throws AuraException, RemoteException {
         if (force || needsCrawl(listener)) {
-            logger.info("Crawling listener " + listener.getName());
-            int updateCount = listener.getUpdateCount();
-            if (listener.getLastFmName() != null) {
-                if (updateCount == 0) {
-                    fullCrawlLastFM(listener);
-                } else {
-                    weeklyCrawlLastFM(listener);
+            if (addToCrawlList(listener.getKey())) {
+                logger.info("Crawling listener " + listener.getName());
+                int updateCount = listener.getUpdateCount();
+                if (listener.getLastFmName() != null) {
+                    if (updateCount == 0) {
+                        fullCrawlLastFM(listener);
+                    } else {
+                        weeklyCrawlLastFM(listener);
+                    }
                 }
+                weeklyCrawlPandora(listener);
+                updateListenerArtists(listener);
+                updateListenerTags(listener);
+                listener.setLastCrawl();
+                listener.incrementUpdateCount();
+                mdb.flush(listener);
+                
+                removeFromCrawlList(listener.getKey());
+            } else {
+                logger.fine("Skipping listener " + listener.getName() +
+                        " because another process is already crawling it");
             }
-            weeklyCrawlPandora(listener);
-            updateListenerArtists(listener);
-            updateListenerTags(listener);
-            listener.setLastCrawl();
-            listener.incrementUpdateCount();
-            mdb.flush(listener);
         } else {
             logger.fine("Skipping listener " + listener.getName());
         }
@@ -328,14 +354,19 @@ public class ListenerCrawler implements AuraService, Configurable, Crawler {
                         // the artist crawler's queue so we get it's info later on
                         Artist artist = mdb.artistLookup(artistItem.getMBID());
                         if (artist==null) {
-                            enqueueArtistToCrawler(new LastArtist(artistItem.getName(),
+                            boolean added = enqueueArtistToCrawler(new LastArtist(artistItem.getName(),
                                     artistItem.getMBID()), lastfm.getPopularity(artistItem.getName()));
-                            logger.fine("ListenerCrawler:WeeklyCharts: Added '" + artistItem.getName() + "' to artist crawler queue");
+                            if (added) {
+                                logger.fine("ListenerCrawler:WeeklyCharts: Added '" +
+                                        artistItem.getName() + "' to artist crawler queue");
+                            }
                         }
                         mdb.addPlayAttentionsWithDetails(listener.getKey(),
                                 artistItem.getMBID(), "lastfm charts", artistItem.getFreq(), ranges[0]);
                     }
                     listener.addCrawledPlayHistoryDate(ranges[0]);
+                    logger.fine("ListenerCrawler:WeeklyCharts: Added plays for listener '" +
+                            listener.getKey() + "' for week " + ranges[0]);
                 }
             }
         } catch (IOException e) {

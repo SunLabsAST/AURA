@@ -96,7 +96,7 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class ArtistCrawler implements AuraService, Configurable, Crawler {
+public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerInterface {
 
     private LastFM lastFM;
     private MusicBrainz musicBrainz;
@@ -691,10 +691,15 @@ public class ArtistCrawler implements AuraService, Configurable, Crawler {
      * @param artist the artist to be queued
      * @param popularity the popularity of the artist
      */
-    public synchronized void enqueue(LastArtist artist, int popularity) {
-        if (!artistQueue.contains(artist)) {
-            artistQueue.add(new QueuedArtist(artist, popularity));
+    @Override
+    public synchronized boolean enqueue(LastArtist artist, int popularity) throws RemoteException {
+        QueuedArtist qA = new QueuedArtist(artist, popularity);
+        if (!artistQueue.contains(qA)) {
+            artistQueue.add(qA);
             incrementModCounter();
+            return true;
+        } else {
+            return false;
         }
     }
 

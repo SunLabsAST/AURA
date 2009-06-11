@@ -94,15 +94,15 @@ public class LastFM {
         Document doc = commander.sendCommand(url);
         Element docElement = doc.getDocumentElement();
         NodeList itemList = docElement.getElementsByTagName("album");
-        int reach = 0;
+        double reach = 0;
         for (int i = 0; i < itemList.getLength(); i++) {
             Element item = (Element) itemList.item(i);
             String sreach = XmlUtil.getElementContents(item, "reach");
             if (sreach != null) {
-                reach += Integer.parseInt(sreach);
+                reach += Double.parseDouble(sreach);
             }
         }
-        return reach;
+        return (int)reach;
     }
 
     public LastItem[] getTopArtistsForUser(String user) throws IOException {
@@ -232,12 +232,12 @@ public class LastFM {
             Element artist = (Element) itemList.item(i);
             String artistName = artist.getAttribute("name");
             String sfreq = artist.getAttribute("count");
-            int freq = 1;
+            double freq = 1;
             if (sfreq != null) {
-                freq = Integer.parseInt(sfreq);
+                freq = Double.parseDouble(sfreq);
             }
             String mbid = XmlUtil.getElementContents(artist, "mbid");
-            LastItem artistItem = new LastItem(artistName, mbid, freq);
+            LastItem artistItem = new LastItem(artistName, mbid, (int)freq);
             items.add(artistItem);
         }
         return items.toArray(new LastItem[0]);
@@ -254,17 +254,17 @@ public class LastFM {
             Element item = (Element) itemList.item(i);
 
             String tagName = XmlUtil.getElementContents(item, "name");
-            int freq = 50;
+            double freq = 50;
 
             String sfreq = XmlUtil.getElementContents(item, "count");
             if (sfreq != null) {
                 if (sfreq.length() > 0) {
-                    freq = Integer.parseInt(sfreq);
+                    freq = Double.parseDouble(sfreq);
                 } else {
                     freq = 0;
                 }
             }
-            SocialTag tag = new SocialTag(tagName, freq);
+            SocialTag tag = new SocialTag(tagName, (int)freq);
             tags.add(tag);
         }
         Collections.sort(tags, LastItem.FREQ_ORDER);
@@ -281,15 +281,15 @@ public class LastFM {
             Element item = (Element) itemList.item(i);
             String userName = item.getAttribute("username");
             String sweight = XmlUtil.getElementContents(item, "weight");
-            int weight = 0;
+            double weight = 0;
             if (sweight != null) {
                 if (sweight.length() > 0) {
-                    weight = Integer.parseInt(sweight);
+                    weight = Double.parseDouble(sweight);
                 } else {
                     weight = 0;
                 }
             }
-            LastItem tag = new LastItem(userName, weight);
+            LastItem tag = new LastItem(userName, (int)weight);
             tags.add(tag);
         }
         Collections.sort(tags, LastItem.FREQ_ORDER);
