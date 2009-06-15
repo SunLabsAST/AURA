@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 /**
@@ -26,20 +27,29 @@ public class ZipProcessor {
 
     private NanoWatch nw = new NanoWatch();
 
+    private NanoWatch pw = new NanoWatch();
 
     public ZipProcessor(DataStore ds, ArticleFactory af, String zipFile) throws
             IOException {
         this.ds = ds;
         this.af = af;
-        zf = new ZipFile(zipFile);
+        try {
+            zf = new ZipFile(zipFile);
+        } catch(ZipException ex) {
+            logger.log(Level.SEVERE, String.format(
+                    "Exception opening zip file: %s", zipFile), ex);
+            throw (ex);
+        }
+
     }
 
     private void reportProgress(int np) {
-        logger.info(String.format("%s: processed %d entries in %.2fs (%.2fms/entry)",
+        logger.info(String.format(
+                "%s: processed %d entries in %.2fs (%.2fms/entry) (avg put %.2fms/entry)",
                                   zf.getName(), np,
                                   nw.getTimeMillis() / 1000,
-                                  nw.getAvgTimeMillis()));
-
+                                  nw.getAvgTimeMillis(),
+                                  pw.getAvgTimeMillis()));
     }
 
     public void process() throws IOException {
@@ -53,7 +63,9 @@ public class ZipProcessor {
             nw.start();
             Article art = af.getArticle(zf.getInputStream(ze));
             try {
+                pw.start();
                 ds.putItem(art.getItem());
+                pw.stop();
             } catch(AuraException ex) {
                 logger.log(Level.SEVERE,
                            String.format("Exception adding article %s from %s",
