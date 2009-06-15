@@ -46,7 +46,9 @@ import com.sun.labs.minion.ResultsFilter;
 import com.sun.labs.minion.query.And;
 import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.query.Equals;
+import com.sun.labs.minion.query.Not;
 import com.sun.labs.minion.query.Substring;
+import com.sun.labs.minion.query.Undefined;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -1031,13 +1033,33 @@ public class MusicDatabase {
                 if (i.getItem() != null) {
                     listeners.add(new Listener(i.getItem()));
                 }
-
             }
             return listeners;
         } catch (RemoteException ex) {
             throw new AuraException("Can't talk to the datastore " + ex, ex);
         }
 
+    }
+
+    public List<Listener> listenerGetNeverCrawledNeighbours(int count) throws AuraException {
+        try {
+
+            Equals p1 = new Equals("aura-type", Item.ItemType.USER.toString());
+            Undefined p2 = new Undefined(Listener.FIELD_LAST_NEIGHBOURS_CRAWL);
+            Not p3 = new Not(new Undefined(Listener.FIELD_LAST_FM_NAME));
+            List<Scored<Item>> items = getDataStore().query(new And(p1, p2, p3), count, null);
+
+            List<Listener> listeners = new ArrayList<Listener>();
+            for (Scored<Item> i : items) {
+                if (i.getItem() != null) {
+                    listeners.add(new Listener(i.getItem()));
+                }
+            }
+            return listeners;
+
+        } catch (RemoteException ex) {
+            throw new AuraException("Can't talk to the datastore " + ex, ex);
+        }
     }
 
     public List<ArtistTag> artistTagGetMostPopular(int count) throws AuraException {

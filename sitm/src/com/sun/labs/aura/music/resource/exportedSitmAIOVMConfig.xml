@@ -124,8 +124,8 @@
 
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
         <property name="dataStore" value="dataStoreHead"/>
-        <property name="crawlerStateDir" value="${auraHome}/db/crawler.state"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="crawlerStateDir" value="${auraHome}/db/artist_crawler.state"/>
+        <property name="logLevel" value="INFO"/>
         <property name="maxArtists" value="200"/>
         <!--<property name="updateRateInSeconds" value="604800"/> -->
         <property name="updateRateInSeconds" value="1000"/>
@@ -143,6 +143,8 @@
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="artistCrawler" value="artistCrawler"/>
+        <property name="crawlerStateDir" value="${auraHome}/db/listener_crawler.state"/>
+        <property name="enableListenerDiscovery" value="true" />
         <property name="logLevel" value="FINE"/>
         <property name="defaultPeriod" value="604800"/>
     </component>

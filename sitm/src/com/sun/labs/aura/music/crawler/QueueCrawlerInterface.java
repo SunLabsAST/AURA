@@ -24,14 +24,14 @@
 
 package com.sun.labs.aura.music.crawler;
 
-import com.sun.labs.aura.music.web.lastfm.LastArtist;
+import com.sun.labs.aura.music.web.lastfm.LastItem;
 import java.rmi.RemoteException;
 
 /**
  *
  * @author mailletf
  */
-public interface ArtistCrawlerInterface extends Crawler {
+public interface QueueCrawlerInterface extends Crawler {
 
     /**
      * Enqueue a new artist to be crawled
@@ -39,6 +39,6 @@ public interface ArtistCrawlerInterface extends Crawler {
      * @param popularity popularity, which will determine it's crawl priority
      * @throws RemoteException
      */
-    public boolean enqueue(LastArtist artist, int popularity) throws RemoteException;
+    public boolean enqueue(LastItem item, int priority) throws RemoteException;
 
 }

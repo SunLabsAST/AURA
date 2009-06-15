@@ -246,8 +246,7 @@ public class LastFMConceptRetriever {
                     long start = System.currentTimeMillis();
                     Concept[] concepts = getImplicitConceptsForUser(user);
                     long delta = System.currentTimeMillis() - start;
-                    sumTime +=
-                            delta;
+                    sumTime += delta;
 
                     float time = delta / 1000.f;
                     float avg = sumTime / (1000.f * completedUsers.size());
@@ -285,7 +284,7 @@ public class LastFMConceptRetriever {
     public static void main(String[] args) {
         try {
             LastFMConceptRetriever lcr = new LastFMConceptRetriever();
-            lcr.crawlUsers("rj", 1000, false);
+            lcr.crawlUsers("rj", 1000, true);
         } catch (IOException ioe) {
             System.out.println("error " + ioe);
         }

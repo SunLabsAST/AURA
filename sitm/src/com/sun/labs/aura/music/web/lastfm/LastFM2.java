@@ -115,6 +115,11 @@ public class LastFM2 {
         return getTrackTopTagsFromLastFM(url);
     }
 
+    public String[] getNeighboursForUser(String user) throws IOException {
+        String url = getNeighboursForUserURL(user);
+        return getNeighboursForUserFromLastFM(url);
+    }
+
     /**
      * Get a list of available charts for this user, expressed as date ranges
      * which can be sent to the getWeeklyArtistChartByUser() function
@@ -133,7 +138,7 @@ public class LastFM2 {
 
     /**
      * Get an artist chart for a user profile, for a given date range. If no date
-     * range is supplied, it will return the most recent artist chart for this user.
+     * range is supplied (from,to=0), it will return the most recent artist chart for this user.
      * Call getWeeklyChartListByUser() to get the list of available date ranges.
      * 
      * @param user lastfm username
@@ -415,6 +420,22 @@ public class LastFM2 {
         return tagList.toArray(new SocialTag[0]);
     }
 
+    private String[] getNeighboursForUserFromLastFM(String url) throws IOException {
+        Document doc = commander.sendCommand(url);
+        checkStatus(doc);
+
+        List<String> userIds = new ArrayList<String>();
+        Element docElement = doc.getDocumentElement();
+        Element neighboursNode = (Element) XmlUtil.getDescendent(docElement, "neighbours");
+        if (neighboursNode != null) {
+            List<Node> userNodes = XmlUtil.getDescendents(neighboursNode, "user");
+            for (int i = 0; i < userNodes.size(); i++) {
+                userIds.add(XmlUtil.getDescendentText(userNodes.get(i), "name"));
+            }
+        }
+        return userIds.toArray(new String[0]);
+    }
+
     //http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=sonny%20bono&api_key=b25b959554ed76058ac220b7b2e0a026
     private String getArtistInfoByNameURL(String artistName) {
         String encodedArtistName = encodeName(artistName);
@@ -453,6 +474,10 @@ public class LastFM2 {
 
     private String getTrackTopTagsByMbidURL(String mbid) {
         return "?method=track.gettoptags&mbid=" + mbid;
+    }
+
+    private String getNeighboursForUserURL(String user) {
+        return "?method=user.getneighbours&user=" + user;
     }
 
     private String getTrackTopTagsByNameURL(String artistName, String trackName) {

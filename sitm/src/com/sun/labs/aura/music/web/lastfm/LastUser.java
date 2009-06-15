@@ -31,11 +31,47 @@ package com.sun.labs.aura.music.web.lastfm;
 public class LastUser {
     enum Gender { Unknown, Male, Female};
     private String name = "";
+    private String image = "";
+    private String lang = "";
+    private int subscriberCount = 0;
+    private int playlistCount = 0;
     private String realName = "";
     private int age = 0;
     private int playCount = 0;
     private Gender gender = Gender.Unknown;
     private String country = "";
+
+    public int getPlayListCount() {
+        return playlistCount;
+    }
+
+    public void setPlayListCount(int cnt) {
+        this.playlistCount = cnt;
+    }
+
+    public int getSubscriberCount() {
+        return subscriberCount;
+    }
+
+    public void setSubscriberCount(int cnt) {
+        this.subscriberCount = cnt;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
 
     public int getAge() {
         return age;

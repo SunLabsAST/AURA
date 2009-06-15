@@ -39,17 +39,18 @@ import java.util.List;
  * @author plamere
  */
 public class Listener extends ItemAdapter {
-    public final static String FIELD_YOB =              "LISTENER_YEAR_OF_BIRTH";
-    public final static String FIELD_STATE =            "LISTENER_STATE";
-    public final static String FIELD_GENDER =           "LISTENER_GENDER";
-    public final static String FIELD_LAST_FM_NAME =     "LISTENER_LAST_FM_NAME";
-    public final static String FIELD_PANDORA_NAME =     "LISTENER_PANDORA_NAME";
-    public final static String FIELD_LOCALE_COUNTRY =   "LISTENER_LOCALE_COUNTRY";
-    public final static String FIELD_CRAWLED_PLAY_HISTORY =   "FIELD_CRAWLED_PLAY_HISTORY";
-    public final static String FIELD_ARTIST =           "LISTENER_ARTIST";
-    public final static String FIELD_LAST_CRAWL =       "lastCrawl";
-    public final static String FIELD_SOCIAL_TAGS =      Artist.FIELD_SOCIAL_TAGS;
-    public final static String FIELD_UPDATE_COUNT = "updateCount";
+    public final static String FIELD_YOB =                      "LISTENER_YEAR_OF_BIRTH";
+    public final static String FIELD_STATE =                    "LISTENER_STATE";
+    public final static String FIELD_GENDER =                   "LISTENER_GENDER";
+    public final static String FIELD_LAST_FM_NAME =             "LISTENER_LAST_FM_NAME";
+    public final static String FIELD_PANDORA_NAME =             "LISTENER_PANDORA_NAME";
+    public final static String FIELD_LOCALE_COUNTRY =           "LISTENER_LOCALE_COUNTRY";
+    public final static String FIELD_CRAWLED_PLAY_HISTORY =     "CRAWLED_PLAY_HISTORY";
+    public final static String FIELD_ARTIST =                   "LISTENER_ARTIST";
+    public final static String FIELD_LAST_CRAWL =               "lastCrawl";
+    public final static String FIELD_LAST_NEIGHBOURS_CRAWL =    "LAST_NEIGHBOURS_CRAWL";
+    public final static String FIELD_SOCIAL_TAGS =              Artist.FIELD_SOCIAL_TAGS;
+    public final static String FIELD_UPDATE_COUNT =             "updateCount";
 
 
     public enum Gender { Male, Female, Unknown };
@@ -59,7 +60,7 @@ public class Listener extends ItemAdapter {
         try {
             ds.defineField(FIELD_GENDER);
             ds.defineField(FIELD_STATE);
-            ds.defineField(FIELD_LAST_FM_NAME);
+            ds.defineField(FIELD_LAST_FM_NAME, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_PANDORA_NAME);
             ds.defineField(FIELD_LOCALE_COUNTRY);
             ds.defineField(FIELD_CRAWLED_PLAY_HISTORY);
@@ -67,6 +68,7 @@ public class Listener extends ItemAdapter {
             ds.defineField(FIELD_ARTIST, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_YOB, Item.FieldType.INTEGER, StoreFactory.INDEXED);
             ds.defineField(FIELD_LAST_CRAWL);
+            ds.defineField(FIELD_LAST_NEIGHBOURS_CRAWL, Item.FieldType.DATE, StoreFactory.INDEXED);
             ds.defineField(FIELD_UPDATE_COUNT);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
@@ -102,6 +104,14 @@ public class Listener extends ItemAdapter {
 
     public void setLastCrawl() {
         setField(FIELD_LAST_CRAWL, System.currentTimeMillis());
+    }
+
+    public long getLastNeighboursCrawl() {
+        return getFieldAsLong(FIELD_LAST_NEIGHBOURS_CRAWL);
+    }
+
+    public void setLastNeighboursCrawl() {
+        setField(FIELD_LAST_NEIGHBOURS_CRAWL, System.currentTimeMillis());
     }
 
     public Gender getGender() {

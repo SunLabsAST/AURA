@@ -44,6 +44,7 @@ import com.sun.labs.aura.music.web.echonest.EchoNest;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainz;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainzAlbumInfo;
@@ -62,22 +63,14 @@ import com.sun.labs.aura.util.Tag;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
-import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,7 +89,7 @@ import java.util.regex.Pattern;
  *
  * @author plamere
  */
-public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerInterface {
+public class ArtistCrawler extends QueueCrawler implements AuraService, Configurable {
 
     private LastFM lastFM;
     private MusicBrainz musicBrainz;
@@ -107,22 +100,23 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
     private Spotify spotify;
     private EchoNest echoNest;
     private Amazon amazon;
-    private PriorityBlockingQueue<QueuedArtist> artistQueue;
-    private Logger logger;
     private RemoteComponentManager rcm;
     private Util util;
-    private final static String CRAWLER_STATE_FILE = "crawler.state";
-    private final static int FLUSH_COUNT = 10;
-    private static int MODIFS_COUNT = 0;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
     private int minBlurbCount = 3;
     private ExecutorService threadPool;
     private TagFilter tagFilter;
 
+    public ArtistCrawler() {
+        super("Artist", "artist_crawler.state");
+        crawlQueue = new PriorityBlockingQueue<QueuedItem>(100000, QueueCrawler.PRIORITY_ORDER);
+    }
+
     /**
      * Starts running the crawler
      */
+    @Override
     public void start() {
         if (!running) {
             running = true;
@@ -130,7 +124,6 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
                 Runnable discoverer = new Runnable() {
                     // this thread discovers new artists until
                     // we reach the maxArtists
-
                     public void run() {
                         addAllTags();
                         discoverArtists();
@@ -186,7 +179,6 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
             upcoming = new Upcoming();
             spotify = new Spotify();
             echoNest = new EchoNest();
-            artistQueue = new PriorityBlockingQueue(1000, QueuedArtist.PRIORITY_ORDER);
             rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
@@ -206,6 +198,7 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
         }
     }
 
+    @Override
     public void update(String id) throws AuraException, RemoteException {
         final Item item = getDataStore().getItem(id);
         if (item == null) {
@@ -263,6 +256,7 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
         }
     }
 
+    @Override
     public void add(String newID) throws AuraException, RemoteException {
         Item item = getDataStore().getItem(newID);
         if (item == null) {
@@ -292,7 +286,7 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
             return;
         }
 
-        while (running && artistQueue.size() > 0) {
+        while (running && crawlQueue.size() > 0) {
             try {
 
                 // if we've reached maxartists we are done
@@ -301,9 +295,9 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
                     break;
                 }
 
-                QueuedArtist queuedArtist = artistQueue.poll();
+                QueuedItem queuedArtist = (QueuedItem) crawlQueue.poll();
                 long curTime = System.currentTimeMillis();
-                logger.info("Crawling " + queuedArtist + " remaining " + artistQueue.size() + " time " + (curTime - lastTime) + " ms");
+                logger.info("Crawling " + queuedArtist + " remaining " + crawlQueue.size() + " time " + (curTime - lastTime) + " ms");
                 lastTime = curTime;
 
                 Artist artist = collectArtistInfo(queuedArtist);
@@ -478,8 +472,8 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
     }
 
     private boolean inArtistQueue(String mbaid) {
-        for (QueuedArtist qartist : artistQueue) {
-            if (qartist.getMBaid().equals(mbaid)) {
+        for (Object qartist : crawlQueue) {
+            if (((QueuedItem)qartist).getKey().equals(mbaid)) {
                 return true;
             }
         }
@@ -493,13 +487,13 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
      * @throws com.sun.labs.aura.util.AuraException if a problem with the datastore is encountered
      * @throws java.rmi.RemoteException if a communicatin error occurs
      */
-    private Artist collectArtistInfo(QueuedArtist queuedArtist) throws AuraException, RemoteException, IOException {
-        String mbaid = queuedArtist.getMBaid();
+    private Artist collectArtistInfo(QueuedItem queuedArtist) throws AuraException, RemoteException, IOException {
+        String mbaid = queuedArtist.getKey();
         if (mbaid != null && mbaid.length() > 0) {
             Item item = getDataStore().getItem(mbaid);
             if (item == null) {
 
-                item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getArtistName());
+                item = StoreFactory.newItem(ItemType.ARTIST, mbaid, queuedArtist.getName());
                 final Artist artist = new Artist(item);
                 artist.setPopularity(queuedArtist.getPopularity());
                 updateArtist(artist, true);
@@ -653,23 +647,11 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
     }
 
     /**
-     * Creates the directory for the state file if necessary
-     */
-    private void createStateFileDirectory() throws IOException {
-        File stateDirFile = new File(stateDir);
-        if (!stateDirFile.exists()) {
-            if (!stateDirFile.mkdirs()) {
-                throw new IOException("Can't create state file directory");
-            }
-        }
-    }
-
-    /**
      * Primes the artist queue for discovery. The queue is primed with artists that
      * are similar to the beatles
      */
     private void primeArtistQueue(String artistName) throws AuraException {
-        if (artistQueue.size() == 0) {
+        if (crawlQueue.size() == 0) {
             try {
                 logger.info("Priming queue with " + artistName);
                 LastArtist[] simArtists = lastFM.getSimilarArtists(artistName);
@@ -686,85 +668,25 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
         }
     }
 
-    /**
+    @Override
+    public synchronized boolean enqueue(LastItem item, int popularity) throws RemoteException {
+        LastArtist lA = new LastArtist(item.getName(), item.getMBID());
+        return enqueue(lA, popularity);   
+    }
+
+/**
      * Adds an artist to the discovery queue
      * @param artist the artist to be queued
      * @param popularity the popularity of the artist
      */
-    @Override
-    public synchronized boolean enqueue(LastArtist artist, int popularity) throws RemoteException {
-        QueuedArtist qA = new QueuedArtist(artist, popularity);
-        if (!artistQueue.contains(qA)) {
-            artistQueue.add(qA);
+    private synchronized boolean enqueue(LastArtist artist, int popularity) throws RemoteException {
+        QueuedItem qA = new QueuedItem(artist, popularity);
+        if (!crawlQueue.contains(qA)) {
+            crawlQueue.add(qA);
             incrementModCounter();
             return true;
         } else {
             return false;
-        }
-    }
-
-    private synchronized void incrementModCounter() {
-        MODIFS_COUNT++;
-        if (MODIFS_COUNT==FLUSH_COUNT) {
-            saveState();
-            MODIFS_COUNT=0;
-        }
-    }
-
-    /**
-     * Loads the previously saveed priority queue
-     */
-    private void loadState() {
-
-        ObjectInputStream ois = null;
-        try {
-            File stateFile = new File(stateDir, CRAWLER_STATE_FILE);
-            FileInputStream fis = new FileInputStream(stateFile);
-            ois = new ObjectInputStream(fis);
-            ArtistCrawlerState newState = (ArtistCrawlerState) ois.readObject();
-
-            if (newState != null) {
-                artistQueue.clear();
-                artistQueue.addAll(newState.getArtistQueue());
-                logger.info("restored discovery queue with " + artistQueue.size() + " entries");
-            }
-        } catch (IOException ex) {
-            // no worries if there was no file
-        } catch (ClassNotFoundException ex) {
-            logger.warning("Bad format in feedscheduler statefile " + ex);
-        } finally {
-            try {
-                if (ois != null) {
-                    ois.close();
-                }
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    /**
-     * Saves the priority queue to a file.
-     */
-    private void saveState() {
-        FileOutputStream fos = null;
-        try {
-            ArtistCrawlerState acs = new ArtistCrawlerState(new ArrayList(artistQueue));
-            File stateFile = new File(stateDir, CRAWLER_STATE_FILE);
-            fos = new FileOutputStream(stateFile);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(acs);
-            oos.close();
-            logger.fine("ArtistCrawler: Saved state with "+artistQueue.size()+" entries");
-        } catch (IOException ex) {
-            logger.warning("Can't save the state of the crawler " + ex);
-        } finally {
-            try {
-                if (fos != null) {
-                    fos.close();
-                }
-            } catch (IOException ex) {
-            }
         }
     }
 
@@ -1033,13 +955,6 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
-    /** the directory for the crawler.state */
-    @ConfigString(defaultValue = "artistCrawler")
-    public final static String PROP_STATE_DIR = "crawlerStateDir";
-    private String stateDir;
-    @ConfigInteger(defaultValue = 60 * 60 * 24 * 7 * 2)
-    public final static String PROP_UPDATE_RATE = "updateRateInSeconds";
-    private int updateRateInSeconds;
     @ConfigInteger(defaultValue = 100000)
     public final static String PROP_MAX_ARTISTS = "maxArtists";
     private int maxArtists;
@@ -1049,117 +964,5 @@ public class ArtistCrawler implements AuraService, Configurable, ArtistCrawlerIn
     @ConfigInteger(defaultValue = 10)
     public final static String PROP_MAX_BLURB_PAGES = "maxBlurbPages";
     private int maxBlurbPages;
-    @ConfigInteger(defaultValue = 1 * 60, range = {1, 60 * 60 * 24 * 365})
-    public final static String PROP_NEW_CRAWL_PERIOD = "newCrawlPeriod";
-    protected int newCrawlPeriod;
 }
 
-
-/**
- * Represents an artist in the queue. The queue is sorted by inverse popularity
- * (highly popular artists move to the head of the queue).
- */
-class QueuedArtist implements Serializable {
-
-    public final static Comparator<QueuedArtist> PRIORITY_ORDER = new Comparator<QueuedArtist>() {
-
-        public int compare(
-                QueuedArtist o1,
-                QueuedArtist o2) {
-            return o1.getPriority() - o2.getPriority();
-        }
-    };
-    private LastArtist lastArtist;
-    private int popularity;
-
-    public QueuedArtist() {
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof QueuedArtist) {
-            return ((QueuedArtist)obj).getMBaid().equals(this.getMBaid());
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 97 * hash + (this.lastArtist != null ? this.lastArtist.hashCode() : 0);
-        return hash;
-    }
-
-    /**
-     * Creates a QueuedArtist
-     * @param artist the artist of interest
-     * @param popularity the artist popularity
-     */
-    public QueuedArtist(LastArtist artist, int popularity) {
-        lastArtist = artist;
-        this.popularity = popularity;
-    }
-
-    /**
-     * Gets the artist name
-     * @return the artist name
-     */
-    public String getArtistName() {
-        return lastArtist.getArtistName();
-    }
-
-    /**
-     * Gets the musicbrainz ID for the artist
-     * @return the MB ID for the artist
-     */
-    public String getMBaid() {
-        return lastArtist.getMbaid();
-    }
-
-    /**
-     * Gets the priority for this queued artist
-     * @return the priority
-     */
-    public int getPriority() {
-        return -popularity;
-    }
-
-    /**
-     * Gets the popularity for this artist
-     * @return the popularity (higher is more popular)
-     */
-    public int getPopularity() {
-        return popularity;
-    }
-
-    @Override
-    public String toString() {
-        return getPopularity() + "/" + getArtistName();
-    }
-}
-/**
- * Represents the state of the crawler so it can be easily saved
- * and restored
- */
-class ArtistCrawlerState implements Serializable {
-
-    private List<QueuedArtist> artistQueue;
-
-    /**
-     * Creates the state
-     * @param visited the set of visited artist names
-     * @param queue the queue of artists to be visited
-     */
-    ArtistCrawlerState(List<QueuedArtist> queue) {
-        artistQueue = queue;
-    }
-
-    /**
-     * Gets the artist queue
-     * @return the artist queue
-     */
-    List<QueuedArtist> getArtistQueue() {
-        return artistQueue;
-    }
-}
