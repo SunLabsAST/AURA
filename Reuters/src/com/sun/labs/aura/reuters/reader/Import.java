@@ -56,6 +56,10 @@ public class Import implements AuraService, Configurable {
             BufferedReader r = new BufferedReader(new FileReader(fileList));
             String zf;
             while((zf = r.readLine()) != null) {
+                zf = zf.trim();
+                if(zf.length() == 0) {
+                    continue;
+                }
                 logger.info(String.format("Processing %s", zf));
                 ZipProcessor zp = new ZipProcessor(dataStore, af, zf);
                 zp.process();
@@ -64,7 +68,6 @@ public class Import implements AuraService, Configurable {
             logger.log(Level.SEVERE, "Exception processing files", ex);
             return;
         }
-
     }
 
     public void stop() {

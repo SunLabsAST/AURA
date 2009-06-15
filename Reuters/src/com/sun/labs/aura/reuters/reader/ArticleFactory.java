@@ -111,6 +111,7 @@ public class ArticleFactory extends DefaultHandler {
         if(qName.equals("newsitem")) {
 
             String key = attributes.getValue("itemid");
+
             if(key == null) {
                 logger.warning("Article with no ID: skipping");
                 return;

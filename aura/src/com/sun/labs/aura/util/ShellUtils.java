@@ -36,7 +36,6 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
-import com.sun.labs.minion.util.Util;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
 import java.rmi.RemoteException;
