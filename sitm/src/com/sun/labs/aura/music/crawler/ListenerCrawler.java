@@ -210,6 +210,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
         maxListeners = ps.getInt(PROP_MAX_LISTENERS);
         enableListenerDiscovery = ps.getBoolean(PROP_ENABLE_LISTENER_DISCOVERY);
+        nbrChartWeek = ps.getInt(PROP_NBR_CHARTS_WEEK);
         rcm = new RemoteComponentManager(ps.getConfigurationManager(), ArtistCrawler.class);
         try {
             lastfm = new LastFM();
@@ -403,8 +404,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 if (!crawlQueue.contains(qI)) {
                     crawlQueue.add(qI);
                     incrementModCounter();
-                } else {
-                    System.out.println("didn't add item because alraedy in queue!!");
                 }
             }
         }
@@ -559,8 +558,8 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         try {
             List<Integer[]> chartList = lastfm2.getWeeklyChartListByUser(listener.getLastFmName());
             // For all available charts on lastfm
-            //for (Integer[] ranges : chartList) {
-            Integer[] ranges = chartList.get(0);
+            for (int i=0; i<nbrChartWeek; i++) {
+                Integer[] ranges = chartList.get(chartList.size()-1-i);
                 // If we did not already crawl that chart for the user
                 if (!listener.crawledPlayHistory(ranges[0])) {
                     logger.fine("ListenerCrawler:WeeklyCharts: Adding plays for listener '" +
@@ -586,7 +585,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                     logger.fine("ListenerCrawler:WeeklyCharts: Added plays for listener '" +
                             listener.getKey() + "' for week " + ranges[0]);
                 }
-            //}
+            }
             listener.flush(mdb.getDataStore());
         } catch (IOException e) {
             logger.warning("Problem updating weekly charts from last.fm for user " + listener.getName());
@@ -658,9 +657,12 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     public final static String PROP_DATA_STORE = "dataStore";
     @ConfigComponent(type = ArtistCrawler.class)
     public final static String PROP_ARTIST_CRAWLER = "artistCrawler";
-    @ConfigInteger(defaultValue = 100000)
+    @ConfigInteger(defaultValue = 1000)
     public final static String PROP_MAX_LISTENERS = "maxListeners";
     private int maxListeners;
+    @ConfigInteger(defaultValue = 5)
+    public final static String PROP_NBR_CHARTS_WEEK = "nbrChartWeek";
+    private int nbrChartWeek;
     /**
      * the configurable property for default processing period (in seconds)
      */
