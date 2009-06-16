@@ -36,6 +36,7 @@ public class StopSITM extends SITM {
             gu.stopProcess(getArtistCrawlerName());
             gu.stopProcess(getListenerCrawlerName());
             gu.stopProcess(getTagCrawlerName());
+            gu.stopProcess(getCrawlerControllerName());
             gu.waitForFinish(50000);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error stopping SITM", e);

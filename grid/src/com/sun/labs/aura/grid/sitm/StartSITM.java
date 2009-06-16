@@ -28,7 +28,6 @@ import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
@@ -55,10 +54,19 @@ public class StartSITM extends SITM {
         NetworkAddress crawlerExt =
                 gu.getExternalAddressFor("sitmCrawlerExt");
 
+        ProcessRegistration ccReg =
+                gu.createProcess(getCrawlerControllerName(),
+                getCrawlerControllerConfig());
+        UUID internal = ccReg.getRegistrationConfiguration().
+                getNetworkAddresses().iterator().next();
+        gu.createNAT(crawlerExt.getUUID(), internal,
+                "crawlerController");
+        gu.startRegistration(ccReg);
+
         ProcessRegistration acReg =
                 gu.createProcess(getArtistCrawlerName(),
                 getArtistCrawlerConfig());
-        UUID internal = acReg.getRegistrationConfiguration().
+        internal = acReg.getRegistrationConfiguration().
                 getNetworkAddresses().iterator().next();
         gu.createNAT(crawlerExt.getUUID(), internal,
                 "artistCrawler");
@@ -82,6 +90,7 @@ public class StartSITM extends SITM {
         gu.createNAT(crawlerExt.getUUID(), internal,
                 "tagCrawler");
         gu.startRegistration(tcReg);
+        
         while(tcReg.getRunState() != RunState.RUNNING) {
             tcReg.waitForStateChange(1000000L);
         }

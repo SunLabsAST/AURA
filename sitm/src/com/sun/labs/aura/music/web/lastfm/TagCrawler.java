@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public class TagCrawler {
 
-    private LastFM lastfm;
+    private LastFMImpl lastfm;
     private Set<String> doneIDs = new HashSet<String>();
     private int itemCount;
     private int missingCount;
@@ -59,7 +59,7 @@ public class TagCrawler {
     private TagType curType;
 
     TagCrawler() throws IOException {
-        lastfm = new LastFM();
+        lastfm = new LastFMImpl();
         lastfm.setTrace(false);
     }
 

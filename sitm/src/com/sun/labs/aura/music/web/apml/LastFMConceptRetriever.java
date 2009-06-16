@@ -26,7 +26,7 @@ package com.sun.labs.aura.music.web.apml;
 
 import com.sun.labs.aura.music.web.Cache;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
-import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.LastFMImpl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -48,7 +48,7 @@ import java.util.Set;
 public class LastFMConceptRetriever {
 
     private static final float MIN_CONCEPT_SCORE = .03f;
-    private LastFM lastfm;
+    private LastFMImpl lastfm;
     private Cache<LastItem[]> itemCache;
     private Cache<LastItem[]> userCache;
     private final static LastItem[] EMPTY_ITEM = new LastItem[0];
@@ -61,7 +61,7 @@ public class LastFMConceptRetriever {
     public LastFMConceptRetriever(int maxItemsInCache, int maxDaysInCache, File itemDir, File userDir) throws IOException {
         itemCache = new Cache<LastItem[]>(maxItemsInCache, maxDaysInCache, itemDir);
         userCache = new Cache<LastItem[]>(maxItemsInCache, maxDaysInCache, userDir);
-        lastfm = new LastFM();
+        lastfm = new LastFMImpl();
     }
 
     public void startCrawler() {

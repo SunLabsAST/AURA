@@ -36,6 +36,10 @@ import java.io.File;
  */
 public abstract class SITM extends ServiceAdapter {
 
+    public String getCrawlerControllerName() {
+        return "crawlerController";
+    }
+
     public String getArtistCrawlerName() {
         return "artistCrawler";
     }
@@ -46,6 +50,22 @@ public abstract class SITM extends ServiceAdapter {
 
     public String getTagCrawlerName() {
         return "tagCrawler";
+    }
+
+    public ProcessConfiguration getCrawlerControllerConfig() throws Exception {
+        String[] cmdLine = new String[]{
+            "-Xmx2g",
+            "-DauraHome=" + GridUtil.auraDistMntPnt,
+            "-DauraGroup=" + instance + "-aura",
+            "-DcacheDir=" + GridUtil.cacheFSMntPnt,
+            "-jar",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "/com/sun/labs/aura/music/resource/crawlerControllerConfig.xml",
+            "starter",
+            String.format("%s/sitm/crawlerController.%%g.out", GridUtil.logFSMntPnt)
+        };
+
+        return gu.getProcessConfig(cmdLine, getCrawlerControllerName());
     }
 
     public ProcessConfiguration getArtistCrawlerConfig() throws Exception {

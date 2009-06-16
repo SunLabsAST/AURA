@@ -24,12 +24,16 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
+import java.io.Serializable;
+
 /**
  *
  * @author plamere
  */
-public class LastUser {
-    enum Gender { Unknown, Male, Female};
+public class LastUser implements Serializable {
+    
+    public enum Gender { Unknown, Male, Female};
+
     private String name = "";
     private String image = "";
     private String lang = "";
@@ -121,6 +125,7 @@ public class LastUser {
         this.realName = realName;
     }
 
+    @Override
     public String toString() {
         return String.format("%2d %6d %8s %20s %15s %s",
                 age, playCount, gender.name(), country, name, realName);

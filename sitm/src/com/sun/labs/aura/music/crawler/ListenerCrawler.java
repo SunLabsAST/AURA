@@ -35,9 +35,9 @@ import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.Listener;
 import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.ScoredManager;
-import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
+import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastUser;
 import com.sun.labs.aura.music.web.pandora.Pandora;
 import com.sun.labs.aura.util.AuraException;
@@ -69,7 +69,8 @@ import java.util.logging.Logger;
 public class ListenerCrawler extends QueueCrawler implements AuraService, Configurable {
 
     private final int QUEUE_SIZE = 500;
-    private RemoteComponentManager rcm;
+    private RemoteComponentManager rcmArtist;
+    private RemoteComponentManager rcmCrawl;
 
     private Thread discoveryThread;
 
@@ -78,8 +79,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
      */
     private final int MIN_PLAY_COUNT = 500;
 
-    private LastFM lastfm;
-    private LastFM2 lastfm2;
     private Pandora pandora;
     private MusicDatabase mdb;
     
@@ -192,6 +191,14 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         t.start();
     }
 
+    private LastFM getLastFM() throws AuraException, RemoteException {
+        return (CrawlerController) rcmCrawl.getComponent();
+    }
+
+    private LastFM2 getLastFM2() throws AuraException, RemoteException {
+        return (CrawlerController) rcmCrawl.getComponent();
+    }
+
     @Override
     public void add(String newID) throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -211,11 +218,9 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         maxListeners = ps.getInt(PROP_MAX_LISTENERS);
         enableListenerDiscovery = ps.getBoolean(PROP_ENABLE_LISTENER_DISCOVERY);
         nbrChartWeek = ps.getInt(PROP_NBR_CHARTS_WEEK);
-        rcm = new RemoteComponentManager(ps.getConfigurationManager(), ArtistCrawler.class);
+        rcmArtist = new RemoteComponentManager(ps.getConfigurationManager(), ArtistCrawler.class);
+        rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
         try {
-            lastfm = new LastFM();
-            lastfm.setTrace(false);
-            lastfm2 = new LastFM2();
             pandora = new Pandora();
 
             mdb = new MusicDatabase(ps.getConfigurationManager());
@@ -231,7 +236,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     }
 
     private boolean enqueueArtistToCrawl(LastItem lA, int popularity) throws AuraException, RemoteException {
-        return ((ArtistCrawler)rcm.getComponent()).enqueue(lA, popularity);
+        return ((ArtistCrawler)rcmArtist.getComponent()).enqueue(lA, popularity);
     }
 
     private void periodicallyCrawlAllListeners() {
@@ -393,12 +398,12 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
      * @param lastfmId Lastfm user id for which to crawl neighbours
      * @throws IOException
      */
-    private void addNeighboursToQueueForUser(String lastfmId) throws IOException {
+    private void addNeighboursToQueueForUser(String lastfmId) throws IOException, AuraException {
         logger.info(crawlerName + "Crawler:Discovery: Crawling neighbours for " +
                 lastfmId + ". QueueSize:" + crawlQueue.size());
-        String[] neighbours = lastfm2.getNeighboursForUser(lastfmId);
+        String[] neighbours = getLastFM2().getNeighboursForUser(lastfmId);
         for (String n : neighbours) {
-            LastUser lU = lastfm.getUser(n);
+            LastUser lU = getLastFM().getUser(n);
             if (lU.getPlayCount() > MIN_PLAY_COUNT) {
                 QueuedItem qI = new QueuedItem(n, lU.getPlayCount());
                 if (!crawlQueue.contains(qI)) {
@@ -556,7 +561,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     private void updateListenerWeeklyCharts(Listener listener) throws AuraException {
         logger.info("ListenerCrawler:WeeklyCharts: Crawling listener " + listener.getKey());
         try {
-            List<Integer[]> chartList = lastfm2.getWeeklyChartListByUser(listener.getLastFmName());
+            List<Integer[]> chartList = getLastFM2().getWeeklyChartListByUser(listener.getLastFmName());
             // For all available charts on lastfm
             for (int i=0; i<nbrChartWeek; i++) {
                 Integer[] ranges = chartList.get(chartList.size()-1-i);
@@ -564,14 +569,14 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 if (!listener.crawledPlayHistory(ranges[0])) {
                     logger.fine("ListenerCrawler:WeeklyCharts: Adding plays for listener '" +
                             listener.getKey() + "' for week " + ranges[0]);
-                    List<LastItem> items = lastfm2.getWeeklyArtistChartByUser(
+                    List<LastItem> items = getLastFM2().getWeeklyArtistChartByUser(
                             listener.getLastFmName(), ranges[0], ranges[1]);
                     for (LastItem artistItem : items) {
                         // If we don't have the artist in the datastore, add it to
                         // the artist crawler's queue so we get it's info later on
                         Artist artist = mdb.artistLookup(artistItem.getMBID());
                         if (artist==null) {
-                            int pop = lastfm.getPopularity(artistItem.getName());
+                            int pop = getLastFM().getPopularity(artistItem.getName());
                             boolean added = enqueueArtistToCrawl(artistItem, pop);
                             if (added) {
                                 logger.fine("ListenerCrawler:WeeklyCharts: Added '" +
@@ -655,6 +660,8 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
+    @ConfigComponent(type = CrawlerController.class)
+    public final static String PROP_CRAWLER_CONTROLLER = "crawlerController";
     @ConfigComponent(type = ArtistCrawler.class)
     public final static String PROP_ARTIST_CRAWLER = "artistCrawler";
     @ConfigInteger(defaultValue = 1000)

@@ -25,6 +25,7 @@
 package com.sun.labs.aura.music.crawler;
 
 import com.echonest.api.v3.EchoNestException;
+import com.echonest.api.v3.artist.ArtistAPI;
 import com.echonest.api.v3.artist.Audio;
 import com.echonest.api.v3.artist.DocumentList;
 import com.sun.labs.aura.AuraService;
@@ -44,8 +45,9 @@ import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.Utilities;
 import com.sun.labs.aura.music.web.amazon.Amazon;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
-import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.LastFM2;
+import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.aura.music.web.musicbrainz.MusicBrainz;
@@ -86,7 +88,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.echonest.api.v3.artist.ArtistAPI;
 import java.util.Properties;
 
 /**
@@ -95,7 +96,6 @@ import java.util.Properties;
  */
 public class ArtistCrawler extends QueueCrawler implements AuraService, Configurable {
 
-    private LastFM lastFM;
     private MusicBrainz musicBrainz;
     private Wikipedia wikipedia;
     private Youtube2 youtube;
@@ -104,7 +104,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     private Spotify spotify;
     private ArtistAPI echoNest;
     private Amazon amazon;
-    private RemoteComponentManager rcm;
+    private RemoteComponentManager rcmStore;
+    private RemoteComponentManager rcmCrawl;
     private Util util;
     private boolean running = false;
     private final static int MAX_FAN_OUT = 5;
@@ -116,7 +117,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
     public ArtistCrawler() {
         super("Artist", "artist_crawler.state");
-        crawlQueue = new PriorityBlockingQueue<QueuedItem>(100000, QueueCrawler.PRIORITY_ORDER);
+        crawlQueue = new PriorityBlockingQueue<QueuedItem>(1000, QueueCrawler.PRIORITY_ORDER);
 
         try {
             Properties properties = new Properties();
@@ -185,7 +186,6 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     public void newProperties(PropertySheet ps) throws PropertyException {
         try {
             logger = ps.getLogger();
-            lastFM = new LastFM();
             musicBrainz = new MusicBrainz();
             wikipedia = new Wikipedia();
             youtube = new Youtube2();
@@ -194,7 +194,10 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             upcoming = new Upcoming();
             spotify = new Spotify();
             echoNest = new ArtistAPI(ECHONEST_API_KEY);
-            rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
+
+            rcmStore = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
+            rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
+
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
             newCrawlPeriod = ps.getInt(PROP_NEW_CRAWL_PERIOD);
@@ -240,7 +243,15 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     }
 
     private DataStore getDataStore() throws AuraException {
-        return (DataStore) rcm.getComponent();
+        return (DataStore) rcmStore.getComponent();
+    }
+
+    private LastFM getLastFM() throws AuraException, RemoteException {
+        return (CrawlerController) rcmCrawl.getComponent();
+    }
+
+    private LastFM2 getLastFM2() throws AuraException, RemoteException {
+        return (CrawlerController) rcmCrawl.getComponent();
     }
 
     private void addAllTags() {
@@ -602,13 +613,13 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
         });
 
-        runner.add(new Commander("youtube") {
+        /*runner.add(new Commander("youtube") {
 
             @Override
             public void go() throws Exception {
                 addYoutubeVideos(artist);
             }
-        });
+        });*/
 
         runner.add(new Commander("upcoming") {
 
@@ -653,9 +664,9 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
     private void updateLastFMPopularity(Artist artist) {
         try {
-            int popularity = lastFM.getPopularity(artist.getName());
+            int popularity = getLastFM().getPopularity(artist.getName());
             artist.setPopularity(popularity);
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             // can't get popularity data from last.fm
             // so just skip the update for now
         }
@@ -669,10 +680,10 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         if (crawlQueue.size() == 0) {
             try {
                 logger.info("Priming queue with " + artistName);
-                LastArtist[] simArtists = lastFM.getSimilarArtists(artistName);
+                LastArtist[] simArtists = getLastFM().getSimilarArtists(artistName);
                 for (LastArtist simArtist : simArtists) {
                     if (worthVisiting(simArtist)) {
-                        int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                        int popularity = getLastFM().getPopularity(simArtist.getArtistName());
                         logger.info("  adding  " + simArtist.getArtistName() + " pop: " + popularity);
                         enqueue(simArtist, popularity);
                     }
@@ -936,7 +947,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     }
 
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
-        SocialTag[] tags = lastFM.getArtistTags(artist.getName());
+        SocialTag[] tags = getLastFM().getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
 
             int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
@@ -953,11 +964,11 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     }
 
     private void addSimilarArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
-        LastArtist[] simArtists = lastFM.getSimilarArtists(artist.getName());
+        LastArtist[] simArtists = getLastFM().getSimilarArtists(artist.getName());
         int fanOut = 0;
         for (LastArtist simArtist : simArtists) {
             if (worthVisiting(simArtist)) {
-                int popularity = lastFM.getPopularity(simArtist.getArtistName());
+                int popularity = getLastFM().getPopularity(simArtist.getArtistName());
                 enqueue(simArtist, popularity);
                 if (fanOut++ >= MAX_FAN_OUT) {
                     break;
@@ -990,6 +1001,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
+    @ConfigComponent(type = CrawlerController.class)
+    public final static String PROP_CRAWLER_CONTROLLER = "crawlerController";
     @ConfigInteger(defaultValue = 100000)
     public final static String PROP_MAX_ARTISTS = "maxArtists";
     private int maxArtists;

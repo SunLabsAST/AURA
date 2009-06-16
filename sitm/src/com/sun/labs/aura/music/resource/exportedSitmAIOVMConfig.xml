@@ -122,8 +122,12 @@
        <property name="dbEnv" value="${auraHome}"/>
    </component>
 
+   <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerControllerImpl" export="true">
+   </component>
+
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
         <property name="crawlerStateDir" value="${auraHome}/db/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="maxArtists" value="200"/>
@@ -134,6 +138,7 @@
 
     <component name="tagCrawler" type="com.sun.labs.aura.music.crawler.TagCrawler">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
         <property name="logLevel" value="INFO"/>
         <!-- once a week: 7 * 24 * 60 * 60 == 604800 -->
         <property name="updateRateInSeconds" value="86400"/>
@@ -142,6 +147,7 @@
 
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
         <property name="artistCrawler" value="artistCrawler"/>
         <property name="crawlerStateDir" value="${auraHome}/db/listener_crawler.state"/>
         <property name="enableListenerDiscovery" value="true" />
@@ -168,6 +174,7 @@
             <item>replicant1</item>
             <item>statService</item>
             <item>loginService</item>
+            <item>crawlerController</item>
             <item>artistCrawler</item>
             <item>tagCrawler</item>
             <item>listenerCrawler</item>

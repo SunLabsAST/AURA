@@ -35,11 +35,11 @@ import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.yahoo.SearchResult;
 import com.sun.labs.aura.music.web.yahoo.Yahoo;
-import com.sun.labs.aura.music.web.youtube.Youtube;
 import com.sun.labs.aura.music.web.youtube.Youtube2;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.RemoteComponentManager;
@@ -68,10 +68,10 @@ public class TagCrawler implements AuraService, Configurable {
     private Youtube2 youtube;
     private FlickrManager flickr;
     private Yahoo yahoo;
-    private LastFM lastFM;
     private Logger logger;
     private Util util;
-    private RemoteComponentManager rcm;
+    private RemoteComponentManager rcmStore;
+    private RemoteComponentManager rcmCrawl;
     private boolean running = false;
     static Set skipSet;
     
@@ -110,17 +110,22 @@ public class TagCrawler implements AuraService, Configurable {
         logger = ps.getLogger();
         forceCrawl = ps.getBoolean(PROP_FORCE_CRAWL);
         updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
-        try {
-            wikipedia = new Wikipedia();
-            youtube = new Youtube2();
-            flickr = new FlickrManager();
-            yahoo = new Yahoo();
-            lastFM = new LastFM();
-            rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
-            util = new Util(flickr, youtube);
-        } catch (IOException ex) {
-            logger.warning("problem connecting to components" + ex);
-        }
+
+        wikipedia = new Wikipedia();
+        youtube = new Youtube2();
+        flickr = new FlickrManager();
+        yahoo = new Yahoo();
+        rcmStore = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
+        rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
+        util = new Util(flickr, youtube);
+    }
+
+    private LastFM getLastFM() throws AuraException, RemoteException {
+        return (CrawlerController) rcmCrawl.getComponent();
+    }
+
+    private LastFM2 getLastFM2() throws AuraException, RemoteException {
+        return (CrawlerController) rcmCrawl.getComponent();
     }
 
     public void autoUpdater() {
@@ -175,7 +180,7 @@ public class TagCrawler implements AuraService, Configurable {
     private void addTaggedArtists(ArtistTag artistTag) throws AuraException, RemoteException, IOException {
         // add the last.fm tags
         float popularity = 0;
-        LastItem[] lartists = lastFM.getTopArtistsForTag(artistTag.getName());
+        LastItem[] lartists = getLastFM().getTopArtistsForTag(artistTag.getName());
         if (lartists.length > 0) {
             artistTag.clearTaggedArtists();
             for (LastItem lartist : lartists) {
@@ -298,13 +303,15 @@ public class TagCrawler implements AuraService, Configurable {
     }
 
     private DataStore getDataStore() throws AuraException {
-        return (DataStore) rcm.getComponent();
+        return (DataStore) rcmStore.getComponent();
     }
     /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)
     public final static String PROP_DATA_STORE = "dataStore";
+    @ConfigComponent(type = CrawlerController.class)
+    public final static String PROP_CRAWLER_CONTROLLER = "crawlerController";
     @ConfigBoolean(defaultValue = false)
     public final static String PROP_FORCE_CRAWL = "forceCrawl";
     private boolean forceCrawl;

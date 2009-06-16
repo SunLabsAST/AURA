@@ -51,9 +51,12 @@
     
     <!-- The configuration for a partition cluster. -->
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
+
+    <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerController" />
     
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler" export="true">
         <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
         <property name="maxArtists" value="30000"/>
         <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
         <property name="logLevel" value="INFO"/>
