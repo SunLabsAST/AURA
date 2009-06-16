@@ -318,6 +318,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 } catch (InterruptedException ex) {
                     // We could be woken up from sleep by artist crawler
                     // which needs more listeners
+                    continue;
                 }
             }
             
@@ -340,30 +341,18 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                         continue;
                     }
 
-                    l = mdb.enrollListener(lastfmId);
                     addedCnt++;
-                    
+                    l = mdb.enrollListener(lastfmId);                    
                     l.setLastFmName(lastfmId);
 
                     // Add this listener's neighbours to the queue with a
                     // decreasing probablity as we have more listeners in the queue
                     if (r.nextDouble() > (crawlQueue.size()/(QUEUE_SIZE-300))) {
-                        logger.info(crawlerName+"Crawler:Discovery: Crawling neighbours for " +
-                                lastfmId + ". QueueSize:" + crawlQueue.size());
-
-                        String[] neighbours = lastfm2.getNeighboursForUser(lastfmId);
-                        for (String n : neighbours) {
-                            LastUser lU = lastfm.getUser(n);
-                            if (lU.getPlayCount()>MIN_PLAY_COUNT) {
-                                crawlQueue.add(new QueuedItem(n, lU.getPlayCount()));
-                                incrementModCounter();
-                            }
-                        }
                         // Only set the last neighbours crawl if we added the neighbours to
                         // the queue. This way, it'll get pickup up when refilling the queue
                         // from the store at a later time if we didn't add the neighbours
+                        addNeighboursToQueueForUser(lastfmId);
                         l.setLastNeighboursCrawl();
-                        incrementModCounter(neighbours.length);
                     }
                     mdb.updateListener(l);
 
@@ -375,24 +364,47 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             } else {
                 try {
                     // try to find listeners in the store for which we didn't find neightbours
-                    List<Listener> items = mdb.listenerGetNeverCrawledNeighbours(50);
+                    List<Listener> items = mdb.listenerGetNeverCrawledNeighbours(10);
                     if (items.size()==0) {
                         logger.info(crawlerName+"Crawler:Discovery: no more listeners " +
                                 "to crawl. shutting down");
                         break;
                     } else {
+                        logger.info(crawlerName+"Crawler:Discovery: filling queue " +
+                                "with neighbours of " + items.size() + " listeners from store");
                         for (Listener l : items) {
-                            LastUser lU = lastfm.getUser(l.getLastFmName());
-                            crawlQueue.add(new QueuedItem(l.getLastFmName(), lU.getPlayCount()));
-                            incrementModCounter();
+                            addNeighboursToQueueForUser(l.getLastFmName());
+                            l.setLastNeighboursCrawl();
+                            mdb.updateListener(l);
                         }
-                        logger.info(crawlerName+"Crawler:Discovery: filled queue with " +
-                                items.size() + " listeners from store");
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(ListenerCrawler.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (AuraException ex) {
                     Logger.getLogger(ListenerCrawler.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
+    /**
+     * For a given lastfmId, add its neighbours to the crawl queue
+     * @param lastfmId Lastfm user id for which to crawl neighbours
+     * @throws IOException
+     */
+    private void addNeighboursToQueueForUser(String lastfmId) throws IOException {
+        logger.info(crawlerName + "Crawler:Discovery: Crawling neighbours for " +
+                lastfmId + ". QueueSize:" + crawlQueue.size());
+        String[] neighbours = lastfm2.getNeighboursForUser(lastfmId);
+        for (String n : neighbours) {
+            LastUser lU = lastfm.getUser(n);
+            if (lU.getPlayCount() > MIN_PLAY_COUNT) {
+                QueuedItem qI = new QueuedItem(n, lU.getPlayCount());
+                if (!crawlQueue.contains(qI)) {
+                    crawlQueue.add(qI);
+                    incrementModCounter();
+                } else {
+                    System.out.println("didn't add item because alraedy in queue!!");
                 }
             }
         }
