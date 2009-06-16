@@ -58,7 +58,7 @@
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerController" value="crawlerController"/>
         <property name="maxArtists" value="30000"/>
-        <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
+        <property name="crawlerStateDir" value="${cacheDir}/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="604800"/>
         <property name="crawlAlbumBlurbs" value="false"/>

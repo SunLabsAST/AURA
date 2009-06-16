@@ -153,6 +153,7 @@
         <property name="enableListenerDiscovery" value="true" />
         <property name="logLevel" value="FINE"/>
         <property name="nbrChartWeek" value="2" />
+        <property name="maxListeners" value="200" />
         <property name="defaultPeriod" value="604800"/>
     </component>
 

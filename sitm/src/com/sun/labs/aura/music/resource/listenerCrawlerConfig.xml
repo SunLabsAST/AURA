@@ -59,6 +59,10 @@
         <property name="crawlerController" value="crawlerController"/>
         <property name="artistCrawler" value="artistCrawler"/>
         <property name="logLevel" value="INFO"/>
+        <property name="crawlerStateDir" value="${cacheDir}/listener_crawler.state"/>
+        <property name="enableListenerDiscovery" value="true" />
+        <property name="nbrChartWeek" value="3" />
+        <property name="maxListeners" value="10000" />
         <property name="defaultPeriod" value="604800"/>
     </component>
 

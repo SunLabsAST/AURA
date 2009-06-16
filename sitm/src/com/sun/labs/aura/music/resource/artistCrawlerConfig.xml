@@ -62,7 +62,7 @@
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerController" value="crawlerController"/>
-        <property name="crawlerStateDir" value="${cacheDir}/crawler.state"/>
+        <property name="crawlerStateDir" value="${cacheDir}/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="604800"/>
     </component>
