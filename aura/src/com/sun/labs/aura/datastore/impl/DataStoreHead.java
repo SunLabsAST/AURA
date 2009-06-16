@@ -71,6 +71,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -82,6 +83,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 /**
  * A instance of an access point into the Data Store.  Data Store Heads
@@ -114,6 +119,9 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     public static final String PROP_PARALLEL_GET = "parallelGet";
 
     private boolean parallelGet;
+
+    /** A random number generator for picking partitions */
+    protected Random random = new Random();
 
     /**
      * A configurable pause to make between parallel calls to see if we can
@@ -671,6 +679,64 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         }
         return count;
     }
+
+    public Object processAttention(final AttentionConfig ac,
+                                   final String script,
+                                   final String language)
+            throws AuraException, RemoteException {
+        //
+        // Call all the partitions to do their processing
+        Set<PartitionCluster> clusters = trie.getAll();
+        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        for (PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p) {
+               public Object call() throws AuraException, RemoteException {
+                   return pc.processAttention(ac, script, language);
+               }
+            });
+        }
+
+        //
+        // Collect the individual results and pass them in to the script's
+        // collect method if there is one.
+        List<Object> values = new ArrayList<Object>();
+        try {
+            List<Future<Object>> results = executor.invokeAll(callers);
+            for (Future<Object> future : results) {
+                values.add(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new AuraException("Execution was interrupted", e);
+        } catch (ExecutionException e) {
+            checkAndThrow(e);
+        }
+
+        //
+        // Invoke the collect method if there is one.
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        ScriptEngine engine = mgr.getEngineByName(language);
+        Object result = values;
+        try {
+            try {
+                engine.eval(script);
+                Invocable invoker = (Invocable)engine;
+                result = invoker.invokeFunction("collect", values);
+            } catch (ScriptException e) {
+                throw new AuraException("An error occurred while executing " +
+                        "the provided script.", e);
+            } catch (NoSuchMethodException e) {
+                //
+                // This is okay.  They just didn't provide a "collect" method.
+            }
+        } catch (ClassCastException e) {
+            //
+            // We couldn't cast the engine to an invocable
+            throw new AuraException("The script engine for the specified language ("
+                    + language + ") does not support function invocation.");
+        }
+        return result;
+    }
+
 
     public List<Attention> getAttentionSince(final AttentionConfig ac,
                                              final Date timeStamp)
@@ -1320,6 +1386,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             return pc.explainSimilarAutotags(a1, a2, n);
         }
         return new ArrayList<Scored<String>>();
+    }
+
+    public List<String> getSupportedScriptLanguages()
+            throws AuraException, RemoteException {
+        List<PartitionCluster> clusters = trie.getAllAsList();
+        int idx = random.nextInt(clusters.size());
+        return clusters.get(idx).getSupportedScriptLanguages();
     }
 
     public synchronized void close() throws AuraException, RemoteException {

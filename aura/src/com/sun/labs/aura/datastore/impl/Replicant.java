@@ -69,7 +69,8 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
         NEW_ITEM,
         PUT_ITEM,
         UPDATE_ITEM,
-        QUERY
+        QUERY,
+        PROCESS_ATTN
     }
 
     /**

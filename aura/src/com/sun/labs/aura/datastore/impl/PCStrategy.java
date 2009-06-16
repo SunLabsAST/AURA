@@ -143,6 +143,12 @@ public interface PCStrategy {
             throws AuraException, RemoteException;
 
     /**
+     * Process a set of attention using a script
+     */
+    public Object processAttention(AttentionConfig ac, String script, String language)
+            throws AuraException, RemoteException;
+
+    /**
      * Gets the matching attention since a particular time
      */
     public List<Attention> getAttentionSince(AttentionConfig ac,
@@ -294,6 +300,11 @@ public interface PCStrategy {
     public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv,
                                           MarshalledObject<SimilarityConfig> config)
             throws AuraException, RemoteException;
+
+    /**
+     * Get a list of the supported scripting languages from the script engines
+     */
+    public List<String> getSupportedScriptLanguages() throws AuraException, RemoteException;
 
     /**
      * Close things up

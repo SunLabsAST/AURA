@@ -234,9 +234,18 @@ public class PersistentAttention implements Attention {
 
     @Override
     public String toString() {
-        return String.format("Attn %d (Src[%s] Tar[%s] Type[%s] Hash[%s]",
+        String ret =
+                String.format("Attn %d (Src[%s] Tar[%s] Type[%s] Hash[%s]",
                              id, sourceKey, targetKey, getType(),
                              Integer.toBinaryString(hashCode()));
+        if (getNumber() != null) {
+            ret += " N[" + getNumber() + "]";
+        }
+        if (getString() != null) {
+            ret += " S[" + getString() + "]";
+        }
+        ret += ")";
+        return ret;
     }
     
     public int compareTo(Attention attn) {

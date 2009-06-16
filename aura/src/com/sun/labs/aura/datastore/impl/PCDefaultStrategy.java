@@ -124,6 +124,10 @@ public class PCDefaultStrategy implements PCStrategy {
         return replicant.getAttentionCount(ac);
     }
 
+    public Object processAttention(AttentionConfig ac, String script, String language) throws AuraException, RemoteException {
+        return replicant.processAttention(ac, script, language);
+    }
+
     public List<Attention> getAttentionSince(AttentionConfig ac, Date timeStamp) throws AuraException, RemoteException {
         return replicant.getAttentionSince(ac, timeStamp);
     }
@@ -215,6 +219,11 @@ public class PCDefaultStrategy implements PCStrategy {
     public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv, 
             MarshalledObject<SimilarityConfig> config) throws AuraException, RemoteException {
         return replicant.findSimilar(dv, config);
+    }
+
+    public List<String> getSupportedScriptLanguages()
+            throws AuraException, RemoteException {
+        return replicant.getSupportedScriptLanguages();
     }
 
     public void close() throws AuraException, RemoteException {

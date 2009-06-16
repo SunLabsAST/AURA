@@ -246,7 +246,12 @@ public class PartitionClusterImpl implements PartitionCluster,
             throws AuraException, RemoteException {
         return strategy.getAttentionCount(ac);
     }
-    
+
+    public Object processAttention(AttentionConfig ac, String script, String language)
+            throws AuraException, RemoteException {
+        return strategy.processAttention(ac, script, language);
+    }
+
     public List<Attention> getAttentionSince(AttentionConfig ac,
                                              Date timeStamp)
             throws AuraException, RemoteException {
@@ -399,6 +404,11 @@ public class PartitionClusterImpl implements PartitionCluster,
             logger.log(Level.FINE, String.format("pc %s fs stop", prefixCode));
         }
         return ret;
+    }
+
+    public List<String> getSupportedScriptLanguages()
+            throws AuraException, RemoteException {
+        return strategy.getSupportedScriptLanguages();
     }
 
     public synchronized void close() throws AuraException, RemoteException {
