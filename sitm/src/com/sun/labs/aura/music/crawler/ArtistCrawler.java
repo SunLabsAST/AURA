@@ -24,6 +24,9 @@
 
 package com.sun.labs.aura.music.crawler;
 
+import com.echonest.api.v3.EchoNestException;
+import com.echonest.api.v3.artist.Audio;
+import com.echonest.api.v3.artist.DocumentList;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
@@ -40,7 +43,6 @@ import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.Utilities;
 import com.sun.labs.aura.music.web.amazon.Amazon;
-import com.sun.labs.aura.music.web.echonest.EchoNest;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
@@ -84,6 +86,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.echonest.api.v3.artist.ArtistAPI;
+import java.util.Properties;
 
 /**
  *
@@ -98,7 +102,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     private FlickrManager flickr;
     private Upcoming upcoming;
     private Spotify spotify;
-    private EchoNest echoNest;
+    private ArtistAPI echoNest;
     private Amazon amazon;
     private RemoteComponentManager rcm;
     private Util util;
@@ -108,9 +112,20 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     private ExecutorService threadPool;
     private TagFilter tagFilter;
 
+    private String ECHONEST_API_KEY = null;
+
     public ArtistCrawler() {
         super("Artist", "artist_crawler.state");
         crawlQueue = new PriorityBlockingQueue<QueuedItem>(100000, QueueCrawler.PRIORITY_ORDER);
+
+        try {
+            Properties properties = new Properties();
+            properties.load(this.getClass().getClassLoader().getResourceAsStream("com/sun/labs/aura/music/resource/api.properties"));
+            ECHONEST_API_KEY = properties.getProperty("ECHONEST_API_KEY");
+        } catch (Exception ex) {
+            logger.severe("No EchoNest API key available. " +
+                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+        }
     }
 
     /**
@@ -178,7 +193,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             amazon = new Amazon();
             upcoming = new Upcoming();
             spotify = new Spotify();
-            echoNest = new EchoNest();
+            echoNest = new ArtistAPI(ECHONEST_API_KEY);
             rcm = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
             stateDir = ps.getString(PROP_STATE_DIR);
             updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
@@ -193,8 +208,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             threadPool = Executors.newCachedThreadPool();
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
-        } catch (AuraException ae) {
-            throw new PropertyException(ae, "ArtistCrawler", ps.getInstanceName(), "");
+        } catch (EchoNestException ex) {
+            Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -831,16 +846,36 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         artist.setSpotifyID(id);
     }
 
-    private void addEchoNestInfo(Artist artist) throws IOException {
-        List<String> urls = echoNest.getAudio(artist.getKey());
-        for (String url : urls) {
-            artist.addAudio(url);
+    private void addEchoNestInfo(Artist artist) throws IOException, EchoNestException {
+
+        // Get echonest id if we don't already have it
+        if (artist.getEchoNestId() == null) {
+            for (com.echonest.api.v3.artist.Artist tA : echoNest.searchArtist(artist.getName(), false)) {
+                if (echoNest.getUrls(tA).get("mb_url").contains(artist.getKey())) {
+                    artist.setEchoNestId(tA.getId());
+                    break;
+                }
+            }
+            if (artist.getEchoNestId() == null) {
+                logger.fine("No EchoNest match for artist '" + artist.getName() + "'");
+                return;
+            }
         }
-        if (urls.size() == 0) {
+
+        // Get audio urls
+        DocumentList<Audio> urls = echoNest.getAudio(artist.getEchoNestId(), 0, 15);
+        for (Audio a : urls.getDocuments()) {
+            artist.addAudio(a.getLink());
+        }
+        if (urls.getTotal() == 0) {
             logger.info("No echonest audio found for " + artist.getName());
         } else {
-            logger.fine("crawled " + urls.size() + " audio files from echonest for " + artist.getName());
+            logger.fine("crawled " + urls.getTotal() + " audio files from echonest for " + artist.getName());
         }
+
+        // Get familiarity and hotttnesss
+        artist.setFamiliarity(echoNest.getFamiliarity(artist.getEchoNestId()));
+        artist.setHotttnesss(echoNest.getHotness(artist.getEchoNestId()));
     }
 
     /**

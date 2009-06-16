@@ -55,6 +55,8 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_PHOTOS = "photos";
     public final static String FIELD_SPOTIFY = "spotifyID";
     public final static String FIELD_POPULARITY = "popularity";
+    public final static String FIELD_FAMILIARITY = "familiarity";
+    public final static String FIELD_HOTTTNESSS = "hotttnesss";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
     public final static String FIELD_SOCIAL_TAGS_RAW = "socialTagsRaw";
@@ -65,6 +67,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_LAST_CRAWL = "lastCrawl";
     public final static String FIELD_UPDATE_COUNT = "updateCount";
     public final static String FIELD_AUDIO = "audio";
+    public final static String FIELD_ECHONEST_ID = "echoNestId";
 
     public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
         public int compare(Artist o1, Artist o2) {
@@ -114,6 +117,8 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_INFLUENCERS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_PHOTOS);
             ds.defineField(FIELD_POPULARITY, Item.FieldType.FLOAT, StoreFactory.INDEXED);
+            ds.defineField(FIELD_FAMILIARITY, Item.FieldType.FLOAT, StoreFactory.INDEXED);
+            ds.defineField(FIELD_HOTTTNESSS, Item.FieldType.FLOAT, StoreFactory.INDEXED);
             ds.defineField(FIELD_RELATED_ARTISTS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
@@ -125,10 +130,52 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_LAST_CRAWL);
             ds.defineField(FIELD_UPDATE_COUNT);
             ds.defineField(FIELD_AUDIO);
+            ds.defineField(FIELD_ECHONEST_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
     }
+
+    /**
+     * Gets a numerical description of how hottt an artist currently is
+     * @return
+     */
+    public float getHotttnesss() {
+        return getFieldAsFloat(FIELD_HOTTTNESSS);
+    }
+
+    /**
+     * Sets a numerical description of how hottt an artist currently is
+     * @param hotttnesss
+     */
+    public void setHotttnesss(float hotttnesss) {
+        setField(FIELD_HOTTTNESSS, hotttnesss);
+    }
+
+    /**
+     * Gets an estimation of how familiar an artist currently is to the world
+     * @return
+     */
+    public float getFamiliarity() {
+        return getFieldAsFloat(FIELD_FAMILIARITY);
+    }
+
+    /**
+     * Sets an estimation of how familiar an artist currently is to the world
+     * @param familiarity
+     */
+    public void setFamiliarity(float familiarity) {
+        setField(FIELD_FAMILIARITY, familiarity);
+    }
+
+    public String getEchoNestId() {
+        return getFieldAsString(FIELD_ECHONEST_ID);
+    }
+
+    public void setEchoNestId(String newId) {
+        setField(FIELD_ECHONEST_ID, newId);
+    }
+
     /**
      * Gets the popularity of the artist
      * @return the popularity
