@@ -60,4 +60,10 @@ public interface LastFM2 {
     public List<LastItem> getWeeklyArtistChartByUser(String user) throws IOException;
 
     public List<LastItem> getWeeklyArtistChartByUser(String user, int from, int to) throws IOException;
+
+    public LastItem[] getTopArtistsForTag(String tag) throws IOException;
+
+    public SocialTag[] getArtistTags(String artistName) throws IOException;
+
+    public LastArtist[] getSimilarArtists(String artist) throws IOException;
 }

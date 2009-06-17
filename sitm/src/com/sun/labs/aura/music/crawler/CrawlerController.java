@@ -79,6 +79,9 @@ public interface CrawlerController extends LastFM2, LastFM, Component, Remote {
     public SocialTag[] getTrackTags(String artistName, String trackName) throws IOException, RemoteException;
 
     @Override
+    /**
+     * @deprecated
+     */
     public SocialTag[] getArtistTags(String artistName, boolean raw) throws IOException, RemoteException;
 
     @Override

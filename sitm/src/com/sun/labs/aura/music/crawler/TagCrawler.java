@@ -34,7 +34,6 @@ import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
-import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
@@ -120,10 +119,6 @@ public class TagCrawler implements AuraService, Configurable {
         util = new Util(flickr, youtube);
     }
 
-    private LastFM getLastFM() throws AuraException, RemoteException {
-        return (CrawlerController) rcmCrawl.getComponent();
-    }
-
     private LastFM2 getLastFM2() throws AuraException, RemoteException {
         return (CrawlerController) rcmCrawl.getComponent();
     }
@@ -180,7 +175,7 @@ public class TagCrawler implements AuraService, Configurable {
     private void addTaggedArtists(ArtistTag artistTag) throws AuraException, RemoteException, IOException {
         // add the last.fm tags
         float popularity = 0;
-        LastItem[] lartists = getLastFM().getTopArtistsForTag(artistTag.getName());
+        LastItem[] lartists = getLastFM2().getTopArtistsForTag(artistTag.getName());
         if (lartists.length > 0) {
             artistTag.clearTaggedArtists();
             for (LastItem lartist : lartists) {

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import org.w3c.dom.Document;
@@ -131,6 +132,24 @@ public class LastFM2Impl implements LastFM2 {
         return getNeighboursForUserFromLastFM(url);
     }
 
+    @Override
+    public synchronized LastItem[] getTopArtistsForTag(String tag) throws IOException {
+        String url = getTopArtistForTagURL(tag);
+        return getTopArtistsForTagFromLastFM(url);
+    }
+
+    @Override
+    public synchronized SocialTag[] getArtistTags(String artistName) throws IOException {
+        String url = getArtistTagURL(artistName);
+        return getTagsFromLastFM(url);
+    }
+
+    @Override
+    public synchronized LastArtist[] getSimilarArtists(String artist) throws IOException {
+        String url = getSimilarArtistsURL(artist);
+        return getSimilarArtistsFromLastFM(url);
+    }
+
     /**
      * Get a list of available charts for this user, expressed as date ranges
      * which can be sent to the getWeeklyArtistChartByUser() function
@@ -166,11 +185,82 @@ public class LastFM2Impl implements LastFM2 {
         return getWeeklyArtistChartFromLastFM(url);
     }
 
+    public synchronized LastArtist[] getSimilarArtistsFromLastFM(String url) throws IOException {
+
+        List<LastArtist> items = new ArrayList<LastArtist>();
+
+        Document doc = commander.sendCommand(url);
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element simArtistsNode = (Element) XmlUtil.getDescendent(docElement, "similarartists");
+
+        for (Node artistNode : XmlUtil.getDescendents(simArtistsNode, "artist")) {
+            Element artist = (Element) artistNode;
+
+            String artistName = XmlUtil.getElementContents(artist, "name");
+            String artistMbid = XmlUtil.getElementContents(artist, "mbid");
+            items.add(new LastArtist(artistName, artistMbid));
+        }
+        return items.toArray(new LastArtist[0]);
+    }
+
+    private LastItem[] getTopArtistsForTagFromLastFM(String url) throws IOException {
+
+        List<LastItem> items = new ArrayList<LastItem>();
+
+        Document doc = commander.sendCommand(url);
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element topArtistsNode = (Element) XmlUtil.getDescendent(docElement, "topartists");
+
+        for (Node artistNode : XmlUtil.getDescendents(topArtistsNode, "artist")) {
+            Element artist = (Element) artistNode;
+
+            String artistName = XmlUtil.getElementContents(artist, "name");
+            String sfreq = XmlUtil.getElementContents(artist, "tagcount");
+            double freq = 1;
+            if (sfreq != null) {
+                freq = Double.parseDouble(sfreq);
+            }
+            String mbid = XmlUtil.getElementContents(artist, "mbid");
+            items.add(new LastItem(artistName, mbid, (int)freq));
+        }
+        return items.toArray(new LastItem[0]);
+    }
+
+    private SocialTag[] getTagsFromLastFM(String url) throws IOException {
+        List<SocialTag> tags = new ArrayList<SocialTag>();
+
+        Document doc = commander.sendCommand(url);
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element topTagsNode = (Element) XmlUtil.getDescendent(docElement, "toptags");
+
+        for (Node tagNode : XmlUtil.getDescendents(topTagsNode, "tag")) {
+            Element tag = (Element) tagNode;
+
+            String tagName = XmlUtil.getElementContents(tag, "name");
+
+            int freq = 50;
+            String sfreq = XmlUtil.getElementContents(tag, "count");
+            if (sfreq != null) {
+                freq = sint(sfreq);
+            }
+            tags.add(new SocialTag(tagName, freq));
+        }
+        Collections.sort(tags, LastItem.FREQ_ORDER);
+        Collections.reverse(tags);
+        return tags.toArray(new SocialTag[0]);
+    }
+
+
     private LastArtist2 getArtistInfoFromLastFM(String url) throws IOException {
         LastArtist2 artist = new LastArtist2();
 
         Document doc = commander.sendCommand(url);
-
         checkStatus(doc);
 
         Element docElement = doc.getDocumentElement();
@@ -450,6 +540,11 @@ public class LastFM2Impl implements LastFM2 {
         return userIds.toArray(new String[0]);
     }
 
+    private String getArtistTagURL(String artistName) {
+        String encodedArtistName = encodeName(artistName);
+        return "?method=artist.gettoptags&artist=" + encodedArtistName;
+    }
+
     //http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=sonny%20bono&api_key=b25b959554ed76058ac220b7b2e0a026
     private String getArtistInfoByNameURL(String artistName) {
         String encodedArtistName = encodeName(artistName);
@@ -478,6 +573,16 @@ public class LastFM2Impl implements LastFM2 {
             url += "&from=" + from + "&to=" + to;
         }
         return url;
+    }
+
+    private String getTopArtistForTagURL(String tagName) {
+        String encodedTagName = encodeName(tagName);
+        return "?method=tag.gettopartists&tag=" + encodedTagName;
+    }
+
+    private String getSimilarArtistsURL(String artistName) {
+        String encodedName = encodeName(artistName);
+        return "?method=artist.getsimilar&artist=" + encodedName;
     }
 
     private String getTrackInfoByNameURL(String artistName, String trackName) {
@@ -522,12 +627,26 @@ public class LastFM2Impl implements LastFM2 {
                 i = Integer.parseInt(s);
             }
         } catch (NumberFormatException ex) {
+            double d = Double.parseDouble(s);
+            i = (int) d;
         }
         return i;
     }
 
     public static void main(String[] args) throws IOException, AuraException {
         LastFM2Impl lfm2 = new LastFM2Impl();
+
+        for (LastItem lI : lfm2.getTopArtistsForTag("rock")) {
+            System.out.println(lI.toString());
+        }
+
+        System.out.println("-------------------");
+
+        for (LastArtist lA : lfm2.getSimilarArtists("Our Lady Peace")) {
+            System.out.println(lA.getArtistName()+" :: "+lA.getMbaid());
+        }
+
+        System.out.println("-------------------");
 
         List<Integer[]> c = lfm2.getWeeklyChartListByUser("ddcarnage");
         int cnt=0;

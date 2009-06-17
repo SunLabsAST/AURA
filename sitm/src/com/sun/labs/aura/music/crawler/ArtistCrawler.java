@@ -680,7 +680,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         if (crawlQueue.size() == 0) {
             try {
                 logger.info("Priming queue with " + artistName);
-                LastArtist[] simArtists = getLastFM().getSimilarArtists(artistName);
+                LastArtist[] simArtists = getLastFM2().getSimilarArtists(artistName);
                 for (LastArtist simArtist : simArtists) {
                     if (worthVisiting(simArtist)) {
                         int popularity = getLastFM().getPopularity(simArtist.getArtistName());
@@ -947,7 +947,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     }
 
     private void addLastFmTags(Artist artist) throws AuraException, RemoteException, IOException {
-        SocialTag[] tags = getLastFM().getArtistTags(artist.getName());
+        SocialTag[] tags = getLastFM2().getArtistTags(artist.getName());
         for (SocialTag tag : tags) {
 
             int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
@@ -964,7 +964,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     }
 
     private void addSimilarArtistsToQueue(Artist artist) throws AuraException, RemoteException, IOException {
-        LastArtist[] simArtists = getLastFM().getSimilarArtists(artist.getName());
+        LastArtist[] simArtists = getLastFM2().getSimilarArtists(artist.getName());
         int fanOut = 0;
         for (LastArtist simArtist : simArtists) {
             if (worthVisiting(simArtist)) {

@@ -66,14 +66,6 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
      * @deprecated
      */
     @Override
-    public SocialTag[] getArtistTags(String artistName) throws IOException {
-        return lastfm.getArtistTags(artistName);
-    }
-
-    /**
-     * @deprecated
-     */
-    @Override
     public SocialTag[] getAlbumTags(String artistName, String trackName) throws IOException {
         return lastfm.getAlbumTags(artistName, trackName);
     }
@@ -84,14 +76,6 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
     @Override
     public SocialTag[] getTrackTags(String artistName, String trackName) throws IOException {
         return lastfm.getTrackTags(artistName, trackName);
-    }
-
-    /**
-     * @deprecated
-     */
-    @Override
-    public SocialTag[] getArtistTags(String artistName, boolean raw) throws IOException {
-        return lastfm.getArtistTags(artistName, raw);
     }
 
     /**
@@ -151,14 +135,6 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
         return lastfm.getSimilarUsers(user);
     }
 
-    /**
-     * @deprecated
-     */
-    @Override
-    public LastArtist[] getSimilarArtists(String artist) throws IOException {
-        return lastfm.getSimilarArtists(artist);
-    }
-
     @Override
     public void setTrace(boolean trace) throws IOException {
         lastfm.setTrace(trace);
@@ -173,19 +149,34 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
         return lastfm.getFanFromLastFM(url);
     }
 
-    /**
-     * @deprecated
-     */
-    @Override
-    public LastItem[] getTopArtistsForTag(String tag) throws IOException {
-        return lastfm.getTopArtistsForTag(tag);
-    }
 
     /*************
         Below LastFM 2.0 API methods
     *******/
 
+    /**
+     * @deprecated
+     */
+    @Override
+    public SocialTag[] getArtistTags(String artistName, boolean raw) throws IOException {
+        return lastfm2.getArtistTags(artistName);
+    }
 
+    @Override
+    public SocialTag[] getArtistTags(String artistName) throws IOException {
+        return lastfm2.getArtistTags(artistName);
+    }
+
+    @Override
+    public LastArtist[] getSimilarArtists(String artist) throws IOException {
+        return lastfm2.getSimilarArtists(artist);
+    }
+
+    @Override
+    public LastItem[] getTopArtistsForTag(String tag) throws IOException {
+        return lastfm2.getTopArtistsForTag(tag);
+    }
+    
     @Override
     public LastArtist2 getArtistInfoByName(String artistName) throws IOException {
         return lastfm2.getArtistInfoByName(artistName);
