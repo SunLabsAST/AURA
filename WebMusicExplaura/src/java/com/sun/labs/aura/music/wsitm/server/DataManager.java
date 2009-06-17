@@ -45,6 +45,7 @@ import com.sun.labs.aura.music.RecommendationSummary;
 import com.sun.labs.aura.music.RecommendationType;
 import com.sun.labs.aura.music.SimType;
 import com.sun.labs.aura.music.Video;
+import com.sun.labs.aura.music.util.ExpiringLRUCache;
 import com.sun.labs.aura.music.wsitm.client.ui.widget.AbstractSearchWidget.searchTypes;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.aura.music.wsitm.client.items.AlbumDetails;
@@ -79,7 +80,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -1626,77 +1626,6 @@ class TagScoreAccumulator {
 
     public void accum(double score) {
         this.score += score;
-    }
-}
-
-class ExpiringLRUCache {
-
-    private LRUCache<String, Object> cache;
-    private long time2live; // time objects can live in cache in millisec
-
-    public ExpiringLRUCache(int maxSize, int time2live) {
-        cache = new LRUCache(maxSize);
-        this.time2live = time2live * 1000;
-    }
-
-    public int getSize() {
-        return cache.size();
-    }
-
-    public Object sget(String s) {
-        ObjectContainer o = (ObjectContainer) cache.sget(s);
-        if (o == null || o.getExpiration() < System.currentTimeMillis()) {
-            return null;
-        } else {
-            return o.getObject();
-        }
-    }
-
-    public Object sput(String s, Object o) {
-        return cache.sput(s, new ObjectContainer(System.currentTimeMillis() + time2live, o));
-    }
-
-    private class LRUCache<String, Object> extends LinkedHashMap<String, Object> {
-
-        private int maxSize;
-
-        LRUCache(int maxSize) {
-            this.maxSize = maxSize;
-        }
-
-        // BUG sort out this sync stuff
-        synchronized public Object sget(String s) {
-            return get(s);
-        }
-
-        synchronized public Object sput(String s, Object o) {
-            return put(s, o);
-        }
-
-        @Override
-        protected boolean removeEldestEntry(Map.Entry eldest) {
-            boolean remove = size() > maxSize;
-            return remove;
-        }
-    }
-
-    private class ObjectContainer {
-
-        private Object obj;
-        private long expiration;
-
-        public ObjectContainer(long creationTime, Object obj) {
-            this.expiration = creationTime;
-            this.obj = obj;
-        }
-
-        public Object getObject() {
-            return obj;
-        }
-
-        public long getExpiration() {
-            return expiration;
-        }
     }
 }
 

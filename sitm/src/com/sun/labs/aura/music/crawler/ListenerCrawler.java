@@ -353,7 +353,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
 
                     // Add this listener's neighbours to the queue with a
                     // decreasing probablity as we have more listeners in the queue
-                    if (r.nextDouble() > (crawlQueue.size()/(QUEUE_SIZE-300))) {
+                    if (r.nextDouble() > ((double)crawlQueue.size()/(QUEUE_SIZE-300))) {
                         // Only set the last neighbours crawl if we added the neighbours to
                         // the queue. This way, it'll get pickup up when refilling the queue
                         // from the store at a later time if we didn't add the neighbours
@@ -390,6 +390,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                     Logger.getLogger(ListenerCrawler.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            Thread.yield();
         }
     }
 
@@ -589,6 +590,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                     listener.addCrawledPlayHistoryDate(ranges[0]);
                     logger.fine("ListenerCrawler:WeeklyCharts: Added plays for listener '" +
                             listener.getKey() + "' for week " + ranges[0]);
+                    Thread.yield();
                 }
             }
             listener.flush(mdb.getDataStore());

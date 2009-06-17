@@ -24,6 +24,7 @@
 
 package com.sun.labs.aura.music.web;
 
+import com.sun.labs.aura.music.util.ExpiringLRUCache;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -64,11 +65,21 @@ public class Commander {
     private DocumentBuilder builder;
     private PrintStream logFile;
     private int commandsSent = 0;
+    private int cacheHits = 0;
     private int timeout = -1;
     private int tryCount = 5;
     private final int DEFAULT_TIMEOUT = 60 * 1000;
 
+    private ExpiringLRUCache cache;
+    private boolean useCache;
+    private final int CACHE_SIZE = 10000;
+    private final int CACHE_SECS2LIVE = 60 * 60;
+
     public Commander(String name, String prefix, String suffix) throws IOException {
+        this(name, prefix, suffix, true);
+    }
+
+    public Commander(String name, String prefix, String suffix, boolean useCache) throws IOException {
         this.name = name;
         this.prefix = prefix;
         this.suffix = suffix;
@@ -93,6 +104,11 @@ public class Commander {
             }
         }
         setTimeout(DEFAULT_TIMEOUT);
+
+        this.useCache = useCache;
+        if (useCache) {
+            cache = new ExpiringLRUCache(CACHE_SIZE, CACHE_SECS2LIVE);
+        }
     }
 
     public void setTraceSends(boolean traceSends) {
@@ -112,6 +128,7 @@ public class Commander {
 
     public void showStats() {
         System.out.printf("Commands sent to %s: %d\n", name, commandsSent);
+        System.out.printf("Cache hits on %s: %d\n", name, cacheHits);
     }
 
     public String encode(String name) {
@@ -134,6 +151,15 @@ public class Commander {
     // BUG fix this threading model
     public Document sendCommand(String command) throws IOException {
         Document document = null;
+
+        if (useCache) {
+            document = (Document) cache.sget(command);
+            if (document != null) {
+                cacheHits++;
+                return document;
+            }
+        }
+
         InputStream is = sendCommandRaw(command);
         commandsSent++;
 
@@ -150,10 +176,14 @@ public class Commander {
         if (trace) {
             dumpDocument(document);
         }
+        
+        if (useCache) {
+            cache.sput(command, document);
+        }
         return document;
     }
 
-    public InputStream sendCommandRaw(String command) throws IOException {
+    public synchronized InputStream sendCommandRaw(String command) throws IOException {
         try {
             String fullCommand = prefix + command + fixSuffix(command, suffix);
 

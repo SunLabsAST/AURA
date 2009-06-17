@@ -47,7 +47,7 @@ public class LastFMImpl implements LastFM {
     private Commander commander;
 
     public LastFMImpl() throws IOException {
-        commander = new Commander("last.fm", "http://ws.audioscrobbler.com/1.0/", "");
+        commander = new Commander("last.fm", "http://ws.audioscrobbler.com/1.0/", "", true);
         commander.setRetries(1);
         commander.setTimeout(10000);
         commander.setTraceSends(false);

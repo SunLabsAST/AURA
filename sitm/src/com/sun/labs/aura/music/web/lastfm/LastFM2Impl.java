@@ -60,7 +60,7 @@ public class LastFM2Impl implements LastFM2 {
                     "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
         }
 
-        commander = new Commander("last.fm", "http://ws.audioscrobbler.com/2.0/", "&api_key=" + API_KEY);
+        commander = new Commander("last.fm", "http://ws.audioscrobbler.com/2.0/", "&api_key=" + API_KEY, true);
         commander.setRetries(1);
         commander.setTimeout(10000);
         commander.setTraceSends(false);
