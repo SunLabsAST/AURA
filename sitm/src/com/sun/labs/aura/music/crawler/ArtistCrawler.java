@@ -707,11 +707,26 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 /**
      * Adds an artist to the discovery queue
      * @param artist the artist to be queued
-     * @param popularity the popularity of the artist
+     * @param popularity the popularity of the artist. If -1 is passed, the
+     * popularity will be determined prior to enqueing the artist
      */
     private synchronized boolean enqueue(LastArtist artist, int popularity) throws RemoteException {
         QueuedItem qA = new QueuedItem(artist, popularity);
         if (!crawlQueue.contains(qA)) {
+            // If the popularity was not determined by the calling object, determine it now
+            if (qA.getPopularity() == -1) {
+                int pop = 50;
+                try {
+                    pop = getLastFM().getPopularity(qA.getName());
+                } catch (AuraException ex) {
+                    Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                qA = new QueuedItem(artist, pop);
+            }
+
             crawlQueue.add(qA);
             incrementModCounter();
             return true;

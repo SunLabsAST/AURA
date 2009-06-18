@@ -583,11 +583,10 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                         // the artist crawler's queue so we get it's info later on
                         Artist artist = mdb.artistLookup(artistItem.getMBID());
                         if (artist==null) {
-                            int pop = getLastFM().getPopularity(artistItem.getName());
-                            boolean added = enqueueArtistToCrawl(artistItem, pop);
+                            boolean added = enqueueArtistToCrawl(artistItem, -1);
                             if (added) {
                                 logger.fine("ListenerCrawler:WeeklyCharts: Added '" +
-                                        artistItem.getName() + "' to artist crawler queue. pop:"+pop);
+                                        artistItem.getName() + "' to artist crawler queue");
                             }
                         }
                         mdb.addPlayAttentionsWithDetails(listener.getKey(),
