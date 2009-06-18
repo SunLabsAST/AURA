@@ -69,12 +69,24 @@ public class MusicDatabase {
 
     private final static int MAX_ATTENTION_GET = 100000;
 
+    /**
+     * Used to determine from which portion of the long tail recommendation or
+     * similar artists are to be pulled
+     */
     public enum Popularity {
         ALL, HEAD, MID, TAIL, HEAD_MID, MID_TAIL
     };
 
     public enum DBOperation {
         ReadOnly, AddAttention, AddItem
+    };
+
+    /**
+     * Used to determine which metric is to be used when fetching
+     * popular artists
+     */
+    public enum PopularityMetric {
+        LastFM, Hotttnesss, Familiarity
     };
 
     private List<SimType> simTypes;
@@ -122,6 +134,21 @@ public class MusicDatabase {
             itemAdapter.flush(getDataStore());
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
+        }
+    }
+
+    /**
+     * Converts a popularity metric into the field name if refers to in the datastore
+     * @param popMetric
+     * @return corresponding field name
+     */
+    private String popMetricToFieldName(PopularityMetric popMetric) {
+        if (popMetric == PopularityMetric.LastFM) {
+            return Artist.FIELD_POPULARITY;
+        } else if (popMetric == PopularityMetric.Familiarity) {
+            return Artist.FIELD_FAMILIARITY;
+        } else {
+            return Artist.FIELD_HOTTTNESSS;
         }
     }
 
@@ -593,9 +620,14 @@ public class MusicDatabase {
 
     }
 
-    Artist getMostPopularArtist() throws AuraException {
+    /**
+     * Gets the most popular artist based on the default popularity metric
+     * @return most popular artist
+     * @throws AuraException
+     */
+    public Artist getMostPopularArtist() throws AuraException {
         if (mostPopularArtist == null) {
-            List<Artist> popularList = artistGetMostPopular(1);
+            List<Artist> popularList = artistGetMostPopular(PopularityMetric.LastFM, 1);
             if (popularList.size() > 0) {
                 mostPopularArtist = popularList.get(0);
             } else {
@@ -994,9 +1026,9 @@ public class MusicDatabase {
         return artist.getPopularity() / getMostPopularArtist().getPopularity();
     }
 
-    public List<String> artistGetMostPopularNames(int count) throws AuraException {
+    public List<String> artistGetMostPopularNames(PopularityMetric popMetric, int count) throws AuraException {
         List<String> artistNames = new ArrayList();
-        for (Artist artist : artistGetMostPopular(count)) {
+        for (Artist artist : artistGetMostPopular(popMetric, count)) {
             artistNames.add(artist.getName());
         }
 
@@ -1004,11 +1036,11 @@ public class MusicDatabase {
 
     }
 
-    public List<Artist> artistGetMostPopular(int count) throws AuraException {
+    public List<Artist> artistGetMostPopular(PopularityMetric popMetric, int count) throws AuraException {
         try {
             List<Scored<Item>> items = getDataStore().query(
                     new Equals("aura-type", "artist"),
-                    "-popularity", count, null);
+                    "-" + popMetricToFieldName(popMetric), count, null);
             List<Artist> artists = new ArrayList<Artist>();
             for (Scored<Item> i : items) {
                 artists.add(new Artist(i.getItem()));
@@ -1041,6 +1073,12 @@ public class MusicDatabase {
 
     }
 
+    /**
+     * Gets a list of listeners for which their neighbours have never been crawled
+     * @param count number of listeners to return
+     * @return list of listeners
+     * @throws AuraException
+     */
     public List<Listener> listenerGetNeverCrawledNeighbours(int count) throws AuraException {
         try {
 

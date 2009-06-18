@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- WARNING: Any manual modifications to this file may be automatically overriden -->
-<!-- Created with GWT4NB 2.0.1 -->
+<!-- Created with GWT4NB 2.5 -->
 <project name="WebMusicExplaura-gwt" default="-post-compile" basedir="..">
     <description>Generates Javascript for WebMusicExplaura.</description>
     <property file="./nbproject/gwt.properties"/>
@@ -41,6 +41,9 @@
                 <path path="${javac.classpath}:${src.dir}:${build.classes.dir}"/>
             </classpath>
         </nbjpdastart>
+        
+        <property name="client.url" value="http://localhost:8080/${client.urlPart}"/>
+        <property name="gwt.shell.jvmargs" value=""/>
         <property name="gwtshell.jvmargs.base" value="-Xdebug -Xnoagent -Djava.compiler=none -Xrunjdwp:transport=dt_socket,address=${jpda.address.gwt}"/>
         
         <condition property="gwtshell.jvmargs" value="${gwtshell.jvmargs.base} -XstartOnFirstThread"
@@ -49,6 +52,7 @@
         </condition>
         
         <java fork="true" classname="com.google.gwt.dev.GWTShell" failonerror="true">
+            <jvmarg line="${gwt.shell.jvmargs}"/>
             <jvmarg line="${gwtshell.jvmargs}"/>
             <classpath>
                 <path path="${src.dir}:${javac.classpath}:${build.classes.dir}"/>
@@ -67,10 +71,14 @@
             <classpath>
                 <path path="${javac.classpath}:${src.dir}"/>
             </classpath>
+            <sourcepath>
+                <path path="${src.dir}"/>
+            </sourcepath>
         </nbjpdastart>
         <property name="client.url" value="${gwt.module}"/>
         <!-- You can override this property in the 'gwt.properties' file -->
         <property name="gwt.shell.output.style" value="OBFUSCATED"/>
+        <property name="gwt.shell.jvmargs" value=""/>
         <property name="gwt.shell.logLevel" value="WARN"/>
         <property name="gwtshell.jvmargs.base" value="-Xdebug -Xnoagent -Djava.compiler=none -Xrunjdwp:transport=dt_socket,address=${jpda.address.gwt}"/>
         <condition property="gwtshell.jvmargs" value="${gwtshell.jvmargs.base} -XstartOnFirstThread"
@@ -79,6 +87,7 @@
         </condition>
         
         <java fork="true" classname="com.google.gwt.dev.GWTShell">
+            <jvmarg line="${gwt.shell.jvmargs}"/>
             <jvmarg line="${gwtshell.jvmargs}" />
             <classpath>
                 <path path="${src.dir}:${javac.classpath}"/>

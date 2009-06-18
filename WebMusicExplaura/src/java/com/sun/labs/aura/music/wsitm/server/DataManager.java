@@ -24,8 +24,6 @@
 
 package com.sun.labs.aura.music.wsitm.server;
 
-import com.echonest.api.v3.EchoNestException;
-import com.echonest.api.v3.artist.ArtistAPI;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
 import com.sun.labs.aura.datastore.DataStore;
@@ -82,7 +80,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -114,7 +111,6 @@ public class DataManager implements Configurable {
     private static final String ANONYMOUS_USER_KEY = "ANONYMOUS_USER_KEY";
     private float beatlesPopularity = -1;
 
-    private EchoNestPopArtistManager echoNestPopular;
     private ArrayList<ScoredC<String>> artistOracle;
     private ArrayList<ScoredC<String>> tagOracle;
     private Map<String, SimType> simTypes;
@@ -153,22 +149,16 @@ public class DataManager implements Configurable {
         try {
 
             logger.info("Fetching " + NUMBER_ARTIST_ORACLE + " most popular artists from datastore");
-            for (Artist a : mdb.artistGetMostPopular(NUMBER_ARTIST_ORACLE)) {
+            for (Artist a : mdb.artistGetMostPopular(MusicDatabase.PopularityMetric.LastFM, NUMBER_ARTIST_ORACLE)) {
                 if (!BANNED_MBIDs.contains(a.getKey())) {
                     artistOracle.add(new ScoredC<String>(a.getName(), a.getPopularity()));
                 }
             }
 
-            echoNestPopular = new EchoNestPopArtistManager();
-            echoNestPopular.start();
-
-            //artistOracle.addAll(mdb.artistGetMostPopularNames(NUMBER_ARTIST_ORACLE));
+            logger.info("Fetching " + NUMBER_TAGS_ORACLE + " most popular tags");
             for (ArtistTag aT : mdb.artistTagGetMostPopular(NUMBER_ARTIST_ORACLE)) {
                 tagOracle.add(new ScoredC<String>(aT.getName(), aT.getPopularity()));
             }
-            logger.info("Fetching " + NUMBER_TAGS_ORACLE + " most popular tags");
-
-            //tagOracle.addAll(mdb.artistTagGetMostPopularNames(NUMBER_TAGS_ORACLE));
             logger.info("DONE");
 
             beatlesPopularity = mdb.artistLookup(beatlesMDID).getPopularity();
@@ -199,13 +189,6 @@ public class DataManager implements Configurable {
     }
 
     public void onDestroy() {
-        if (echoNestPopular.isRunUpdate() && echoNestPopular.isAlive()) {
-            logger.info("Interupting echoNestPopular");
-            echoNestPopular.setRunUpdate(false);
-            echoNestPopular.interrupt();
-        } else {
-            logger.info("echoNestPopular not running.");
-        }
     }
 
     public ArrayList<ScoredC<String>> getArtistOracle() {
@@ -259,8 +242,10 @@ public class DataManager implements Configurable {
         Random r = new Random();
 
         HashMap<String, ArtistCompact> artistSource = new HashMap<String, ArtistCompact>();
-        for (Scored<ArtistCompact> sA : echoNestPopular.get()) {
-            artistSource.put(sA.getItem().getName(), sA.getItem());
+        for (Artist sA : mdb.artistGetMostPopular(MusicDatabase.PopularityMetric.Hotttnesss, nbr)) {
+            if (sA.getHotttnesss() > 0.75) {
+                artistSource.put(sA.getName(), artistToArtistCompact(sA));
+            }
         }
 
         // If we don't have enough artists with the results from the echonest,
@@ -1462,142 +1447,6 @@ public class DataManager implements Configurable {
 
     public MusicDatabase getMusicDatabase() {
         return mdb;
-    }
-
-    
-
-    /**
-     * Manager class for list of popular echo nest artists.
-     */
-    class EchoNestPopArtistManager extends Thread {
-
-        private String ECHONEST_API_KEY = null;
-        private ArtistAPI artistAPI = null;
-
-        private final long SLEEP_BETWEEN_UPDATES = 1000L * 60 * 60 * 24;
-
-        private boolean runUpdate = false;
-        private ArrayList<Scored<ArtistCompact>> echoNestPopular;
-
-        public EchoNestPopArtistManager() {
-            try {
-                Properties properties = new Properties();
-                properties.load(this.getClass().getClassLoader().getResourceAsStream("com/sun/labs/aura/music/wsitm/resource/api.properties"));
-                ECHONEST_API_KEY = properties.getProperty("ECHONEST_API_KEY");
-                try {
-                    artistAPI = new ArtistAPI(ECHONEST_API_KEY);
-                    runUpdate = true;
-                } catch (EchoNestException ex) {
-                    Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-            } catch (IOException ex) {
-                logger.warning("EchoNestUpdater:: No EchoNest API key available. " +
-                        "Please set properties file (com/sun/labs/aura/music/wsitm/resource/api.properties) to use.");
-            } catch (NullPointerException ex2) {
-                logger.warning("EchoNestUpdater:: No EchoNest API key available. " +
-                        "Please set properties file (com/sun/labs/aura/music/wsitm/resource/api.properties) to use.");
-            }
-        }
-
-        /**
-         * Get the list of popular artists
-         * @return list of popular artists
-         */
-        public synchronized ArrayList<Scored<ArtistCompact>> get() {
-            if (echoNestPopular==null) {
-                return new ArrayList<Scored<ArtistCompact>>();
-            } else {
-                return echoNestPopular;
-            }
-        }
-
-        /**
-         * Set the list of popular artists
-         * @param enp new list of popular arists
-         */
-        public synchronized void set(ArrayList<Scored<ArtistCompact>> enp) {
-            this.echoNestPopular = enp;
-        }
-
-        public synchronized void setRunUpdate(boolean newVal) {
-            this.runUpdate = newVal;
-        }
-
-        public synchronized boolean isRunUpdate() {
-            return runUpdate;
-        }
-
-        /**
-         * Update popular artists from the echo nest
-         */
-        public void update() {
-
-            if (artistAPI==null) {
-                logger.info("EchoNestUpdater:: API key is not set. Aborting update.");
-                return;
-            }
-
-            try {
-                ArrayList<Scored<ArtistCompact>> tEchoNestPopular = new ArrayList<Scored<ArtistCompact>>();
-
-                logger.info("EchoNestUpdater:: Fetching 15 most popular artists from The Echo Nest with KEY=" + ECHONEST_API_KEY);
-                try {
-                    List<com.echonest.api.v3.artist.Scored<com.echonest.api.v3.artist.Artist>> lsA = artistAPI.getTopHotttArtists(15);
-                    logger.info("EchoNestUpdater:: Got popular artists : " + lsA.size());
-
-                    // Cycle through all the returned popular artist
-                    for (com.echonest.api.v3.artist.Scored<com.echonest.api.v3.artist.Artist> sA : lsA) {
-                        Map<String, String> urls = artistAPI.getUrls(sA.getItem());
-                        if (urls.containsKey("mb_url")) {
-                            String mbUrl = urls.get("mb_url");
-                            String mbId = mbUrl.substring(mbUrl.lastIndexOf("/") + 1, mbUrl.length() - 5);
-                            Artist a = mdb.artistLookup(mbId);
-                            if (a != null) {
-                                try {
-                                    cache.sput(a.getKey(), artistToArtistDetails(a));
-                                } catch (RemoteException ex) {
-                                    Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                                try {
-                                    if (!BANNED_MBIDs.contains(a.getKey())) {
-                                        tEchoNestPopular.add(new Scored<ArtistCompact>(artistToArtistCompact(a), sA.getScore()));
-                                    }
-                                } catch (RemoteException ex) {
-                                    Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                            }
-                        }
-                    }
-                } catch (EchoNestException ex) {
-                    Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                logger.info("EchoNestUpdater:: Matched " + tEchoNestPopular.size() +
-                        " most popular artists to local db");
-
-                set(tEchoNestPopular);
-
-            } catch (NullPointerException ex) {
-                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (AuraException ex) {
-                Logger.getLogger(DataManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        @Override
-        public void run() {
-            while (isRunUpdate()) {
-                update();
-                
-                try {
-                    logger.info("EchoNestUpdater:: Sleeping for " + SLEEP_BETWEEN_UPDATES + "ms");
-                    sleep(SLEEP_BETWEEN_UPDATES);
-                } catch (InterruptedException ex) {
-                    logger.info("EchoNestUpdater:: InterruptedException");
-                }
-            }
-            logger.info("EchoNestUpdater:: Exiting update loop");
-        }
     }
 }
 

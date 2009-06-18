@@ -193,6 +193,7 @@
             <item>replicant1</item>
             <item>statService</item>
             <item>loginService</item>
+            <item>crawlerController</item>
             <item>musicShell</item>
         </propertylist>
     </component>

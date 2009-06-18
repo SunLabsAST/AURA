@@ -87,7 +87,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
 
     private Set<String> crawlsInProgress = new HashSet<String>();
 
-    Random r = new Random();
+    private Random r = new Random();
 
     public ListenerCrawler() {
         super("Listener", "listener_crawler.state");
@@ -526,6 +526,12 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         return maxCrawl;
     }
 
+    /**
+     * Update a listener's favorite artists
+     * @param listener
+     * @throws AuraException
+     * @throws RemoteException
+     */
     private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
         List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener.getKey());
         listener.clearFavoriteArtists();
