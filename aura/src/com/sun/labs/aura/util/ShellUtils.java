@@ -38,6 +38,10 @@ import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.command.CommandInterface;
 import com.sun.labs.util.command.CommandInterpreter;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
@@ -93,6 +97,7 @@ public class ShellUtils {
         this.statService = aStatService;
         setDisplayFields(new String[] {"_score", "aura-type", "aura-key"});
         setDisplayFormat(" %.3s %s %s\n");
+
         shell.add("displayFields",
                 new CommandInterface() {
 
@@ -143,6 +148,68 @@ public class ShellUtils {
                         return "usage: setN <n> sets the number of hits to return from things.";
                     }
                 });
+
+        shell.add("addAttention",
+                new CommandInterface() {
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length < 4 || args.length > 5) {
+                    return "Usage: " + getHelp();
+                }
+                String type = args[3].toUpperCase();
+                long n = 1;
+                if (args.length == 5) {
+                    n = Long.valueOf(args[4]);
+                }
+                Attention a = StoreFactory.newAttention(args[1], args[2], Enum.valueOf(Attention.Type.class, type), n);
+                dataStore.attend(a);
+                return "Added " + n + " attention objects";
+            }
+            public String getHelp() {
+                return "<srcKey> <tgtKey> <type> [<n>] where n is the number of attn to add";
+            }
+        });
+
+        shell.add("processAttention",
+                new CommandInterface() {
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length != 6) {
+                    return getHelp();
+                }
+                AttentionConfig ac = new AttentionConfig();
+                if (!args[1].equals("*")) {
+                    ac.setSourceKey(args[1]);
+                }
+                if (!args[2].equals("*")) {
+                    ac.setTargetKey(args[2]);
+                }
+                if (!args[3].equals("*")) {
+                    ac.setType(Enum.valueOf(Attention.Type.class, args[3].toUpperCase()));
+                }
+                FileReader reader = new FileReader(new File(args[4]));
+                
+                Object result = dataStore.processAttention(ac, readFile(args[4]), args[5]);
+                System.out.println("Result:");
+                System.out.println(result);
+                return "";
+            }
+            public String getHelp() {
+                return "<srcKey> <tgtKey> <type> <script file> <language> where attn fields may be '*' for all";
+            }
+        });
+
+        shell.add("getScriptLanguages",
+                new CommandInterface() {
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                List<String> langs = dataStore.getSupportedScriptLanguages();
+                for (String l : langs) {
+                    System.out.println(l);
+                }
+                return "";
+            }
+            public String getHelp() {
+                return "Displays the supported scripting languages";
+            }
+        });
 
         shell.add("itemStats", new CommandInterface() {
 
@@ -876,6 +943,19 @@ public class ShellUtils {
         } catch(RemoteException ex) {
             logger.severe("dumpTagFrequencies " + ex);
         }
+    }
+
+    private String readFile(String path) throws IOException {
+        File f = new File(path);
+        StringBuilder sb = new StringBuilder((int)f.length());
+        BufferedReader reader = new BufferedReader(new FileReader(f));
+        char[] buf = new char[2048];
+        int bytes = 0;
+        while ((bytes=reader.read(buf)) != -1) {
+            sb.append(buf, 0, bytes);
+        }
+        reader.close();
+        return sb.toString();
     }
 
     public String stuff(String[] args, int p) {
