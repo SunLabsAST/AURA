@@ -570,7 +570,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         try {
             List<Integer[]> chartList = getLastFM2().getWeeklyChartListByUser(listener.getLastFmName());
             // For all available charts on lastfm
-            for (int i=0; i<nbrChartWeek; i++) {
+            for (int i=0; i<=nbrChartWeek; i++) {
                 Integer[] ranges = chartList.get(chartList.size()-1-i);
                 // If we did not already crawl that chart for the user
                 if (!listener.crawledPlayHistory(ranges[0])) {
