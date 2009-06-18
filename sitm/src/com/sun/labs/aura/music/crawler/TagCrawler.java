@@ -238,7 +238,7 @@ public class TagCrawler implements AuraService, Configurable {
                 addTaggedArtists(artistTag);
             }
         });
-
+        /*
         runner.add(new Commander("youtube") {
 
             @Override
@@ -250,6 +250,7 @@ public class TagCrawler implements AuraService, Configurable {
 
             }
         });
+         * */
 
         runner.add(new Commander("wikipedia") {
 

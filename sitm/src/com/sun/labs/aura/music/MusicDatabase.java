@@ -70,7 +70,7 @@ public class MusicDatabase {
     private final static int MAX_ATTENTION_GET = 100000;
 
     /**
-     * Used to determine from which portion of the long tail recommendation or
+     * Used to determine from which portion of the long tail recommendations or
      * similar artists are to be pulled
      */
     public enum Popularity {

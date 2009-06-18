@@ -37,6 +37,7 @@ import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.ArtistTagRaw;
 import com.sun.labs.aura.music.Event;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
@@ -246,6 +247,9 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         return (DataStore) rcmStore.getComponent();
     }
 
+    /**
+     * @deprecated
+     */
     private LastFM getLastFM() throws AuraException, RemoteException {
         return (CrawlerController) rcmCrawl.getComponent();
     }
@@ -281,7 +285,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
         }
     }
-
+    
     @Override
     public void add(String newID) throws AuraException, RemoteException {
         Item item = getDataStore().getItem(newID);
@@ -952,9 +956,18 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
             int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
 
-            // Add raw tag
-            artist.setSocialTagRaw(tag.getName(), normFreq);
+            // Add raw tag. We need to verify the existance of the tag item because
+            // unlike social tags, we do not know in advance if it's in the store
+            String normTagName = Utilities.normalize(tag.getName());
+            String id = ArtistTagRaw.nameToKey(normTagName);
+            if (getDataStore().getItem(id) == null) {
+                Item item = StoreFactory.newItem(ItemType.ARTIST_TAG_RAW, id, normTagName);
+                getDataStore().putItem(item);
+                logger.fine("Adding raw tag " + item.getKey());
+            }
+            artist.setSocialTagRaw(normTagName, normFreq);
 
+            
             // Add social tag
             String tagName = tagFilter.mapTagName(tag.getName());
             if (tagName != null) {
