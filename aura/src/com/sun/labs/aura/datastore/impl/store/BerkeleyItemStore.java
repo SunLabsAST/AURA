@@ -93,6 +93,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 /**
  * An implementation of the item store using the berkeley database as a back
@@ -759,7 +764,45 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         exit(state);
         return ret;
     }
-    
+
+    @Override
+    public Object processAttention(AttentionConfig ac, String script, String language)
+            throws AuraException, RemoteException {
+        StatState state = new StatState();
+        enter(StatName.PROCESS_ATTN, state);
+
+        //
+        // First, get all the attention to process
+        List<Attention> attention = getAttention(ac);
+
+        //
+        // Now get a script engine, and invoke the process function, passing
+        // in the list of attention.
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        ScriptEngine engine = mgr.getEngineByName(language);
+        Object result = null;
+        try {
+            try {
+                engine.eval(script);
+                Invocable invoker = (Invocable)engine;
+                result = invoker.invokeFunction("process", attention);
+            } catch (ScriptException e) {
+                throw new AuraException("An error occurred while executing " +
+                        "the provided script.", e);
+            } catch (NoSuchMethodException e) {
+                throw new AuraException("The \"process\" method was not " +
+                        "defined in the script.", e);
+            }
+        } catch (ClassCastException e) {
+            //
+            // We couldn't cast the engine to an invocable
+            throw new AuraException("The script engine for the specified language ("
+                    + language + ") does not support function invocation.");
+        }
+        exit(state);
+        return result;
+    }
+
     @Override
     public List<Attention> getAttentionSince(AttentionConfig ac,
                                              Date timeStamp)
@@ -1139,6 +1182,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         return searchEngine.getSize();
     }
 
+    @Override
+    public List<String> getSupportedScriptLanguages() {
+        List<String> languages = new ArrayList<String>();
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        List<ScriptEngineFactory> factories = mgr.getEngineFactories();
+        for (ScriptEngineFactory factory : factories) {
+            languages.add(factory.getLanguageName());
+        }
+        return languages;
+    }
     
     /**
      * Internal method to handle sending/queueing item changed events.

@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -189,7 +191,21 @@ public class BinaryTrie<E> implements Serializable {
             lock.readLock().unlock();
         }
     }
-    
+
+    /**
+     * Gets a new list containing all the elements of the trie
+     *
+     * @return a list of the elements in the trie
+     */
+    public List<E> getAllAsList() {
+        lock.readLock().lock();
+        try {
+            return new ArrayList<E>(contents);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
     /**
      * Returns the number of elements in the trie
      * 

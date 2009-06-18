@@ -257,6 +257,32 @@ public interface ItemStore {
             throws AuraException, RemoteException;
 
     /**
+     * Processes attention at the replicant level and returns custom data
+     * depending on the provided script code.  The attentions passed to the
+     * script are those that match the provided AttentionConfig object (as a
+     * result of calling the {@link #getAttention(AttentionConfig)} method.
+     * <p>
+     * The script passed in must be in one of the supported languages, checked
+     * by a call to {@link #getSupportedScriptLanguages()}.  The script should
+     * provide a "process" method that will be given all the Attention
+     * objects to process that returns an Object to send back to be collected.
+     * It may also provide a "collect" method that will be called after all
+     * Attentions have been processed that will be given a list of all the
+     * Objects returned from the process methods.  Either the result of this
+     * method (if provided) or a list of all the individual resulting Objects
+     * will be returned from processAttention.
+     *
+     * @param ac the criteria for which attention objects to process
+     * @param script the script, in the supported language of your choice
+     * @param language the language in which the script is written
+     * @return the result of the scripted method(s) as described above
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public Object processAttention(AttentionConfig ac, String script, String language)
+            throws AuraException, RemoteException;
+
+    /**
      * Gets all the attention recorded since a particular time that match
      * a particular set of constraints.  Set the various fields of
      * the AttentionConfig to describe the matching constraints on the
@@ -404,6 +430,19 @@ public interface ItemStore {
      * @return the number of items of that type
      */
     public long getItemCount(ItemType itemType)
+            throws AuraException, RemoteException;
+
+    /**
+     * Returns a list of Strings describing the languages supported by the
+     * data store's
+     * <a href="http://java.sun.com/developer/technicalArticles/J2SE/Desktop/scripting/">JSR 223</a>
+     * script engines.
+     *
+     * @return a list of language names supported by the script engine
+     * @throws com.sun.labs.aura.util.AuraException
+     * @throws java.rmi.RemoteException
+     */
+    public List<String> getSupportedScriptLanguages()
             throws AuraException, RemoteException;
 
     /**

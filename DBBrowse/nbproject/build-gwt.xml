@@ -1,30 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-/*
- * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
- * 
- * This code is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- * only, as published by the Free Software Foundation.
- * 
- * This code is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License version 2 for more details (a copy is
- * included in the LICENSE file that accompanied this code).
- * 
- * You should have received a copy of the GNU General Public License
- * version 2 along with this work; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- * 
- * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
- * Park, CA 94025 or visit www.sun.com if you need additional
- * information or have any questions.
- */
--->
-
+<!-- WARNING: Any manual modifications to this file may be automatically overriden -->
+<!-- Created with GWT4NB 2.5 -->
 <project name="DBBrowse-gwt" default="-post-compile" basedir="..">
     <description>Generates Javascript for DBBrowse.</description>
     <property file="./nbproject/gwt.properties"/>
@@ -35,8 +11,8 @@
         <property name="gwt.compiler.logLevel" value="WARN"/>
         
         <java classpath="${javac.classpath}:${src.dir}" failonerror="true"
-              classname="com.google.gwt.dev.GWTCompiler" fork="true">
-            <jvmarg value="-Xmx512M"/>
+              classname="com.google.gwt.dev.GWTCompiler" fork="true"
+              jvmargs="${gwt.compiler.jvmargs}">
             <arg value="-out"/>
             <arg path="${build.web.dir}/"/>
             <arg value="-style"/>
@@ -65,6 +41,9 @@
                 <path path="${javac.classpath}:${src.dir}:${build.classes.dir}"/>
             </classpath>
         </nbjpdastart>
+        
+        <property name="client.url" value="http://localhost:8080/${client.urlPart}"/>
+        <property name="gwt.shell.jvmargs" value=""/>
         <property name="gwtshell.jvmargs.base" value="-Xdebug -Xnoagent -Djava.compiler=none -Xrunjdwp:transport=dt_socket,address=${jpda.address.gwt}"/>
         
         <condition property="gwtshell.jvmargs" value="${gwtshell.jvmargs.base} -XstartOnFirstThread"
@@ -73,6 +52,7 @@
         </condition>
         
         <java fork="true" classname="com.google.gwt.dev.GWTShell" failonerror="true">
+            <jvmarg line="${gwt.shell.jvmargs}"/>
             <jvmarg line="${gwtshell.jvmargs}"/>
             <classpath>
                 <path path="${src.dir}:${javac.classpath}:${build.classes.dir}"/>
@@ -91,10 +71,14 @@
             <classpath>
                 <path path="${javac.classpath}:${src.dir}"/>
             </classpath>
+            <sourcepath>
+                <path path="${src.dir}"/>
+            </sourcepath>
         </nbjpdastart>
         <property name="client.url" value="${gwt.module}"/>
         <!-- You can override this property in the 'gwt.properties' file -->
         <property name="gwt.shell.output.style" value="OBFUSCATED"/>
+        <property name="gwt.shell.jvmargs" value=""/>
         <property name="gwt.shell.logLevel" value="WARN"/>
         <property name="gwtshell.jvmargs.base" value="-Xdebug -Xnoagent -Djava.compiler=none -Xrunjdwp:transport=dt_socket,address=${jpda.address.gwt}"/>
         <condition property="gwtshell.jvmargs" value="${gwtshell.jvmargs.base} -XstartOnFirstThread"
@@ -103,6 +87,7 @@
         </condition>
         
         <java fork="true" classname="com.google.gwt.dev.GWTShell">
+            <jvmarg line="${gwt.shell.jvmargs}"/>
             <jvmarg line="${gwtshell.jvmargs}" />
             <classpath>
                 <path path="${src.dir}:${javac.classpath}"/>

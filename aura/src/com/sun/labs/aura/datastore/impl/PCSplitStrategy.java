@@ -256,6 +256,19 @@ public class PCSplitStrategy implements PCStrategy {
         return ret;
     }
 
+    public Object processAttention(AttentionConfig ac, String script, String language) throws AuraException, RemoteException {
+        //
+        // So we need to call the process method on both sides.  But what do
+        // we do with the result? Return both as an array?  Then how does the
+        // DSH handle them?  Maybe we need to do a mini collect here?  But then
+        // we don't have all the data.
+        // TBD: do this better!
+        ArrayList result = new ArrayList();
+        result.add(local.processAttention(ac, script, language));
+        result.add(remote.processAttention(ac, script, language));
+        return result;
+    }
+
     public List<Attention> getAttentionSince(AttentionConfig ac, Date timeStamp) throws AuraException, RemoteException {
         List<Attention> l = local.getAttentionSince(ac, timeStamp);
         List<Attention> r = remote.getAttentionSince(ac, timeStamp);
@@ -470,6 +483,14 @@ public class PCSplitStrategy implements PCStrategy {
             logger.log(Level.SEVERE, "Error unmarshalling", ex);
             return null;
         }
+    }
+
+    public List<String> getSupportedScriptLanguages()
+            throws AuraException, RemoteException {
+        //
+        // Both sides are running the same code, so we'll just talk to one
+        // to get an answer here.
+        return local.getSupportedScriptLanguages();
     }
 
     public void close() throws AuraException, RemoteException {
