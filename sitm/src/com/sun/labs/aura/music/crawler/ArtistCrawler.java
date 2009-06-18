@@ -866,8 +866,13 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         // Get echonest id if we don't already have it
         if (artist.getEchoNestId() == null) {
             for (com.echonest.api.v3.artist.Artist tA : echoNest.searchArtist(artist.getName(), false)) {
-                if (echoNest.getUrls(tA).get("mb_url").contains(artist.getKey())) {
-                    artist.setEchoNestId(tA.getId());
+                try {
+                    if (echoNest.getUrls(tA).get("mb_url").contains(artist.getKey())) {
+                        artist.setEchoNestId(tA.getId());
+                        break;
+                    }
+                } catch (NullPointerException e) {
+                    // If the echonest doesn't have the artist's mbid, skip it
                     break;
                 }
             }
