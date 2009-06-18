@@ -73,7 +73,7 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library>
-                    <file>${libs.GWTBleeding.classpath}</file>
+                    <file>${libs.GWT1.6.4.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library>

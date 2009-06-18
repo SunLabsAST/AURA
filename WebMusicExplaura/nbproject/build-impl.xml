@@ -596,11 +596,11 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.OpenID.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.OpenID.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.JiniCore.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.JiniCore.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.GWTExtensions.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWTExtensions.classpath" todir="${dist.ear.dir}"/>
-        <copyfiles files="${libs.GWTBleeding.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWTBleeding.classpath" todir="${dist.ear.dir}"/>
+        <copyfiles files="${libs.GWT1.6.4.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.GWT1.6.4.classpath" todir="${dist.ear.dir}"/>
         <copyfiles files="${libs.BerkeleyDB.classpath}" iftldtodir="${build.web.dir}/WEB-INF" manifestproperty="manifest.libs.BerkeleyDB.classpath" todir="${dist.ear.dir}"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.ApacheCommons.classpath} ${manifest.libs.Guice.classpath} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.libs.OpenID.classpath} ${manifest.libs.JiniCore.classpath} ${manifest.libs.GWTExtensions.classpath} ${manifest.libs.GWTBleeding.classpath} ${manifest.libs.BerkeleyDB.classpath} "/>
+            <attribute name="Class-Path" value="${manifest.libs.Minion.classpath} ${manifest.libs.SunLabsUtilities.classpath} ${manifest.libs.ApacheCommons.classpath} ${manifest.libs.Guice.classpath} ${manifest.file.reference.htmlparser-1.6.jar} ${manifest.reference.aura.jar} ${manifest.reference.sitm.jar} ${manifest.libs.OpenID.classpath} ${manifest.libs.JiniCore.classpath} ${manifest.libs.GWTExtensions.classpath} ${manifest.libs.GWT1.6.4.classpath} ${manifest.libs.BerkeleyDB.classpath} "/>
         </manifest>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
@@ -614,7 +614,7 @@ exists or setup the property manually. For example like this:
         <copyfiles files="${libs.OpenID.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.JiniCore.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.GWTExtensions.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copyfiles files="${libs.GWTBleeding.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copyfiles files="${libs.GWT1.6.4.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copyfiles files="${libs.BerkeleyDB.classpath}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" if="do.tmp.war.package" name="do-ear-dist">
