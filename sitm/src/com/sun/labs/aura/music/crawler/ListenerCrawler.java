@@ -77,7 +77,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     /**
      * Minimum play count to be added in the discovery queue
      */
-    private final int MIN_PLAY_COUNT = 500;
+    private final int MIN_PLAY_COUNT = 1250;
 
     private Pandora pandora;
     private MusicDatabase mdb;
