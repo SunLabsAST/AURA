@@ -1511,8 +1511,8 @@ public class MusicDatabase {
         return null;
     }
 
-    private class FieldSimType
-            implements SimType {
+    
+    private class FieldSimType implements SimType {
 
         private String name;
         private String description;

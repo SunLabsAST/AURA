@@ -55,48 +55,48 @@ public class LastFMImpl implements LastFM {
     }
 
     @Override
-    public synchronized SocialTag[] getArtistTags(String artistName) throws IOException {
+    public SocialTag[] getArtistTags(String artistName) throws IOException {
         String url = getArtistTagURL(artistName, false);
         return getTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized SocialTag[] getAlbumTags(String artistName, String trackName) throws IOException {
+    public SocialTag[] getAlbumTags(String artistName, String trackName) throws IOException {
         String url = getAlbumTagURL(artistName, trackName);
         return getTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized SocialTag[] getTrackTags(String artistName, String trackName) throws IOException {
+    public SocialTag[] getTrackTags(String artistName, String trackName) throws IOException {
         String url = getTrackTagURL(artistName, trackName);
         return getTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized SocialTag[] getArtistTags(String artistName, boolean raw) throws IOException {
+    public SocialTag[] getArtistTags(String artistName, boolean raw) throws IOException {
         String url = getArtistTagURL(artistName, raw);
         return getTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized LastItem[] getArtistFans(String artistName) throws IOException {
+    public LastItem[] getArtistFans(String artistName) throws IOException {
         String url = getArtistFanURL(artistName);
         return getFansFromLastFM(url);
     }
 
     @Override
-    public synchronized LastUser getUser(String userName) throws IOException {
+    public LastUser getUser(String userName) throws IOException {
         String url = getUserURL(userName);
         return getFanFromLastFM(url);
     }
 
     @Override
-    public synchronized void setMinimumCommandPeriod(long period) {
+    public void setMinimumCommandPeriod(long period) {
         commander.setMinimumCommandPeriod(period);
     }
 
     @Override
-    public synchronized int getPopularity(String artistName) throws IOException {
+    public int getPopularity(String artistName) throws IOException {
         String url = getTopArtistAlbumsURL(artistName);
         Document doc = commander.sendCommand(url);
         Element docElement = doc.getDocumentElement();
@@ -113,19 +113,19 @@ public class LastFMImpl implements LastFM {
     }
 
     @Override
-    public synchronized LastItem[] getTopArtistsForUser(String user) throws IOException {
+    public LastItem[] getTopArtistsForUser(String user) throws IOException {
         String url = getTopArtistsForUserURL(user);
         return getTopArtistForUserFromLastFM(url);
     }
 
     @Override
-    public synchronized LastItem[] getWeeklyArtistsForUser(String user) throws IOException {
+    public LastItem[] getWeeklyArtistsForUser(String user) throws IOException {
         String url = getWeeklyArtistsForUserURL(user);
         return getTopArtistForUserFromLastFM(url);
     }
 
     @Override
-    public synchronized String[] getSimilarUsers(String user) throws IOException {
+    public String[] getSimilarUsers(String user) throws IOException {
         List<String> users = new ArrayList<String>();
         String url = "user/" + user + "/neighbours.xml";
 
@@ -144,7 +144,7 @@ public class LastFMImpl implements LastFM {
     }
 
     @Override
-    public synchronized LastArtist[] getSimilarArtists(String artist) throws IOException {
+    public LastArtist[] getSimilarArtists(String artist) throws IOException {
         List<LastArtist> artistList = new ArrayList();
         String url = getSimilarArtistURL(artist);
         Document doc = commander.sendCommand(url);
@@ -160,7 +160,7 @@ public class LastFMImpl implements LastFM {
     }
 
     @Override
-    public synchronized void setTrace(boolean trace) {
+    public void setTrace(boolean trace) {
         commander.setTraceSends(trace);
     }
 
@@ -189,7 +189,7 @@ public class LastFMImpl implements LastFM {
     }
 
     @Override
-    public synchronized LastUser getFanFromLastFM(String url) throws IOException {
+    public LastUser getFanFromLastFM(String url) throws IOException {
         LastUser lastUser = new LastUser();
         Document doc = commander.sendCommand(url);
         Element docElement = doc.getDocumentElement();
@@ -231,7 +231,7 @@ public class LastFMImpl implements LastFM {
     }
 
     @Override
-    public synchronized LastItem[] getTopArtistsForTag(String tag) throws IOException {
+    public LastItem[] getTopArtistsForTag(String tag) throws IOException {
         String url = getTopArtistsForTagURL(tag);
         return getTopArtistForTagFromLastFM(url);
     }

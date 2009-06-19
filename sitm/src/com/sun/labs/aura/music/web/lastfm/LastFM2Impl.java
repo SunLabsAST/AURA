@@ -69,83 +69,83 @@ public class LastFM2Impl implements LastFM2 {
     }
 
     @Override
-    public synchronized void setTrace(boolean trace) {
+    public void setTrace(boolean trace) {
         commander.setTraceSends(trace);
     }
 
     @Override
-    public synchronized void setMinimumCommandPeriod(long period) {
+    public void setMinimumCommandPeriod(long period) {
         commander.setMinimumCommandPeriod(period);
     }
 
     @Override
-    public synchronized LastArtist2 getArtistInfoByName(String artistName) throws IOException {
+    public LastArtist2 getArtistInfoByName(String artistName) throws IOException {
         String url = getArtistInfoByNameURL(artistName);
         return getArtistInfoFromLastFM(url);
     }
 
     @Override
-    public synchronized LastArtist2 getArtistInfoByMBID(String mbid) throws IOException {
+    public LastArtist2 getArtistInfoByMBID(String mbid) throws IOException {
         String url = getArtistInfoByMbidURL(mbid);
         return getArtistInfoFromLastFM(url);
     }
 
     @Override
-    public synchronized LastAlbum2 getAlbumInfoByName(String artistName, String albumName) throws IOException {
+    public LastAlbum2 getAlbumInfoByName(String artistName, String albumName) throws IOException {
         String url = getAlbumInfoByNameURL(artistName, albumName);
         return getAlbumInfoFromLastFM(url);
     }
 
     @Override
-    public synchronized LastAlbum2 getAlbumInfoByMBID(String mbid) throws IOException {
+    public LastAlbum2 getAlbumInfoByMBID(String mbid) throws IOException {
         String url = getAlbumInfoByMbidURL(mbid);
         return getAlbumInfoFromLastFM(url);
     }
 
     @Override
-    public synchronized LastTrack getTrackInfoByName(String artistName, String trackName) throws IOException {
+    public LastTrack getTrackInfoByName(String artistName, String trackName) throws IOException {
         String url = getTrackInfoByNameURL(artistName, trackName);
         return getTrackInfoFromLastFM(url);
     }
 
     @Override
-    public synchronized LastTrack getTrackInfoByMBID(String mbid) throws IOException {
+    public LastTrack getTrackInfoByMBID(String mbid) throws IOException {
         String url = getTrackInfoByMbidURL(mbid);
         return getTrackInfoFromLastFM(url);
     }
 
     @Override
-    public synchronized SocialTag[] getTrackTopTagsByName(String artistName, String trackName) throws IOException {
+    public SocialTag[] getTrackTopTagsByName(String artistName, String trackName) throws IOException {
         String url = getTrackTopTagsByNameURL(artistName, trackName);
         return getTrackTopTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized SocialTag[] getTrackTopTagsByMBID(String mbid) throws IOException {
+    public SocialTag[] getTrackTopTagsByMBID(String mbid) throws IOException {
         String url = getTrackTopTagsByMbidURL(mbid);
         return getTrackTopTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized String[] getNeighboursForUser(String user) throws IOException {
+    public String[] getNeighboursForUser(String user) throws IOException {
         String url = getNeighboursForUserURL(user);
         return getNeighboursForUserFromLastFM(url);
     }
 
     @Override
-    public synchronized LastItem[] getTopArtistsForTag(String tag) throws IOException {
+    public LastItem[] getTopArtistsForTag(String tag) throws IOException {
         String url = getTopArtistForTagURL(tag);
         return getTopArtistsForTagFromLastFM(url);
     }
 
     @Override
-    public synchronized SocialTag[] getArtistTags(String artistName) throws IOException {
+    public SocialTag[] getArtistTags(String artistName) throws IOException {
         String url = getArtistTagURL(artistName);
         return getTagsFromLastFM(url);
     }
 
     @Override
-    public synchronized LastArtist[] getSimilarArtists(String artist) throws IOException {
+    public LastArtist[] getSimilarArtists(String artist) throws IOException {
         String url = getSimilarArtistsURL(artist);
         return getSimilarArtistsFromLastFM(url);
     }
@@ -158,13 +158,13 @@ public class LastFM2Impl implements LastFM2 {
      * @throws java.io.IOException
      */
     @Override
-    public synchronized List<Integer[]> getWeeklyChartListByUser(String user) throws IOException {
+    public List<Integer[]> getWeeklyChartListByUser(String user) throws IOException {
         String url = getWeeklyChartListURL(user);
         return getWeeklyChartListFromLastFM(url);
     }
 
     @Override
-    public synchronized List<LastItem> getWeeklyArtistChartByUser(String user) throws IOException {
+    public List<LastItem> getWeeklyArtistChartByUser(String user) throws IOException {
         return getWeeklyArtistChartByUser(user, 0, 0);
     }
 
@@ -180,12 +180,12 @@ public class LastFM2Impl implements LastFM2 {
      * @throws java.io.IOException
      */
     @Override
-    public synchronized List<LastItem> getWeeklyArtistChartByUser(String user, int from, int to) throws IOException {
+    public List<LastItem> getWeeklyArtistChartByUser(String user, int from, int to) throws IOException {
         String url = getWeeklyArtistChartURL(user, from, to);
         return getWeeklyArtistChartFromLastFM(url);
     }
 
-    public synchronized LastArtist[] getSimilarArtistsFromLastFM(String url) throws IOException {
+    public LastArtist[] getSimilarArtistsFromLastFM(String url) throws IOException {
 
         List<LastArtist> items = new ArrayList<LastArtist>();
 
