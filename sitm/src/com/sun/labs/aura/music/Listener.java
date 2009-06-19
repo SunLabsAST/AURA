@@ -49,6 +49,7 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_ARTIST =                   "LISTENER_ARTIST";
     public final static String FIELD_LAST_CRAWL =               "lastCrawl";
     public final static String FIELD_LAST_NEIGHBOURS_CRAWL =    "LAST_NEIGHBOURS_CRAWL";
+    public final static String FIELD_AGGREGATED_PLAY_HISTORY =  "AGGREGATED_PLAY_HISTORY";
     public final static String FIELD_SOCIAL_TAGS =              Artist.FIELD_SOCIAL_TAGS;
     public final static String FIELD_UPDATE_COUNT =             "updateCount";
 
@@ -64,6 +65,7 @@ public class Listener extends ItemAdapter {
             ds.defineField(FIELD_PANDORA_NAME);
             ds.defineField(FIELD_LOCALE_COUNTRY);
             ds.defineField(FIELD_CRAWLED_PLAY_HISTORY);
+            ds.defineField(FIELD_AGGREGATED_PLAY_HISTORY, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_ARTIST, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_YOB, Item.FieldType.INTEGER, StoreFactory.INDEXED);
@@ -217,6 +219,23 @@ public class Listener extends ItemAdapter {
      */
     public void setSocialTag(String tag, int count) {
         setTag(FIELD_SOCIAL_TAGS, tag, count);
+    }
+
+    /**
+     * Sets aggregated play count for an artist
+     * @param artistMbid artist for which to set the aggregated play count
+     * @param count play count
+     */
+    public void setAggregatedPlayCount(String artistMbid, int count) {
+        setTag(FIELD_AGGREGATED_PLAY_HISTORY, artistMbid, count);
+    }
+
+    /**
+     * Gets the listener's aggregated play counts for all artists
+     * @return
+     */
+    public List<Tag> getAggregatedPlayCount() {
+        return getTagsAsList(FIELD_AGGREGATED_PLAY_HISTORY);
     }
 
     /**

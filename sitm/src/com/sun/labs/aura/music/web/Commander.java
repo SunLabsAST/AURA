@@ -144,7 +144,7 @@ public class Commander {
      * Sets the minimum period between consecutive commands
      * @param minPeriod the minimum period.
      */
-    public void setMinimumCommandPeriod(long minPeriod) {
+    public synchronized void setMinimumCommandPeriod(long minPeriod) {
         minimumCommandPeriod = minPeriod;
     }
 
@@ -163,14 +163,12 @@ public class Commander {
         InputStream is = sendCommandRaw(command);
         commandsSent++;
 
-        synchronized (builder) {
-            try {
-                document = builder.parse(is);
-            } catch (SAXException e) {
-                throw new IOException("SAX Parse Error " + e);
-            } finally {
-                is.close();
-            }
+        try {
+            document = builder.parse(is);
+        } catch (SAXException e) {
+            throw new IOException("SAX Parse Error " + e);
+        } finally {
+            is.close();
         }
 
         if (trace) {
