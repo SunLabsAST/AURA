@@ -1026,6 +1026,10 @@ public class MusicDatabase {
         return artist.getPopularity() / getMostPopularArtist().getPopularity();
     }
 
+    public List<String> artistGetMostPopularNames(int count) throws AuraException {
+        return artistGetMostPopularNames(PopularityMetric.LastFM, count);
+    }
+
     public List<String> artistGetMostPopularNames(PopularityMetric popMetric, int count) throws AuraException {
         List<String> artistNames = new ArrayList();
         for (Artist artist : artistGetMostPopular(popMetric, count)) {
@@ -1034,6 +1038,10 @@ public class MusicDatabase {
 
         return artistNames;
 
+    }
+
+    public List<Artist> artistGetMostPopular(int count) throws AuraException {
+        return artistGetMostPopular(PopularityMetric.LastFM, count);
     }
 
     public List<Artist> artistGetMostPopular(PopularityMetric popMetric, int count) throws AuraException {
