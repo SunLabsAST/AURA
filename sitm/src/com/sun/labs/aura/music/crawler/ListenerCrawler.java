@@ -169,7 +169,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 Thread t = new Thread() {
                     @Override
                     public void run() {
-                        periodicallyUpdateCollabFilteringData();
+                        periodicallyUpdateAggregatedCharts();
                     }
                 };
                 t.start();
@@ -231,7 +231,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         maxListeners = ps.getInt(PROP_MAX_LISTENERS);
         enableListenerDiscovery = ps.getBoolean(PROP_ENABLE_LISTENER_DISCOVERY);
         nbrChartWeek = ps.getInt(PROP_NBR_CHARTS_WEEK);
-        rcmArtist = new RemoteComponentManager(ps.getConfigurationManager(), ArtistCrawler.class);
+        rcmArtist = new RemoteComponentManager(ps.getConfigurationManager(), QueueCrawlerInterface.class);
         rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
         try {
             pandora = new Pandora();
@@ -249,7 +249,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     }
 
     private boolean enqueueArtistToCrawl(LastItem lA, int popularity) throws AuraException, RemoteException {
-        return ((ArtistCrawler)rcmArtist.getComponent()).enqueue(lA, popularity);
+        return ((QueueCrawlerInterface)rcmArtist.getComponent()).enqueue(lA, popularity);
     }
 
     private void periodicallyCrawlAllListeners() {
@@ -480,6 +480,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 weeklyCrawlPandora(listener);
                 updateListenerArtists(listener);
                 updateListenerTags(listener);
+                updateListenerAggregatedPlayCharts(listener);
                 listener.setLastCrawl();
                 listener.incrementUpdateCount();
                 mdb.flush(listener);
@@ -574,10 +575,10 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             PyTuple p = (PyTuple) items.get(i);
             listener.setAggregatedPlayCount((String)p.get(0), ((BigInteger)p.get(1)).intValue());
         }
-        mdb.flush(listener);
+        listener.updatePlayHistoryAggregationHash();
     }
 
-    private void periodicallyUpdateCollabFilteringData() {
+    private void periodicallyUpdateAggregatedCharts() {
         FixedPeriod fp = new FixedPeriod(6 * 60 * 60 * 1000L);
         while (running) {
             try {
@@ -588,8 +589,9 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                         listenerIDs.size() + " listeners");
                 for (String id : listenerIDs) {
                     Listener listener = mdb.getListener(id);
-                    if (listener != null) {
+                    if (listener != null && listener.playHistoryAggregationNeedsUpdate()) {
                         updateListenerAggregatedPlayCharts(listener);
+                        mdb.flush(listener);
                     }
                 }
 

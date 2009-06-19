@@ -48,7 +48,7 @@
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
 
-    <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerControllerImpl">
+    <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerControllerImpl" export="true">
     </component>
 
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

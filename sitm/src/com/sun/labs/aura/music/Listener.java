@@ -49,6 +49,7 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_ARTIST =                   "LISTENER_ARTIST";
     public final static String FIELD_LAST_CRAWL =               "lastCrawl";
     public final static String FIELD_LAST_NEIGHBOURS_CRAWL =    "LAST_NEIGHBOURS_CRAWL";
+    public final static String FIELD_AGG_PLAY_HIST_HASH =       "AGG_PLAY_HIST_HASH";
     public final static String FIELD_AGGREGATED_PLAY_HISTORY =  "AGGREGATED_PLAY_HISTORY";
     public final static String FIELD_SOCIAL_TAGS =              Artist.FIELD_SOCIAL_TAGS;
     public final static String FIELD_UPDATE_COUNT =             "updateCount";
@@ -65,6 +66,7 @@ public class Listener extends ItemAdapter {
             ds.defineField(FIELD_PANDORA_NAME);
             ds.defineField(FIELD_LOCALE_COUNTRY);
             ds.defineField(FIELD_CRAWLED_PLAY_HISTORY);
+            ds.defineField(FIELD_AGG_PLAY_HIST_HASH);
             ds.defineField(FIELD_AGGREGATED_PLAY_HISTORY, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_ARTIST, Item.FieldType.STRING, StoreFactory.INDEXED);
@@ -182,6 +184,10 @@ public class Listener extends ItemAdapter {
         clearTagMap(FIELD_ARTIST);
     }
 
+    /**
+     * Adds a new week to the list of weekly last.fm charts that we have crawled.
+     * @param timestamp timestamp representing the first second of the week
+     */
     public void addCrawledPlayHistoryDate(long timestamp) {
         appendToField(FIELD_CRAWLED_PLAY_HISTORY, String.valueOf(timestamp));
     }
@@ -193,6 +199,24 @@ public class Listener extends ItemAdapter {
      */
     public boolean crawledPlayHistory(long timestamp) {
         return getFieldAsStringSet(FIELD_CRAWLED_PLAY_HISTORY).contains(String.valueOf(timestamp));
+    }
+
+    /**
+     * Updates the play history aggregation hash. This needs to be called whenever
+     * a new aggregation is performed
+     */
+    public void updatePlayHistoryAggregationHash() {
+        int newHash = getFieldAsStringSet(FIELD_CRAWLED_PLAY_HISTORY).hashCode();
+        setField(FIELD_AGG_PLAY_HIST_HASH, newHash);
+    }
+
+    /**
+     * Verifies if the current play history aggregation needs to be updated
+     * @return update needed
+     */
+    public boolean playHistoryAggregationNeedsUpdate() {
+        return getFieldAsInt(FIELD_AGG_PLAY_HIST_HASH) ==
+                getFieldAsStringSet(FIELD_CRAWLED_PLAY_HISTORY).hashCode();
     }
 
     /**
