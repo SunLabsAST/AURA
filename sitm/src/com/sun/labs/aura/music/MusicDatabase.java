@@ -215,11 +215,9 @@ public class MusicDatabase {
 
     public void addPlayAttentionsWithDetails(String listenerID, String artistID,
             String details, int playCount, long timestamp) throws AuraException, RemoteException {
-        for (int i=0; i<playCount; i++) {
-            Attention attention = StoreFactory.newAttention(listenerID, artistID,
-                    Attention.Type.PLAYED, new Date(timestamp), Long.valueOf(playCount), details);
-            getDataStore().attend(attention);
-        }
+        Attention attention = StoreFactory.newAttention(listenerID, artistID,
+                Attention.Type.PLAYED, new Date(timestamp), Long.valueOf(playCount), details);
+        getDataStore().attend(attention);
     }
 
     public void addViewedAttention(String listenerID, String artistID) throws AuraException, RemoteException {
