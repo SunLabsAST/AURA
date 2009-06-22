@@ -215,7 +215,7 @@ public class Listener extends ItemAdapter {
      * @return update needed
      */
     public boolean playHistoryAggregationNeedsUpdate() {
-        return getFieldAsInt(FIELD_AGG_PLAY_HIST_HASH) ==
+        return getFieldAsInt(FIELD_AGG_PLAY_HIST_HASH) !=
                 getFieldAsStringSet(FIELD_CRAWLED_PLAY_HISTORY).hashCode();
     }
 
