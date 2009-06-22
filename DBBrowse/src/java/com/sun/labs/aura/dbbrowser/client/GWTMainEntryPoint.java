@@ -34,6 +34,9 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.sun.labs.aura.dbbrowser.client.shell.ShellService;
+import com.sun.labs.aura.dbbrowser.client.shell.ShellServiceAsync;
+import com.sun.labs.aura.dbbrowser.client.shell.ShellUI;
 
 /**
  * The entry point that sets up the initial page
@@ -53,6 +56,8 @@ public class GWTMainEntryPoint implements EntryPoint {
         sel.addTool("Query DB", new TabbedQueryUI());
         VizUI vizui = new VizUI();
         sel.addTool("Viz UI", vizui);
+        ShellUI shellui = new ShellUI();
+        sel.addTool("Cmd Shell", shellui);
         RootPanel.get().add(sel);
         sel.select(vizui);
     }
@@ -87,6 +92,17 @@ public class GWTMainEntryPoint implements EntryPoint {
         //
         ServiceDefTarget endpoint = (ServiceDefTarget) service;
         String moduleRelativeURL = GWT.getModuleBaseURL() + "vizservice";
+        endpoint.setServiceEntryPoint(moduleRelativeURL);
+        return service;
+    }
+
+    public static ShellServiceAsync getShellService() {
+        //
+        // Create a proxy for the Shell service on the server
+        ShellServiceAsync service = (ShellServiceAsync)GWT.create(ShellService.class);
+
+        ServiceDefTarget endpoint = (ServiceDefTarget)service;
+        String moduleRelativeURL = GWT.getModuleBaseURL() + "shellservice";
         endpoint.setServiceEntryPoint(moduleRelativeURL);
         return service;
     }

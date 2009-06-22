@@ -209,6 +209,32 @@ a:visited {
     padding-left: 3px;
 }
 
+.shell-input {
+    padding: 2px;
+}
+
+.shell-inputButton {
+    margin-left: 3px;
+}
+
+.shell-margin {
+    margin: 3px;
+}
+
+.shell-cmdLabel {
+  font-size: 12px;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 4px;
+  margin-bottom: 4px;
+}
+
+.shell-historyPanel {
+    width: 200px;
+    padding: 3px;
+}
+
 .mgr-controlPanel {
   margin-top: 5px;
 }
