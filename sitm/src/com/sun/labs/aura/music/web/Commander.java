@@ -72,11 +72,11 @@ public class Commander {
 
     private ExpiringLRUCache cache;
     private boolean useCache;
-    private final int CACHE_SIZE = 10000;
+    private final int CACHE_SIZE = 500;
     private final int CACHE_SECS2LIVE = 60 * 60;
 
     public Commander(String name, String prefix, String suffix) throws IOException {
-        this(name, prefix, suffix, true);
+        this(name, prefix, suffix, false);
     }
 
     public Commander(String name, String prefix, String suffix, boolean useCache) throws IOException {

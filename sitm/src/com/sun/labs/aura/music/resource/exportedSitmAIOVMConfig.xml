@@ -125,7 +125,7 @@
    <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerControllerImpl" export="true">
    </component>
 
-    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler">
+    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerController" value="crawlerController"/>
         <property name="crawlerStateDir" value="${auraHome}/db/artist_crawler.state"/>

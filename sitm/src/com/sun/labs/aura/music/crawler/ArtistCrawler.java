@@ -336,12 +336,14 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 }
             } catch (AuraException ex) {
                 logger.warning("Aura Trouble during crawl " + ex);
+                ex.printStackTrace();
             } catch (RemoteException ex) {
                 logger.warning("Remote Trouble during crawl " + ex);
             } catch (IOException ex) {
                 logger.warning("IO Trouble during crawl " + ex);
             } catch (Throwable t) {
                 logger.severe("Unexpected error during artist discovery crawl " + t);
+                t.printStackTrace();
             }
         }
     }
