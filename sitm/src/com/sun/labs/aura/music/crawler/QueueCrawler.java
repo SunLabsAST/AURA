@@ -109,7 +109,7 @@ public abstract class QueueCrawler implements QueueCrawlerInterface {
 
 
         } catch (IOException ex) {
-            // no worries if there was no file
+            logger.info(crawlerName+"Crawler: could not find crawler state file ("+stateDir+","+CRAWLER_STATE_FILE+")");
         } catch (ClassNotFoundException ex) {
             logger.warning(crawlerName+"Crawler: Bad format in feedscheduler statefile " + ex);
         } finally {

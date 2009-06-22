@@ -694,6 +694,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             listener.flush(mdb.getDataStore());
         } catch (IOException e) {
             logger.warning("Problem updating weekly charts from last.fm for user " + listener.getName());
+            e.printStackTrace();
         }
     }
 

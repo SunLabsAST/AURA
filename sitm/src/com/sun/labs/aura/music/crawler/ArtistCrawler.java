@@ -316,34 +316,44 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             return;
         }
 
-        while (running && crawlQueue.size() > 0) {
-            try {
+        while (running) {
+            if (crawlQueue.size() > 0) {
+                try {
 
-                // if we've reached maxartists we are done
-                if (getDataStore().getItemCount(ItemType.ARTIST) >= maxArtists) {
-                    logger.info("Artist discovery crawler reached max artists, shutting down");
-                    break;
+                    // if we've reached maxartists we are done
+                    if (getDataStore().getItemCount(ItemType.ARTIST) >= maxArtists) {
+                        logger.info("Artist discovery crawler reached max artists, shutting down");
+                        break;
+                    }
+
+                    QueuedItem queuedArtist = (QueuedItem) crawlQueue.poll();
+                    long curTime = System.currentTimeMillis();
+                    logger.info("Crawling " + queuedArtist + " remaining " + crawlQueue.size() + " time " + (curTime - lastTime) + " ms");
+                    lastTime = curTime;
+
+                    Artist artist = collectArtistInfo(queuedArtist);
+                    if (artist != null) {
+                        incrementModCounter();
+                    }
+                } catch (AuraException ex) {
+                    logger.warning("Aura Trouble during crawl " + ex);
+                    ex.printStackTrace();
+                } catch (RemoteException ex) {
+                    logger.warning("Remote Trouble during crawl " + ex);
+                } catch (IOException ex) {
+                    logger.warning("IO Trouble during crawl " + ex);
+                } catch (Throwable t) {
+                    logger.severe("Unexpected error during artist discovery crawl " + t);
+                    t.printStackTrace();
                 }
-
-                QueuedItem queuedArtist = (QueuedItem) crawlQueue.poll();
-                long curTime = System.currentTimeMillis();
-                logger.info("Crawling " + queuedArtist + " remaining " + crawlQueue.size() + " time " + (curTime - lastTime) + " ms");
-                lastTime = curTime;
-
-                Artist artist = collectArtistInfo(queuedArtist);
-                if (artist != null) {
-                    incrementModCounter();
+            } else {
+                try {
+                    // If discovery queue is empty, sleep fo a while as the listener crawler
+                    // might add more new artists to crawl
+                    logger.fine("ArtistDiscovery sleeping because queue is empty");
+                    Thread.sleep(5 * 60 * 1000L);
+                } catch (InterruptedException ex) {
                 }
-            } catch (AuraException ex) {
-                logger.warning("Aura Trouble during crawl " + ex);
-                ex.printStackTrace();
-            } catch (RemoteException ex) {
-                logger.warning("Remote Trouble during crawl " + ex);
-            } catch (IOException ex) {
-                logger.warning("IO Trouble during crawl " + ex);
-            } catch (Throwable t) {
-                logger.severe("Unexpected error during artist discovery crawl " + t);
-                t.printStackTrace();
             }
         }
     }
