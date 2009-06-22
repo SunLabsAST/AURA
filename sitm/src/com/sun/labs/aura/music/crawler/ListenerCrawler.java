@@ -265,8 +265,10 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             } catch (InterruptedException ex) {
             } catch (AuraException ex) {
                 logger.warning("AuraException while crawling users" + ex);
+                ex.printStackTrace();
             } catch (RemoteException ex) {
                 logger.warning("Remote exception while crawling users" + ex);
+                ex.printStackTrace();
             }
         }
     }
@@ -596,12 +598,20 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 }
 
                 fp.end();
-            } catch (InterruptedException ex) {
+
             } catch (AuraException ex) {
-                logger.warning("AuraException while crawling users" + ex);
+                logger.warning("Aura Exception while updating agg charts " + ex);
+                ex.printStackTrace();
             } catch (RemoteException ex) {
-                logger.warning("Remote exception while crawling users" + ex);
+                logger.warning("Remote Exception while updating agg charts " + ex);
+            } catch (IOException ex) {
+                logger.warning("IO Exception while updating agg charts " + ex);
+                ex.printStackTrace();
+            } catch (Throwable t) {
+                logger.severe("Unexpected error during agg chart updating " + t);
+                t.printStackTrace();
             }
+
         }
     }
 
@@ -650,9 +660,11 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         logger.info("ListenerCrawler:WeeklyCharts: Crawling listener " + listener.getKey());
         try {
             List<Integer[]> chartList = getLastFM2().getWeeklyChartListByUser(listener.getLastFmName());
+
             // For all available charts on lastfm
-            for (int i=0; i<=nbrChartWeek; i++) {
-                Integer[] ranges = chartList.get(chartList.size()-1-i);
+            int min = Math.min(chartList.size(), nbrChartWeek);
+            for (int i=min-1; i>=0; i--) {
+                Integer[] ranges = chartList.get(i);
                 // If we did not already crawl that chart for the user
                 if (!listener.crawledPlayHistory(ranges[0])) {
                     logger.fine("ListenerCrawler:WeeklyCharts: Adding plays for listener '" +
