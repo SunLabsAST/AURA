@@ -51,6 +51,7 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,6 +62,9 @@ import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.python.core.PyDictionary;
+import org.python.core.PyList;
+import org.python.core.PyTuple;
 
 /**
  *
@@ -161,6 +165,15 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                     discoveryThread.start();
                 }
             }
+            {
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        periodicallyUpdateAggregatedCharts();
+                    }
+                };
+                t.start();
+            }
         }
     }
 
@@ -218,7 +231,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         maxListeners = ps.getInt(PROP_MAX_LISTENERS);
         enableListenerDiscovery = ps.getBoolean(PROP_ENABLE_LISTENER_DISCOVERY);
         nbrChartWeek = ps.getInt(PROP_NBR_CHARTS_WEEK);
-        rcmArtist = new RemoteComponentManager(ps.getConfigurationManager(), ArtistCrawler.class);
+        rcmArtist = new RemoteComponentManager(ps.getConfigurationManager(), QueueCrawlerInterface.class);
         rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
         try {
             pandora = new Pandora();
@@ -236,7 +249,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     }
 
     private boolean enqueueArtistToCrawl(LastItem lA, int popularity) throws AuraException, RemoteException {
-        return ((ArtistCrawler)rcmArtist.getComponent()).enqueue(lA, popularity);
+        return ((QueueCrawlerInterface)rcmArtist.getComponent()).enqueue(lA, popularity);
     }
 
     private void periodicallyCrawlAllListeners() {
@@ -467,6 +480,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 weeklyCrawlPandora(listener);
                 updateListenerArtists(listener);
                 updateListenerTags(listener);
+                updateListenerAggregatedPlayCharts(listener);
                 listener.setLastCrawl();
                 listener.incrementUpdateCount();
                 mdb.flush(listener);
@@ -525,6 +539,73 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         }
         return maxCrawl;
     }
+
+    private void updateListenerAggregatedPlayCharts(Listener listener) throws AuraException, RemoteException {
+
+        logger.fine(crawlerName+"Crawler: Aggregating play charts for listener "+listener.getKey());
+
+        AttentionConfig aC = new AttentionConfig();
+        aC.setSourceKey(listener.getKey());
+        aC.setType(Attention.Type.PLAYED);
+        
+        String script =   "# process takes a list of attention as its input \n" +
+                          "def process(attns): \n" +
+                          "    d = {} \n" +
+                          "    for a in attns.toArray(): \n" +
+                          "        k = str(a.getTargetKey()) \n" +
+                          "        if not k in d: \n" +
+                          "            d[k] = 0 \n" +
+                          "        d[k] += a.getNumber() \n" +
+                          "    return d \n" +
+                          "\n" +
+                          "#\n" +
+                          "# collect takes a list of the results from above \n" +
+                          "def collect(results): \n" +
+                          "    d = {} \n" +
+                          "    for tD in results.toArray(): \n" +
+                          "        for k,v in tD.items(): \n" +
+                          "            if not k in d: \n" +
+                          "                d[k] = 0 \n" +
+                          "            d[k] += v \n" +
+                          "    return d \n";
+
+        PyDictionary pyDict = (PyDictionary) mdb.getDataStore().processAttention(aC, script, "python");
+        PyList items = pyDict.items();
+        for (int i=0; i<items.size(); i++) {
+            PyTuple p = (PyTuple) items.get(i);
+            listener.setAggregatedPlayCount((String)p.get(0), ((BigInteger)p.get(1)).intValue());
+        }
+        listener.updatePlayHistoryAggregationHash();
+    }
+
+    private void periodicallyUpdateAggregatedCharts() {
+        FixedPeriod fp = new FixedPeriod(6 * 60 * 60 * 1000L);
+        while (running) {
+            try {
+                fp.start();
+
+                List<String> listenerIDs = getAllListenerIDs();
+                logger.info(crawlerName+"Crawler: Updating aggregated charts for " +
+                        listenerIDs.size() + " listeners");
+                for (String id : listenerIDs) {
+                    Listener listener = mdb.getListener(id);
+                    if (listener != null && listener.playHistoryAggregationNeedsUpdate()) {
+                        updateListenerAggregatedPlayCharts(listener);
+                        mdb.flush(listener);
+                    }
+                }
+
+                fp.end();
+            } catch (InterruptedException ex) {
+            } catch (AuraException ex) {
+                logger.warning("AuraException while crawling users" + ex);
+            } catch (RemoteException ex) {
+                logger.warning("Remote exception while crawling users" + ex);
+            }
+        }
+    }
+
+
 
     /**
      * Update a listener's favorite artists

@@ -52,7 +52,7 @@
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore"/>
 
     <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerController" />
-    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawlerInterface"/>
+    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.QueueCrawlerInterface"/>
 
     <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
         <property name="dataStore" value="dataStoreHead"/>

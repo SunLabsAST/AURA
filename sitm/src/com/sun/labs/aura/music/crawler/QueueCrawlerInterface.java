@@ -25,13 +25,14 @@
 package com.sun.labs.aura.music.crawler;
 
 import com.sun.labs.aura.music.web.lastfm.LastItem;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
  *
  * @author mailletf
  */
-public interface QueueCrawlerInterface extends Crawler {
+public interface QueueCrawlerInterface extends Crawler, Remote {
 
     /**
      * Enqueue a new artist to be crawled

@@ -804,9 +804,9 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             // some debugging code
             if (logger.isLoggable(Level.INFO)) {
                 List<Tag> tags = artist.getBlurbTags();
-                logger.info("====== Blurbs for " + artist.getName() + " === albums: " + maxAlbums);
+                logger.fine("====== Blurbs for " + artist.getName() + " === albums: " + maxAlbums);
                 for (Tag tag : tags) {
-                    logger.info(String.format("(%s,%d)", tag.getName(), tag.getCount()));
+                    logger.fine(String.format("(%s,%d)", tag.getName(), tag.getCount()));
                 }
             }
         }
