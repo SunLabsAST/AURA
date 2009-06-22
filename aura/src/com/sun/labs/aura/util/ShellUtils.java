@@ -43,8 +43,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -67,6 +69,8 @@ public class ShellUtils {
     private String displayFormat;
 
     private Object[] displayVals;
+
+    private CommandInterpreter shell;
 
     public String[] getDisplayFields() {
         return displayFields;
@@ -91,8 +95,9 @@ public class ShellUtils {
      * @param aDataStore the data store
      * @param aStatService the stat service
      */
-    public ShellUtils(CommandInterpreter shell, DataStore aDataStore,
+    public ShellUtils(final CommandInterpreter shell, DataStore aDataStore,
             StatService aStatService) {
+        this.shell = shell;
         this.dataStore = aDataStore;
         this.statService = aStatService;
         setDisplayFields(new String[] {"_score", "aura-type", "aura-key"});
@@ -139,7 +144,7 @@ public class ShellUtils {
                             }
                             nHits = Integer.parseInt(args[1]);
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                         }
                         return "";
                     }
@@ -169,11 +174,46 @@ public class ShellUtils {
             }
         });
 
+        shell.add("genAttention",
+                new CommandInterface() {
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                if (args.length != 6) {
+                    return "Usage: " + getHelp();
+                }
+                Integer numUsers = Integer.parseInt(args[1]);
+                Integer numItems = Integer.parseInt(args[2]);
+                Attention.Type type = Enum.valueOf(Attention.Type.class, args[3].toUpperCase());
+                Integer cntRange = Integer.parseInt(args[4]);
+                Integer numAttn = Integer.parseInt(args[5]);
+                Random rand = new Random();
+                List<Attention> attns = new ArrayList<Attention>(numAttn);
+                int total = 0;
+                for (int i = 0; i < numAttn; i++) {
+                    int user = rand.nextInt(numUsers);
+                    int item = rand.nextInt(numItems);
+                    long cnt = 1;
+                    if (cntRange > 1) {
+                        cnt = rand.nextInt(cntRange);
+                        cnt++;
+                    }
+                    total += cnt;
+                    Attention a = StoreFactory.newAttention("user" + user, "item" + item, type, cnt);
+                    attns.add(a);
+                }
+                dataStore.attend(attns);
+                return "Added " + total + " attentions in " + numAttn + " objects";
+            }
+            
+            public String getHelp() {
+                return "<numUsers> <numItems> <type> <cntRange> <numAttn>";
+            }
+        });
+
         shell.add("processAttention",
                 new CommandInterface() {
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 if (args.length != 6) {
-                    return getHelp();
+                    return "Usage: " + getHelp();
                 }
                 AttentionConfig ac = new AttentionConfig();
                 if (!args[1].equals("*")) {
@@ -186,23 +226,82 @@ public class ShellUtils {
                     ac.setType(Enum.valueOf(Attention.Type.class, args[3].toUpperCase()));
                 }
                 FileReader reader = new FileReader(new File(args[4]));
-                
+                NanoWatch sw = new NanoWatch();
+                sw.start();
                 Object result = dataStore.processAttention(ac, readFile(args[4]), args[5]);
-                System.out.println("Result:");
-                System.out.println(result);
-                return "";
+                sw.stop();
+                shell.getOutput().println("Result:");
+                shell.getOutput().println(result);
+                return "Completed in " + sw.getTimeMillis() + "ms";
             }
             public String getHelp() {
                 return "<srcKey> <tgtKey> <type> <script file> <language> where attn fields may be '*' for all";
             }
         });
 
+        shell.add("getAttentionCount",
+                new CommandInterface() {
+           public String execute(CommandInterpreter ci, String[] args)  throws Exception {
+                if (args.length != 4) {
+                   return "Usage: " + getHelp();
+                }
+
+                AttentionConfig ac = new AttentionConfig();
+                if (!args[1].equals("*")) {
+                    ac.setSourceKey(args[1]);
+                }
+                if (!args[2].equals("*")) {
+                    ac.setTargetKey(args[2]);
+                }
+                if (!args[3].equals("*")) {
+                    ac.setType(Enum.valueOf(Attention.Type.class, args[3].toUpperCase()));
+                }
+                long cnt = dataStore.getAttentionCount(ac);
+                return "Total of " + cnt + " attentions matched";
+           }
+           public String getHelp() {
+               return "<srcKey> <tgtKey> <type> - gives the number of attn that match";
+           }
+        });
+
+        shell.add("getAttentionCountSlow",
+                new CommandInterface() {
+           public String execute(CommandInterpreter ci, String[] args)  throws Exception {
+                if (args.length != 4) {
+                   return "Usage: " + getHelp();
+                }
+                AttentionConfig ac = new AttentionConfig();
+                if (!args[1].equals("*")) {
+                    ac.setSourceKey(args[1]);
+                }
+                if (!args[2].equals("*")) {
+                    ac.setTargetKey(args[2]);
+                }
+                if (!args[3].equals("*")) {
+                    ac.setType(Enum.valueOf(Attention.Type.class, args[3].toUpperCase()));
+                }
+                NanoWatch sw = new NanoWatch();
+                sw.start();
+                List<Attention> attns = dataStore.getAttention(ac);
+                int cnt = 0;
+                for (Attention a : attns) {
+                    cnt += a.getNumber();
+                }
+                sw.stop();
+                return "Total of " + cnt + " attentions in " + sw.getTimeMillis() + "ms";
+           }
+           public String getHelp() {
+               return "<srcKey> <tgtKey> <type> - gives the number of attn that match";
+           }
+        });
+
+
         shell.add("getScriptLanguages",
                 new CommandInterface() {
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 List<String> langs = dataStore.getSupportedScriptLanguages();
                 for (String l : langs) {
-                    System.out.println(l);
+                    shell.getOutput().println(l);
                 }
                 return "";
             }
@@ -217,11 +316,11 @@ public class ShellUtils {
                 for(ItemType type : ItemType.values()) {
                     long count = dataStore.getItemCount(type);
                     if(count > 0) {
-                        System.out.printf("  %8d %s\n", count, type.toString());
+                        shell.getOutput().printf("  %8d %s\n", count, type.toString());
                     }
                 }
 
-                System.out.printf("  %d Attention Data\n", dataStore.
+                shell.getOutput().printf("  %d Attention Data\n", dataStore.
                         getAttentionCount(new AttentionConfig()));
                 return "";
             }
@@ -237,19 +336,19 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args) {
                         try {
                             NanoWatch nw = new NanoWatch();
-                            System.out.println("args: " + args.length);
+                            shell.getOutput().println("args: " + args.length);
                             for(int i = 1; i < args.length; i++) {
                                 nw.start();
                                 Item item = dataStore.getItem(args[i]);
                                 nw.stop();
                             }
-                            System.out.printf(
+                            shell.getOutput().printf(
                                     "%d gets took: %.4f avg: %.4f/get\n",
                                     args.length - 1,
                                     nw.getTimeMillis(),
                                     nw.getTimeMillis() / (args.length - 1));
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                             ex.printStackTrace();
                         }
                         return "";
@@ -272,12 +371,12 @@ public class ShellUtils {
                             Item item = dataStore.getItem(args[1]);
                             dumpItemFull(item);
                             if(item != null) {
-                                System.out.printf("%-15s %s\n", "autotags",
+                                shell.getOutput().printf("%-15s %s\n", "autotags",
                                         item.getField("autotag"));
                             }
 
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                             ex.printStackTrace();
                         }
                         return "";
@@ -301,11 +400,11 @@ public class ShellUtils {
                             if(item != null) {
                                 dataStore.deleteItem(item.getKey());
                             } else {
-                                System.out.println("Can't find item " + args[1]);
+                                shell.getOutput().println("Can't find item " + args[1]);
                             }
 
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                             ex.printStackTrace();
                         }
                         return "";
@@ -329,11 +428,11 @@ public class ShellUtils {
                             if(user != null) {
                                 dataStore.deleteUser(user.getKey());
                             } else {
-                                System.out.println("Can't find user " + args[1]);
+                                shell.getOutput().println("Can't find user " + args[1]);
                             }
 
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                             ex.printStackTrace();
                         }
                         return "";
@@ -366,7 +465,7 @@ public class ShellUtils {
                             dumpItemFull(item1A);
                             dumpItemFull(item2A);
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                             ex.printStackTrace();
                         }
                         return "";
@@ -384,7 +483,7 @@ public class ShellUtils {
                         try {
                             dumpTagFrequencies(nHits);
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                             ex.printStackTrace();
                         }
                         return "";
@@ -410,11 +509,11 @@ public class ShellUtils {
                                 List<Attention> attns = dataStore.
                                         getAttention(ac);
                                 for(Attention attn : attns) {
-                                    System.out.println(attn);
+                                    shell.getOutput().println(attn);
                                 }
                             }
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                         }
                         return "";
                     }
@@ -436,11 +535,11 @@ public class ShellUtils {
                                 List<Attention> attns = dataStore.
                                         getAttention(ac);
                                 for(Attention attn : attns) {
-                                    System.out.println(attn);
+                                    shell.getOutput().println(attn);
                                 }
                             }
                         } catch(Exception ex) {
-                            System.out.println("Error " + ex);
+                            shell.getOutput().println("Error " + ex);
                         }
                         return "";
                     }
@@ -462,9 +561,9 @@ public class ShellUtils {
                             String prefix = args.length == 2 ? args[1] : "";
                             String[] counters = statService.getCounterNames();
                             Arrays.sort(counters);
-                            System.out.printf("%20s %8s %8s %8s\n", "Stat",
+                            shell.getOutput().printf("%20s %8s %8s %8s\n", "Stat",
                                     "counter", "average", "per min");
-                            System.out.printf("%20s %8s %8s %8s\n", "----",
+                            shell.getOutput().printf("%20s %8s %8s %8s\n", "----",
                                     "-------", "-------", "-------");
                             for(String counter : counters) {
                                 if(counter.startsWith(prefix)) {
@@ -472,12 +571,12 @@ public class ShellUtils {
                                     double avg = statService.getAverage(counter);
                                     double avgPerMin = statService.
                                             getAveragePerMinute(counter);
-                                    System.out.printf("%20s %8d %8.3f %8.3f\n",
+                                    shell.getOutput().printf("%20s %8d %8.3f %8.3f\n",
                                             counter, count, avg, avgPerMin);
                                 }
                             }
                         } catch(Exception e) {
-                            System.out.println("Error " + e);
+                            shell.getOutput().println("Error " + e);
                         }
                         return "";
                     }
@@ -528,7 +627,7 @@ public class ShellUtils {
                         List<Scored<String>> terms = dataStore.
                                 getTopAutotagTerms(autotag, nHits);
                         for(Scored<String> term : terms) {
-                            System.out.println(term);
+                            shell.getOutput().println(term);
                         }
 
                         return "";
@@ -548,7 +647,7 @@ public class ShellUtils {
                         List<Scored<String>> autotags =
                                 dataStore.findSimilarAutotags(autotag, nHits);
                         for(Scored<String> tag : autotags) {
-                            System.out.println(tag);
+                            shell.getOutput().println(tag);
                         }
 
                         return "";
@@ -571,7 +670,7 @@ public class ShellUtils {
                                 dataStore.explainSimilarAutotags(args[1],
                                 args[2], nHits);
                         for(Scored<String> term : terms) {
-                            System.out.println(term);
+                            shell.getOutput().println(term);
                         }
 
                         return "";
@@ -649,9 +748,9 @@ public class ShellUtils {
                         List<Scored<String>> expn = dataStore.explainSimilarity(
                                 key1, key2, new SimilarityConfig(nHits));
                         for(Scored<String> term : expn) {
-                            System.out.print(term + " ");
+                            shell.getOutput().print(term + " ");
                         }
-                        System.out.println("");
+                        shell.getOutput().println("");
                         return "";
                     }
 
@@ -674,9 +773,9 @@ public class ShellUtils {
                         List<Scored<String>> expn = dataStore.explainSimilarity(
                                 key1, key2, new SimilarityConfig(field, nHits));
                         for(Scored<String> term : expn) {
-                            System.out.print(term + " ");
+                            shell.getOutput().print(term + " ");
                         }
-                        System.out.println("");
+                        shell.getOutput().println("");
                         return "";
                     }
 
@@ -698,9 +797,9 @@ public class ShellUtils {
                         };
                         String key = args[1];
 
-                        System.out.println("Using fields:");
+                        shell.getOutput().println("Using fields:");
                         for(WeightedField wf : fields) {
-                            System.out.printf("   %s: %f\n", wf.getFieldName(),
+                            shell.getOutput().printf("   %s: %f\n", wf.getFieldName(),
                                     wf.getWeight());
                         }
                         SimilarityConfig config = new SimilarityConfig(fields, nHits, null);
@@ -725,9 +824,9 @@ public class ShellUtils {
                         String field = args.length > 2 ? args[2] : "content";
                         WordCloud terms = dataStore.getTopTerms(key,
                                 field, nHits);
-                        System.out.println("Top terms:");
+                        shell.getOutput().println("Top terms:");
                         for(Scored<String> term : terms) {
-                            System.out.printf("%.3f %s\n", term.getScore(),
+                            shell.getOutput().printf("%.3f %s\n", term.getScore(),
                                     term.getItem());
                         }
                         
@@ -749,8 +848,8 @@ public class ShellUtils {
                     public String execute(CommandInterpreter ci, String[] args)
                             throws Exception {
                         String field = args[1];
-                        System.out.println("field: " + field);
-                        System.out.println("args: " + args.length);
+                        shell.getOutput().println("field: " + field);
+                        shell.getOutput().println("args: " + args.length);
                         if((args.length - 2) % 2 != 0) {
                             return getHelp();
                         }
@@ -758,9 +857,9 @@ public class ShellUtils {
                         for(int i = 2; i < args.length-1; i+= 2) {
                             terms.add(args[i], Double.parseDouble(args[i+1]));
                         }
-                        System.out.println("Terms:");
+                        shell.getOutput().println("Terms:");
                         for(Scored<String> term : terms) {
-                            System.out.printf("%.3f %s\n", term.getScore(),
+                            shell.getOutput().printf("%.3f %s\n", term.getScore(),
                                     term.getItem());
                         }
                         SimilarityConfig config = new SimilarityConfig(field,
@@ -787,7 +886,7 @@ public class ShellUtils {
                         WordCloud terms = dataStore.getTopTerms(key,
                                 field, nHits);
                         for(Scored<String> term : terms) {
-                            System.out.printf("%.3f %s\n", term.getScore(),
+                            shell.getOutput().printf("%.3f %s\n", term.getScore(),
                                     term.getItem());
                         }
 
@@ -809,7 +908,7 @@ public class ShellUtils {
                         List<Scored<String>> terms = dataStore.getExplanation(
                                 key, autotag, nHits);
                         for(Scored<String> term : terms) {
-                            System.out.printf("%.3f %s\n", term.getScore(),
+                            shell.getOutput().printf("%.3f %s\n", term.getScore(),
                                     term.getItem());
                         }
 
@@ -834,9 +933,9 @@ public class ShellUtils {
 
     public void dumpItem(Item item) {
         if(item == null) {
-            System.out.println("null");
+            shell.getOutput().println("null");
         } else {
-            System.out.printf(" %16s %s %s\n", item.getType().toString(), item.
+            shell.getOutput().printf(" %16s %s %s\n", item.getType().toString(), item.
                     getKey(), item.getName());
         }
     }
@@ -846,52 +945,52 @@ public class ShellUtils {
             try {
                 dumpScoredItem(item);
             } catch(Exception ex) {
-                System.out.printf("Error dumping item %s\n", ex);
+                shell.getOutput().printf("Error dumping item %s\n", ex);
             }
         }
     }
 
     public void dumpScored(List<Scored<String>> scoredStrings) {
         for(Scored<String> scored : scoredStrings) {
-            System.out.printf("%.3f %s\n", scored.getScore(), scored.getItem());
+            shell.getOutput().printf("%.3f %s\n", scored.getScore(), scored.getItem());
         }
     }
 
     public void dumpCloud(WordCloud cloud) {
         for(Scored<String> scored : cloud) {
-            System.out.printf("%.3f %s\n", scored.getScore(), scored.getItem());
+            shell.getOutput().printf("%.3f %s\n", scored.getScore(), scored.getItem());
         }
     }
 
     public void dumpTags(List<Tag> tags) {
         for(Tag tag : tags) {
-            System.out.printf("%d %s\n", tag.getCount(), tag.getName());
+            shell.getOutput().printf("%d %s\n", tag.getCount(), tag.getName());
         }
     }
 
     public void dumpItemFull(Item item) throws AuraException, RemoteException {
         if(item == null) {
-            System.out.println("null");
+            shell.getOutput().println("null");
         } else {
-            System.out.println(ItemAdapter.toString(item));
+            shell.getOutput().println(ItemAdapter.toString(item));
             {
                 AttentionConfig ac = new AttentionConfig();
                 ac.setSourceKey(item.getKey());
                 long count  = dataStore.getAttentionCount(ac);
-                System.out.println("src: " + count);
+                shell.getOutput().println("src: " + count);
             }
             {
                 AttentionConfig ac = new AttentionConfig();
                 ac.setTargetKey(item.getKey());
                 long count  = dataStore.getAttentionCount(ac);
-                System.out.println("tgt: " + count);
+                shell.getOutput().println("tgt: " + count);
             }
         }
     }
 
     public void dumpScoredItem(Scored<Item> scoredItem) throws AuraException, RemoteException {
         if(scoredItem == null) {
-            System.out.println("null");
+            shell.getOutput().println("null");
         } else {
 
             for(int i = 0; i < displayFields.length; i++) {
@@ -904,19 +1003,19 @@ public class ShellUtils {
                     displayVals[i] = scoredItem.getItem().getField(field);
                 }
             }
-            System.out.printf(displayFormat, displayVals);
+            shell.getOutput().printf(displayFormat, displayVals);
         }
     }
 
     public void dumpAttentionData(String msg, List<Attention> attentionData)
             throws AuraException, RemoteException {
-        System.out.println("Attention " + msg);
+        shell.getOutput().println("Attention " + msg);
         for(Attention attention : attentionData) {
             Item source = dataStore.getItem(attention.getSourceKey());
             Item target = dataStore.getItem(attention.getTargetKey());
             String type = attention.getType().toString();
 
-            System.out.printf("   %s -- %s -- %s\n", fmtItem(source), type,
+            shell.getOutput().printf("   %s -- %s -- %s\n", fmtItem(source), type,
                     fmtItem(target));
         }
     }
@@ -935,7 +1034,7 @@ public class ShellUtils {
             List<FieldFrequency> tagFreqs = dataStore.getTopValues("tag", n,
                     true);
             for(FieldFrequency ff : tagFreqs) {
-                System.out.printf("%d %s\n", ff.getFreq(), ff.getVal().toString().
+                shell.getOutput().printf("%d %s\n", ff.getFreq(), ff.getVal().toString().
                         trim());
             }
         } catch(AuraException ex) {
