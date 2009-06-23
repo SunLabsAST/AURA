@@ -985,7 +985,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             artist.addAudio(a.getLink());
         }
         if (urls.getTotal() == 0) {
-            logger.info("No echonest audio found for " + artist.getName());
+            logger.fine("No echonest audio found for " + artist.getName());
         } else {
             logger.fine("crawled " + urls.getTotal() + " audio files from echonest for " + artist.getName());
         }
