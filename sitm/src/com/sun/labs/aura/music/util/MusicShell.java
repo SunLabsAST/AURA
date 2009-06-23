@@ -447,6 +447,28 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
+        shell.add("fsl", new CommandInterface() {
+
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String listenerID = args[1];
+                Listener listener = musicDatabase.getListener(listenerID);
+                if (listener != null) {
+                    System.out.println("Finding similar for " + listener.getKey());
+                    List<Scored<Item>> simItems = musicDatabase.getDataStore().findSimilar(listener.getKey(),
+                            new SimilarityConfig(Listener.FIELD_AGGREGATED_PLAY_HISTORY,
+                                sutils.getHits(), new TypeFilter(ItemType.USER)));
+                    sutils.dumpScoredItems(simItems);
+                    return "";
+                } else {
+                    return "Can't find listener " + listenerID;
+                }
+            }
+
+            public String getHelp() {
+                return "find similar artist by name using just their social tags";
+            }
+        });
+
         shell.add("rec", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {

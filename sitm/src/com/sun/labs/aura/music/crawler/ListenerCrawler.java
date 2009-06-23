@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -508,13 +509,14 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
 
     public void crawlAllListeners() throws AuraException, RemoteException {
         List<String> listenerIDs = getAllListenerIDs();
-        logger.info(crawlerName+"Crawler: Crawling all " + listenerIDs.size() + " listeners");
+        logger.info(crawlerName+"Crawler: Crawling all " + listenerIDs.size() + " listeners...");
         for (String id : listenerIDs) {
             Listener listener = mdb.getListener(id);
             if (listener != null) {
                 crawlListener(listener, false);
             }
         }
+        logger.info(crawlerName+"Crawler: Crawling all " + listenerIDs.size() + " listeners DONE");
     }
 
     public long crawlNewListeners(long lastCrawl) throws AuraException, RemoteException {
@@ -662,8 +664,9 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             List<Integer[]> chartList = getLastFM2().getWeeklyChartListByUser(listener.getLastFmName());
 
             // For all available charts on lastfm
+            Collections.reverse(chartList);
             int min = Math.min(chartList.size(), nbrChartWeek);
-            for (int i=min-1; i>=0; i--) {
+            for (int i=0; i<min; i++) {
                 Integer[] ranges = chartList.get(i);
                 // If we did not already crawl that chart for the user
                 if (!listener.crawledPlayHistory(ranges[0])) {
@@ -689,11 +692,15 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                     logger.fine("ListenerCrawler:WeeklyCharts: Added plays for listener '" +
                             listener.getKey() + "' for week " + ranges[0]);
                     Thread.yield();
+                } else {
+                    logger.fine("ListenerCrawler:WeeklyCharts: Skipping plays for listener '" +
+                            listener.getKey() + "' for week " + ranges[0]);
                 }
             }
             listener.flush(mdb.getDataStore());
         } catch (IOException e) {
             logger.warning("Problem updating weekly charts from last.fm for user " + listener.getName());
+            e.printStackTrace();
         }
     }
 
