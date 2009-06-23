@@ -315,6 +315,17 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         long lastTime = 0L;
         try {
             primeArtistQueue("The Beatles");
+
+            try {
+                if (getDataStore().getItemCount(ItemType.USER)>0) {
+                    // If there are listeners in the store and we are priming the artist queue,
+                    // there probably was a problem loading the state file. Ensure attention coherence
+                    assertArtistAttentionCoherence();
+                }
+            } catch (RemoteException ex) {
+                logger.warning("Problem ("+ex+") running played attention coherence check");
+                ex.printStackTrace();
+            }
         } catch (AuraException ae) {
             logger.severe("ArtistCrawler Can't talk to the datastore, abandoning crawl");
             return;
@@ -672,6 +683,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
      */
     private void assertArtistAttentionCoherence() throws AuraException, RemoteException {
 
+        logger.info("ArtistAttentionCoherence: Running coherence check");
+
         AttentionConfig aC = new AttentionConfig();
         aC.setType(Attention.Type.PLAYED);
 
@@ -692,8 +705,10 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                         "       s.update(tS) \n" +
                         "   return s";
 
+        int cnt = 0;
         PyDictionary pyDict = (PyDictionary) this.getDataStore().processAttention(aC, script, "python");
         PyList items = pyDict.keys();
+        logger.info("ArtistAttentionCoherence: Got "+items.size()+" unique artists from store");
         for (int i=0; i<items.size(); i++) {
             String artistId =  (String) items.get(i);
 
@@ -705,10 +720,12 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 if (!crawlQueue.contains(qA)) {
                     logger.fine("ArtistAttentionCoherence: Added "+artistId+" to crawl queue");
                     crawlQueue.add(qA);
+                    cnt++;
                 }
             }
         }
-
+        logger.info("ArtistAttentionCoherence: Queued "+cnt+" artists");
+        incrementModCounter(cnt);
     }
 
 
