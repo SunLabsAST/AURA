@@ -718,7 +718,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 // Look in the crawl queue
                 QueuedItem qA = new QueuedItem(artistId, -1);
                 if (!crawlQueue.contains(qA)) {
-                    logger.fine("ArtistAttentionCoherence: Added "+artistId+" to crawl queue");
+                    logger.finer("ArtistAttentionCoherence: Added "+artistId+" to crawl queue");
                     crawlQueue.add(qA);
                     cnt++;
                 }
