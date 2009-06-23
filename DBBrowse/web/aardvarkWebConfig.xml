@@ -38,6 +38,7 @@
         <propertylist name="groupList">
             <item>live-aura</item>
             <item>jeff-aura</item>
+            <item>fm-aura</item>
         </propertylist>
         <property name="securityPolicy" value="/files/working/jsk-all.policy"/>
     </component>
