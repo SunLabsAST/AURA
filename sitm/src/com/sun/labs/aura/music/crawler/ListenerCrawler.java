@@ -613,7 +613,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 logger.severe("Unexpected error during agg chart updating " + t);
                 t.printStackTrace();
             }
-
         }
     }
 
@@ -698,9 +697,9 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 }
             }
             listener.flush(mdb.getDataStore());
-        } catch (IOException e) {
-            logger.warning("Problem updating weekly charts from last.fm for user " + listener.getName());
-            e.printStackTrace();
+        } catch (Throwable t) {
+            logger.warning("Exception ("+t+") updating weekly charts from last.fm for user " + listener.getName());
+            t.printStackTrace();
         }
     }
 
