@@ -149,7 +149,7 @@ public class Commander {
     }
 
     // BUG fix this threading model
-    public Document sendCommand(String command) throws IOException {
+    public synchronized Document sendCommand(String command) throws IOException {
         Document document = null;
 
         if (useCache) {

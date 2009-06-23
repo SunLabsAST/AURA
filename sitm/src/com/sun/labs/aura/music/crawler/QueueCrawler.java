@@ -82,7 +82,7 @@ public abstract class QueueCrawler implements QueueCrawlerInterface {
     }
 
     protected synchronized void incrementModCounter(int nbr) {
-        MODIFS_COUNT++;
+        MODIFS_COUNT+=nbr;
         if (MODIFS_COUNT>=FLUSH_COUNT) {
             saveState();
             MODIFS_COUNT=0;

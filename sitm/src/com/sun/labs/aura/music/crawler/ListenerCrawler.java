@@ -334,7 +334,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             // needs time to catch up, just wait
             if (!isNeedMoreNewListeners()) {
                 try {
-                    logger.info(crawlerName + "Crawler:Discovery: No need for more listeners. Sleeping.");
+                    logger.fine(crawlerName + "Crawler:Discovery: No need for more listeners. Sleeping.");
                     Thread.sleep(newCrawlPeriod * 5 * 1000L);
                     continue;
                 } catch (InterruptedException ex) {
@@ -420,13 +420,18 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 lastfmId + ". QueueSize:" + crawlQueue.size());
         String[] neighbours = getLastFM2().getNeighboursForUser(lastfmId);
         for (String n : neighbours) {
-            LastUser lU = getLastFM().getUser(n);
-            if (lU.getPlayCount() > MIN_PLAY_COUNT) {
-                QueuedItem qI = new QueuedItem(n, lU.getPlayCount());
-                if (!crawlQueue.contains(qI)) {
-                    crawlQueue.add(qI);
-                    incrementModCounter();
+            try {
+                LastUser lU = getLastFM().getUser(n);
+                if (lU.getPlayCount() > MIN_PLAY_COUNT) {
+                    QueuedItem qI = new QueuedItem(n, lU.getPlayCount());
+                    if (!crawlQueue.contains(qI)) {
+                        crawlQueue.add(qI);
+                        incrementModCounter();
+                    }
                 }
+            } catch (Throwable t) {
+                logger.warning("Problem ("+t+") adding neighbour '"+n+"' to crawler queue");
+                t.printStackTrace();
             }
         }
     }
@@ -511,9 +516,14 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         List<String> listenerIDs = getAllListenerIDs();
         logger.info(crawlerName+"Crawler: Crawling all " + listenerIDs.size() + " listeners...");
         for (String id : listenerIDs) {
-            Listener listener = mdb.getListener(id);
-            if (listener != null) {
-                crawlListener(listener, false);
+            try {
+                Listener listener = mdb.getListener(id);
+                if (listener != null) {
+                    crawlListener(listener, false);
+                }
+            } catch (Throwable t) {
+                logger.warning("Problem ("+t+") crawler listener '"+id+"'");
+                t.printStackTrace();
             }
         }
         logger.info(crawlerName+"Crawler: Crawling all " + listenerIDs.size() + " listeners DONE");
