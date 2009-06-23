@@ -46,7 +46,7 @@ public abstract class QueueCrawler implements QueueCrawlerInterface {
 
     protected Logger logger;
     protected String CRAWLER_STATE_FILE;
-    protected String crawlerName;
+    protected final String crawlerName;
     protected final static int FLUSH_COUNT = 10;
     private int MODIFS_COUNT = 0;
 

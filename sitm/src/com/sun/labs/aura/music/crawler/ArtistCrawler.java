@@ -29,6 +29,8 @@ import com.echonest.api.v3.artist.ArtistAPI;
 import com.echonest.api.v3.artist.Audio;
 import com.echonest.api.v3.artist.DocumentList;
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.Attention;
+import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -90,6 +92,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Properties;
+import org.python.core.PyDictionary;
+import org.python.core.PyList;
 
 /**
  *
@@ -555,10 +559,12 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 done = true;
             } catch (AuraException ex) {
                 logger.warning("AuraExeption while crawling " + artist.getName() + " retrying. " + ex.getMessage());
+                ex.printStackTrace();
             } catch (RemoteException ex) {
                 logger.warning("RemoteException while crawling " + artist.getName() + " retrying. " + ex.getMessage());
             } catch (Throwable t) {
                 logger.warning("Unexpected exception  while crawling " + artist.getName() + " retrying. " + t.getMessage());
+                t.printStackTrace();
             }
             if (!done) {
                 try {
@@ -658,6 +664,54 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         artist.flush(getDataStore());
     }
 
+
+    /**
+     * Makes sure that all the artists for which we have added "played" attention 
+     * are either in the store or the crawl queue. Enqueue them if they are not
+     * found at either place
+     */
+    private void assertArtistAttentionCoherence() throws AuraException, RemoteException {
+
+        AttentionConfig aC = new AttentionConfig();
+        aC.setType(Attention.Type.PLAYED);
+
+        // TODO. Figure out why set() isn't working and use instead of dict
+        String script = "def process(attns): \n" +
+                        "   #s = set() \n" +
+                        "   s = {} \n" +
+                        "   for a in attns.toArray(): \n" +
+                        "       #s.add(a.getTargetKey()) \n" +
+                        "       s[a.getTargetKey()] = 0 \n" +
+                        "   return s \n"+
+                        "\n"+
+                        "def collect(results): \n" +
+                        "   #s = set() \n" +
+                        "   s = {} \n" +
+                        "   for tS in results.toArray(): \n" +
+                        "       #s = s.union(tS) \n" +
+                        "       s.update(tS) \n" +
+                        "   return s";
+
+        PyDictionary pyDict = (PyDictionary) this.getDataStore().processAttention(aC, script, "python");
+        PyList items = pyDict.keys();
+        for (int i=0; i<items.size(); i++) {
+            String artistId =  (String) items.get(i);
+
+            // Look in the store
+            Item item = getDataStore().getItem(artistId);
+            if (item==null) {
+                // Look in the crawl queue
+                QueuedItem qA = new QueuedItem(artistId, -1);
+                if (!crawlQueue.contains(qA)) {
+                    logger.fine("ArtistAttentionCoherence: Added "+artistId+" to crawl queue");
+                    crawlQueue.add(qA);
+                }
+            }
+        }
+
+    }
+
+
     private void addMusicBrainzInfoIfNecessary(Artist artist) throws AuraException, RemoteException {
 
         boolean needsUpdate = false;
@@ -716,7 +770,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         return enqueue(lA, popularity);   
     }
 
-/**
+    /**
      * Adds an artist to the discovery queue
      * @param artist the artist to be queued
      * @param popularity the popularity of the artist. If -1 is passed, the

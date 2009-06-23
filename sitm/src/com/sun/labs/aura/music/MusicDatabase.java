@@ -208,16 +208,24 @@ public class MusicDatabase {
      * @throws java.rmi.RemoteException
      */
     public void addPlayAttention(String listenerID, String artistID, int playCount) throws AuraException, RemoteException {
-        Attention attention = StoreFactory.newAttention(listenerID, artistID,
-                Attention.Type.PLAYED, Long.valueOf(playCount));
-        getDataStore().attend(attention);
+        if (playCount > 1) {
+            Attention attention = StoreFactory.newAttention(listenerID, artistID,
+                    Attention.Type.PLAYED, Long.valueOf(playCount));
+            getDataStore().attend(attention);
+        } else {
+            throw new IllegalArgumentException("Play count for attention must be >1. '"+playCount+"' given");
+        }
     }
 
     public void addPlayAttentionsWithDetails(String listenerID, String artistID,
             String details, int playCount, long timestamp) throws AuraException, RemoteException {
-        Attention attention = StoreFactory.newAttention(listenerID, artistID,
-                Attention.Type.PLAYED, new Date(timestamp), Long.valueOf(playCount), details);
-        getDataStore().attend(attention);
+        if (playCount > 1) {
+            Attention attention = StoreFactory.newAttention(listenerID, artistID,
+                    Attention.Type.PLAYED, new Date(timestamp), Long.valueOf(playCount), details);
+            getDataStore().attend(attention);
+        } else {
+            throw new IllegalArgumentException("Play count for attention must be >1. '"+playCount+"' given");
+        }
     }
 
     public void addViewedAttention(String listenerID, String artistID) throws AuraException, RemoteException {
