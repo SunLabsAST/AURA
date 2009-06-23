@@ -784,10 +784,9 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 int pop = 50;
                 try {
                     pop = getLastFM().getPopularity(qA.getName());
-                } catch (AuraException ex) {
-                    Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(ArtistCrawler.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Throwable t) {
+                    logger.warning("Exception "+t+" when trying to determine artist popularity");
+                    t.printStackTrace();
                 }
 
                 qA = new QueuedItem(artist, pop);
