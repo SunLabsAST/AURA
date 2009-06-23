@@ -86,7 +86,20 @@ public class MusicDatabase {
      * popular artists
      */
     public enum PopularityMetric {
-        LastFM, Hotttnesss, Familiarity
+        LastFM(Artist.FIELD_POPULARITY),
+        Hotttnesss(Artist.FIELD_HOTTTNESSS),
+        Familiarity(Artist.FIELD_FAMILIARITY);
+        
+        private String fieldName;
+
+        PopularityMetric(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getField() {
+            return fieldName;
+        }
+
     };
 
     private List<SimType> simTypes;
@@ -134,21 +147,6 @@ public class MusicDatabase {
             itemAdapter.flush(getDataStore());
         } catch (RemoteException rx) {
             throw new AuraException("Error communicating with item store", rx);
-        }
-    }
-
-    /**
-     * Converts a popularity metric into the field name if refers to in the datastore
-     * @param popMetric
-     * @return corresponding field name
-     */
-    private String popMetricToFieldName(PopularityMetric popMetric) {
-        if (popMetric == PopularityMetric.LastFM) {
-            return Artist.FIELD_POPULARITY;
-        } else if (popMetric == PopularityMetric.Familiarity) {
-            return Artist.FIELD_FAMILIARITY;
-        } else {
-            return Artist.FIELD_HOTTTNESSS;
         }
     }
 
@@ -1054,7 +1052,8 @@ public class MusicDatabase {
         try {
             List<Scored<Item>> items = getDataStore().query(
                     new Equals("aura-type", "artist"),
-                    "-" + popMetricToFieldName(popMetric), count, null);
+                    String.format("-%s", popMetric.getField()),
+                    count, null);
             List<Artist> artists = new ArrayList<Artist>();
             for (Scored<Item> i : items) {
                 artists.add(new Artist(i.getItem()));
