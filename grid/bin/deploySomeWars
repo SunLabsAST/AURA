@@ -1,0 +1,12 @@
+#!/bin/bash
+unset CLASSPATH
+
+for i in DBBrowse SitmAdmin SitmWebServices WebMusicExplaura; do
+    ./deployWarGF -n www -w ../../$i/dist/$i.war
+done
+
+# ./deployWarGF -n www -p / -w ../../MainSite/dist/MainSite.war
+
+./deployGFLBWar -n music -p /api -w ../../SitmWebServices/dist/SitmWebServices.war
+./deployGFLBWar -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war
+

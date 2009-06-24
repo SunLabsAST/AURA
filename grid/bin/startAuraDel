@@ -1,0 +1,18 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+
+STARTER=$1
+if [ -z "$STARTER" ] ; then
+    STARTER=start
+fi
+
+echo starter: $STARTER
+
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME \
+    com.sun.labs.aura.grid.ServiceDeployer \
+    -a "-DdeleteIndexDir=true" \
+    /com/sun/labs/aura/grid/aura/auraConfig.xml $STARTER
+
