@@ -111,4 +111,11 @@
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
+
+    <component name="snapsonly" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>snaps</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
 </config>

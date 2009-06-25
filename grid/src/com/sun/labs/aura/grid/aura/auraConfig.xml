@@ -78,7 +78,6 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="stopReggie" value="true"/>
         <property name="destroy" value="true"/>
-
     </component>
 
     <component name="create" type="com.sun.labs.aura.AuraServiceStarter">

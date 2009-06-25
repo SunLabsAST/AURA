@@ -1,0 +1,57 @@
+#!/bin/bash
+
+function usage {
+    echo 'Usage: cloneDataStore -h [-i instance name] -n [new instance name] -b [prefix bits]'
+    echo ' instance name defaults to live, prefix bits to 4'
+}
+
+args=`getopt hi:n:b: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+DIR=`dirname $0`
+
+export INSTANCE="live"
+export BITS=4
+
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-b)
+	    BITS=$2; shift;
+	    shift;;
+	-i)
+	    INSTANCE=$2; shift;
+	    shift;;
+	-n)
+	    NEW_INSTANCE=$2; shift;
+	    shift;;
+    esac
+done
+
+if [ -z ${NEW_INSTANCE} ] ; then
+    echo Must specify new instance name
+    exit 2
+fi
+
+#
+# We'll run this locally.
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP \
+    -DauraInstance=$INSTANCE -DnewInstance=${NEW_INSTANCE} \
+    -DnBits=${BITS} \
+    com.sun.labs.aura.AuraServiceStarter \
+    /com/sun/labs/aura/grid/aura/cloneConfig.xml start
+

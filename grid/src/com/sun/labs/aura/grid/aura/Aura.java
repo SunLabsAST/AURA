@@ -413,20 +413,46 @@ public abstract class Aura extends ServiceAdapter {
     protected ProcessConfiguration getReplicantConfig(String replicantConfig,
             String prefix)
             throws Exception {
-        String[] cmdLine = new String[]{
-            "-Xmx3g",
-            "-DauraHome=" + GridUtil.auraDistMntPnt,
-            "-DauraGroup=" + instance + "-aura",
-            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
-            "/classifier/starting.idx",
-            "-Dprefix=" + prefix,
-            "-DdataFS=/files/data",
-            "-jar",
-            GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            replicantConfig,
-            "replicantStarter",
-            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
-        };
+
+        String deleteProp = System.getProperty("deleteIndexDir");
+
+        String[] cmdLine;
+        
+        if(deleteProp == null) {
+            cmdLine = new String[]{
+                        "-Xmx3g",
+                        "-DauraHome=" + GridUtil.auraDistMntPnt,
+                        "-DauraGroup=" + instance + "-aura",
+                        "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+                        "/classifier/starting.idx",
+                        "-Dprefix=" + prefix,
+                        "-DdataFS=/files/data",
+                        "-jar",
+                        GridUtil.auraDistMntPnt + "/dist/grid.jar",
+                        replicantConfig,
+                        "replicantStarter",
+                        String.format("%s/rep/rep-%s.%%g.out",
+                                      GridUtil.logFSMntPnt, prefix)
+                    };
+        } else {
+            cmdLine = new String[]{
+                        "-Xmx3g",
+                        "-DauraHome=" + GridUtil.auraDistMntPnt,
+                        "-DauraGroup=" + instance + "-aura",
+                        "-DdeleteIndexDir=" + deleteProp,
+                        "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+                        "/classifier/starting.idx",
+                        "-Dprefix=" + prefix,
+                        "-DdataFS=/files/data",
+                        "-jar",
+                        GridUtil.auraDistMntPnt + "/dist/grid.jar",
+                        replicantConfig,
+                        "replicantStarter",
+                        String.format("%s/rep/rep-%s.%%g.out",
+                                      GridUtil.logFSMntPnt, prefix)
+            };
+
+        }
 
         FileSystem fs = repFSMap.get(prefix);
         if (fs == null) {
