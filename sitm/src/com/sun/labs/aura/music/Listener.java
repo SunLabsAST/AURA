@@ -231,6 +231,10 @@ public class Listener extends ItemAdapter {
      * Clears the map of aggregated play counts
      */
     public void clearAggregatedPlayCounts() {
+        // This is to clear all objects that have this field set. Should be remove
+        // along with the field
+        clearTagMap(FIELD_ARTIST);
+        
         clearTagMap(FIELD_AGGREGATED_PLAY_HISTORY);
     }
 
