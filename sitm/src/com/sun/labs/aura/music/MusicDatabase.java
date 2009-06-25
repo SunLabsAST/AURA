@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -103,6 +104,7 @@ public class MusicDatabase {
 
     };
 
+    private Pattern mbidRegex;
     private List<SimType> simTypes;
     private Random rng = new Random();
     private ArtistTag rockTag = null;
@@ -128,6 +130,7 @@ public class MusicDatabase {
         new Listener().defineFields(getDataStore());
 
         initSimTypes();
+        mbidRegex = Pattern.compile("^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$");
         recommendationManager = new RecommendationManager(this);
     }
 
@@ -567,9 +570,16 @@ public class MusicDatabase {
         return keys;
     }
 
+    /**
+     * Determines if the given string is a valid MusicBrainz ID.
+     * @param id MusicBrainz to validate
+     * @return weather the given id is a valid MusicBrainz id
+     */
     public boolean isArtist(String id) {
-        // BUG: fix this, but don't be expensive
-        return true;
+        if (id != null) {
+            return mbidRegex.matcher(id).matches();
+        }
+        return false;
     }
 
     /**
