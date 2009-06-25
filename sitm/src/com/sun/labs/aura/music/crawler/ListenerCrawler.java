@@ -665,6 +665,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
             int min = Math.min(chartList.size(), nbrChartWeek);
             for (int i=0; i<min; i++) {
                 Integer[] ranges = chartList.get(i);
+                long timestamp = ranges[0] * 1000L;
                 // If we did not already crawl that chart for the user
                 if (!listener.crawledPlayHistory(ranges[0])) {
                     logger.fine("ListenerCrawler:WeeklyCharts: Adding plays for listener '" +
@@ -683,15 +684,15 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                             }
                         }
                         mdb.addPlayAttentionsWithDetails(listener.getKey(),
-                                artistItem.getMBID(), "lastfm charts", artistItem.getFreq(), ranges[0]);
+                                artistItem.getMBID(), "lastfm charts", artistItem.getFreq(), timestamp);
                     }
                     listener.addCrawledPlayHistoryDate(ranges[0]);
                     logger.fine("ListenerCrawler:WeeklyCharts: Added plays for listener '" +
-                            listener.getKey() + "' for week " + ranges[0]);
+                            listener.getKey() + "' for week " + new Date(timestamp));
                     Thread.yield();
                 } else {
                     logger.fine("ListenerCrawler:WeeklyCharts: Skipping plays for listener '" +
-                            listener.getKey() + "' for week " + ranges[0]);
+                            listener.getKey() + "' for week " + new Date(timestamp));
                 }
             }
             listener.flush(mdb.getDataStore());

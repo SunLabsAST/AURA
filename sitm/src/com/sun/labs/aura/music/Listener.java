@@ -168,10 +168,10 @@ public class Listener extends ItemAdapter {
 
     /**
      * Adds a new week to the list of weekly last.fm charts that we have crawled.
-     * @param timestamp timestamp representing the first second of the week
+     * @param timestampInSecs timestamp expressed in seconds representing the first second of the week
      */
-    public void addCrawledPlayHistoryDate(long timestamp) {
-        appendToField(FIELD_CRAWLED_PLAY_HISTORY, String.valueOf(timestamp));
+    public void addCrawledPlayHistoryDate(int timestampInSecs) {
+        appendToField(FIELD_CRAWLED_PLAY_HISTORY, String.valueOf(timestampInSecs));
     }
 
     /**
