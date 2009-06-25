@@ -324,17 +324,19 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     private void discoverArtists() {
         long lastTime = 0L;
         try {
-            primeArtistQueue("The Beatles");
+            if (crawlQueue.size() == 0) {
+                primeArtistQueue("The Beatles");
 
-            try {
-                if (getDataStore().getItemCount(ItemType.USER)>0) {
-                    // If there are listeners in the store and we are priming the artist queue,
-                    // there probably was a problem loading the state file. Ensure attention coherence
-                    assertArtistAttentionCoherence();
+                try {
+                    if (getDataStore().getItemCount(ItemType.USER)>0) {
+                        // If there are listeners in the store and we are priming the artist queue,
+                        // there probably was a problem loading the state file. Ensure attention coherence
+                        assertArtistAttentionCoherence();
+                    }
+                } catch (RemoteException ex) {
+                    logger.warning("Problem ("+ex+") running played attention coherence check");
+                    ex.printStackTrace();
                 }
-            } catch (RemoteException ex) {
-                logger.warning("Problem ("+ex+") running played attention coherence check");
-                ex.printStackTrace();
             }
         } catch (AuraException ae) {
             logger.severe("ArtistCrawler Can't talk to the datastore, abandoning crawl");
