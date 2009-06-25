@@ -423,7 +423,7 @@ public class MusicDatabase {
 
     public Set<String> getFavoriteArtistKeys(String listenerID, int max) throws AuraException, RemoteException {
         Listener listener = getListener(listenerID);
-        List<Tag> tags = listener.getFavoriteArtist();
+        List<Tag> tags = listener.getAggregatedPlayCount();
         Set<String> results = new HashSet<String>();
         for (Tag tag : tags) {
             results.add(tag.getName());

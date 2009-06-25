@@ -46,6 +46,9 @@ public class Listener extends ItemAdapter {
     public final static String FIELD_PANDORA_NAME =             "LISTENER_PANDORA_NAME";
     public final static String FIELD_LOCALE_COUNTRY =           "LISTENER_LOCALE_COUNTRY";
     public final static String FIELD_CRAWLED_PLAY_HISTORY =     "CRAWLED_PLAY_HISTORY";
+    /**
+     * @deprecated
+     */
     public final static String FIELD_ARTIST =                   "LISTENER_ARTIST";
     public final static String FIELD_LAST_CRAWL =               "lastCrawl";
     public final static String FIELD_LAST_NEIGHBOURS_CRAWL =    "LAST_NEIGHBOURS_CRAWL";
@@ -161,27 +164,6 @@ public class Listener extends ItemAdapter {
     
     public int getCurrentYear() {
         return java.util.Calendar.YEAR;
-    }
-
-    /**
-     * Gets the artists that have been listened to  
-     * @return tag map
-     */
-    public List<Tag> getFavoriteArtist() {
-        return getTagsAsList(FIELD_ARTIST);
-    }
-
-    /**
-     * Adds a an artist to the artisttag
-     * @param mbaid the musicbrainzid of the artist
-     * @param count tag count
-     */
-    public void addFavoriteArtist(String mbaid, int count) {
-        addTag(FIELD_ARTIST, mbaid, count);
-    }
-
-    public void clearFavoriteArtists() {
-        clearTagMap(FIELD_ARTIST);
     }
 
     /**

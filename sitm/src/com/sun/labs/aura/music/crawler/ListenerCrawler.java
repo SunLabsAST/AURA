@@ -489,7 +489,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                     }
                 }
                 weeklyCrawlPandora(listener);
-                updateListenerArtists(listener);
                 updateListenerTags(listener);
                 updateListenerAggregatedPlayCharts(listener);
                 listener.setLastCrawl();
@@ -630,21 +629,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         }
     }
 
-
-
-    /**
-     * Update a listener's favorite artists
-     * @param listener
-     * @throws AuraException
-     * @throws RemoteException
-     */
-    private void updateListenerArtists(Listener listener) throws AuraException, RemoteException {
-        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener.getKey());
-        listener.clearFavoriteArtists();
-        for (Scored<String> scoredArtistID : scoredArtistIDs) {
-            listener.addFavoriteArtist(scoredArtistID.getItem(), (int) scoredArtistID.getScore());
-        }
-    }
 
     private void updateListenerTags(Listener listener) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
