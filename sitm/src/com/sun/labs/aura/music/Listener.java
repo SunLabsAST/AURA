@@ -246,6 +246,13 @@ public class Listener extends ItemAdapter {
     }
 
     /**
+     * Clears the map of aggregated play counts
+     */
+    public void clearAggregatedPlayCounts() {
+        clearTagMap(FIELD_AGGREGATED_PLAY_HISTORY);
+    }
+
+    /**
      * Sets aggregated play count for an artist
      * @param artistMbid artist for which to set the aggregated play count
      * @param count play count
@@ -256,7 +263,7 @@ public class Listener extends ItemAdapter {
 
     /**
      * Gets the listener's aggregated play counts for all artists
-     * @return
+     * @return list of artist ids with their associated counts
      */
     public List<Tag> getAggregatedPlayCount() {
         return getTagsAsList(FIELD_AGGREGATED_PLAY_HISTORY);

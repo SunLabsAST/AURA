@@ -126,7 +126,7 @@ public abstract class QueueCrawler implements QueueCrawlerInterface {
     /**
      * Saves the priority queue to a file.
      */
-    private void saveState() {
+    protected synchronized void saveState() {
         FileOutputStream fos = null;
         //DebuggingObjectOutputStream oos = null;
         try {

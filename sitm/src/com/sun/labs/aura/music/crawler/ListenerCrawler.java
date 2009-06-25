@@ -129,6 +129,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
         }
     }
 
+    @Override
     public synchronized void start() {
         if (!running) {
             running = true;
@@ -181,6 +182,8 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     @Override
     public synchronized void stop() {
         running = false;
+        logger.info("Saving listener crawler queue state because of shutdown");
+        saveState();
     }
 
     @Override
@@ -585,6 +588,7 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
 
         PyDictionary pyDict = (PyDictionary) mdb.getDataStore().processAttention(aC, script, "python");
         PyList items = pyDict.items();
+        listener.clearAggregatedPlayCounts();
         for (int i=0; i<items.size(); i++) {
             PyTuple p = (PyTuple) items.get(i);
             listener.setAggregatedPlayCount((String)p.get(0), ((BigInteger)p.get(1)).intValue());

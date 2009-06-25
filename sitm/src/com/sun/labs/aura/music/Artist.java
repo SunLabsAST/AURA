@@ -68,6 +68,7 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_UPDATE_COUNT = "updateCount";
     public final static String FIELD_AUDIO = "audio";
     public final static String FIELD_ECHONEST_ID = "echoNestId";
+    public final static String FIELD_LISTENER_PLAY_COUNTS = "listenersPlayCnts";
 
     public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
         public int compare(Artist o1, Artist o2) {
@@ -131,6 +132,7 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_UPDATE_COUNT);
             ds.defineField(FIELD_AUDIO);
             ds.defineField(FIELD_ECHONEST_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_LISTENER_PLAY_COUNTS, Item.FieldType.STRING, StoreFactory.INDEXED);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
@@ -717,4 +719,29 @@ public class Artist extends ItemAdapter {
             set.clear();
         }
     }
+
+    /**
+     * Clears the map of listeners play counts
+     */
+    public void clearListenersPlayCounts() {
+        clearTagMap(FIELD_LISTENER_PLAY_COUNTS);
+    }
+
+    /**
+     * Sets the play count for a listener
+     * @param listenerId listener for which to set the play count
+     * @param count play count
+     */
+    public void setListenersPlayCount(String listenerId, int count) {
+        setTag(FIELD_LISTENER_PLAY_COUNTS, listenerId, count);
+    }
+
+    /**
+     * Gets the artist's play counts for all listeners
+     * @return list of listener ids with associated counts
+     */
+    public List<Tag> getListenersPlayCount() {
+        return getTagsAsList(FIELD_LISTENER_PLAY_COUNTS);
+    }
+
 }

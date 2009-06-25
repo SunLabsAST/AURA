@@ -41,6 +41,8 @@ import com.sun.labs.aura.music.Artist;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.ArtistTagRaw;
 import com.sun.labs.aura.music.Event;
+import com.sun.labs.aura.music.Listener;
+import com.sun.labs.aura.music.MusicDatabase;
 import com.sun.labs.aura.music.Photo;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.util.CommandRunner;
@@ -117,6 +119,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     private int minBlurbCount = 3;
     private ExecutorService threadPool;
     private TagFilter tagFilter;
+    private MusicDatabase mdb;
 
     private String ECHONEST_API_KEY = null;
 
@@ -183,8 +186,11 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     /**
      * Stops the crawler
      */
+    @Override
     public void stop() {
         running = false;
+        logger.info("Saving artist crawler queue state because of shutdown");
+        saveState();
     }
 
     @Override
@@ -214,6 +220,10 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             createStateFileDirectory();
             loadState();
             threadPool = Executors.newCachedThreadPool();
+            mdb = new MusicDatabase(ps.getConfigurationManager());
+        } catch (AuraException ex) {
+            throw new PropertyException(ex, ps.getInstanceName(),
+                    "musicDatabase", "problems with the music database");
         } catch (IOException ioe) {
             throw new PropertyException(ioe, "ArtistCrawler", ps.getInstanceName(), "");
         } catch (EchoNestException ex) {
@@ -726,6 +736,29 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         }
         logger.info("ArtistAttentionCoherence: Queued "+cnt+" artists");
         incrementModCounter(cnt);
+    }
+
+    private void updateListenerPlayCounts() throws AuraException, RemoteException {
+
+        if (true)
+        throw new UnsupportedOperationException("Not supported yet.");
+
+        // Go through all artists
+        DBIterator<Item> iter = getDataStore().getAllIterator(ItemType.ARTIST);
+        try {
+            while (iter.hasNext()) {
+                Artist a = (Artist) iter.next();
+                a.clearListenersPlayCounts();
+
+                for (Scored<Listener> sL : mdb.getListenersForArtist(a.getKey(), 0)) {
+                    a.setListenersPlayCount(sL.getItem().getKey(), (int)sL.getScore());
+                }
+                mdb.flush(a);
+            }
+        } finally {
+            iter.close();
+        }
+
     }
 
 

@@ -469,6 +469,28 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
+        shell.add("findListenersForArtist", new CommandInterface() {
+
+            @Override
+            public String execute(CommandInterpreter ci, String[] args) throws Exception {
+                String artistID = args[1];
+                List<Scored<Listener>> lL = musicDatabase.getListenersForArtist(artistID, 10);
+                if (lL.size() > 0) {
+                    for (Scored<Listener> sL : lL) {
+                        System.out.println("    "+sL.getItem().getLastFmName()+"      "+sL.getScore());
+                    }
+                } else {
+                    System.out.println("    No listeners found.");
+                }
+                return "";
+            }
+
+            @Override
+            public String getHelp() {
+                return "find the top listeners for an artist";
+            }
+        });
+
         shell.add("rec", new CommandInterface() {
 
             public String execute(CommandInterpreter ci, String[] args) throws Exception {

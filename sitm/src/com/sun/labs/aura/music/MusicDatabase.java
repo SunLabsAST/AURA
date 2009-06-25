@@ -48,6 +48,7 @@ import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.query.Equals;
 import com.sun.labs.minion.query.Not;
 import com.sun.labs.minion.query.Substring;
+import com.sun.labs.minion.query.Term;
 import com.sun.labs.minion.query.Undefined;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
@@ -573,6 +574,26 @@ public class MusicDatabase {
         return true;
     }
 
+    /**
+     * Gets the top listeners for an artist
+     * @param artistId artist key
+     * @param count number of listeners to return
+     * @return
+     * @throws AuraException
+     * @throws RemoteException
+     */
+    public List<Scored<Listener>> getListenersForArtist(String artistId, int count)
+            throws AuraException, RemoteException {
+        // Get all listeners that have listened to the current artist
+        Equals qE = new Equals("aura-type", ItemType.USER.toString());
+        Term mbid = new Term(artistId);
+        mbid.addField(Listener.FIELD_AGGREGATED_PLAY_HISTORY);
+        And a1 = new And(qE, mbid);
+
+        return convertToScoredListenerList(getDataStore().query(a1,
+                "-" + Listener.FIELD_AGGREGATED_PLAY_HISTORY, count, null));
+    }
+
     public List<Scored<Artist>> getRecommendations(String listenerID, int max) throws AuraException, RemoteException {
         RecommendationType rtype = recommendationManager.getDefaultArtistRecommendationType();
         RecommendationSummary rs = rtype.getRecommendations(listenerID, max, null);
@@ -948,7 +969,19 @@ public class MusicDatabase {
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Listener>> listenerFindSimilar(String userID, int count) throws AuraException {
-        List<Scored<Item>> simItems = findSimilar(userID, count, ItemType.USER);
+        return listenerFindSimilar(userID, null, count);
+    }
+
+    /**
+     * Find the most similar listenr to a given listeners
+     * @param userID the ID of the user
+     * @param field field on which to base the similarity computation
+     * @param count the number of similar listeners to return
+     * @return a list of listeners scored by their similarity to the seed listener.
+     * @throws com.sun.labs.aura.util.AuraException
+     */
+    public List<Scored<Listener>> listenerFindSimilar(String userID, String field, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(userID, field, count, ItemType.USER);
         return convertToScoredListenerList(simItems);
     }
 
