@@ -43,7 +43,9 @@ public class Factory {
         return new AttnDesc(a.getSourceKey(),
                             a.getTargetKey(),
                             a.getType().toString(),
-                            new Date(a.getTimeStamp()).toString());
+                            new Date(a.getTimeStamp()).toString(),
+                            a.getString(),
+                            a.getNumber());
     
     }
 }

@@ -51,6 +51,8 @@ public class AttnPanel extends DockPanel {
     private static final int SRC_COL = 1;
     private static final int TRG_COL = 2;
     private static final int TIME_COL = 3;
+    private static final int STRVAL_COL = 4;
+    private static final int LONGVAL_COL = 5;
 
     public AttnPanel(AttnDesc[] attns, final TabbedQueryUI parent) {
         this.attns = attns;
@@ -64,6 +66,8 @@ public class AttnPanel extends DockPanel {
         results.setText(0, SRC_COL, "Source Key");
         results.setText(0, TRG_COL, "Target Key");
         results.setText(0, TIME_COL, "Timestamp");
+        results.setText(0, STRVAL_COL, "String Val");
+        results.setText(0, LONGVAL_COL, "Long Val");
         RowFormatter rf = results.getRowFormatter();
         rf.setStylePrimaryName(0, "db-TableHeader");
         fillAttns();
@@ -98,6 +102,8 @@ public class AttnPanel extends DockPanel {
             results.setText(row, SRC_COL, attns[i].getSrcKey());
             results.setHTML(row, TRG_COL, TabbedQueryUI.getLinkText(attns[i].getTargetKey()));
             results.setText(row, TIME_COL, attns[i].getTime());
+            results.setText(row, STRVAL_COL, ((attns[i].getStrVal() != null) ? attns[i].getStrVal() : ""));
+            results.setText(row, LONGVAL_COL, ((attns[i].getLongVal() != null) ? attns[i].getLongVal().toString() : ""));
             //
             // Stylize the row
             if (lightRow) {

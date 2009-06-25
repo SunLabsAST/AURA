@@ -34,14 +34,22 @@ public class AttnDesc implements Serializable {
     protected String targetKey;
     protected String type;
     protected String time;
-    
+    protected String strVal;
+    protected Long longVal;
+
     protected long queryTime;
     protected int numTotal;
     
     public AttnDesc() {
         
     }
-    
+
+    public AttnDesc(String src, String targ, String type, String time, String strVal, long longVal) {
+        this(src, targ, type, time);
+        this.strVal = strVal;
+        this.longVal = longVal;
+    }
+
     public AttnDesc(String src, String targ, String type, String time) {
         this.srcKey = src;
         this.targetKey = targ;
@@ -76,5 +84,13 @@ public class AttnDesc implements Serializable {
     
     public int getNumTotal() {
         return numTotal;
+    }
+
+    public String getStrVal() {
+        return strVal;
+    }
+
+    public Long getLongVal() {
+        return longVal;
     }
 }
