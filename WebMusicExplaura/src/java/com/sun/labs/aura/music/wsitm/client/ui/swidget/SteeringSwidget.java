@@ -1161,6 +1161,8 @@ public class SteeringSwidget extends Swidget {
                 tagLbl.setStyleName("smallTagClick");
                 if (cdm.getSteerableTagCloudExternalController().containsItem(i.getId())) {
                     tagLbl.addStyleName("tagColorAdded");
+                } else {
+                    tagLbl.addStyleName("tagColor");
                 }
                 cdm.getTagCloudListenerManager().addListener(i.getId(), tagLbl);
                 webListeners.add(tagLbl);
@@ -1186,11 +1188,13 @@ public class SteeringSwidget extends Swidget {
             }
 
             public void onTagAdd(String tagId) {
+                removeStyleName("tagColor");
                 addStyleName("tagColorAdded");
             }
 
             public void onTagDelete(String tagId) {
                 removeStyleName("tagColorAdded");
+                addStyleName("tagColor");
             }
 
             public void onDelete() {
