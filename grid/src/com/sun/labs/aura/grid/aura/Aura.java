@@ -138,7 +138,6 @@ public abstract class Aura extends ServiceAdapter {
     public void getReplicantFileSystems() throws Exception {
 
         for(FileSystem fs : gu.getGrid().findAllFileSystems()) {
-
             if(!(fs instanceof BaseFileSystem)) {
                 continue;
             }

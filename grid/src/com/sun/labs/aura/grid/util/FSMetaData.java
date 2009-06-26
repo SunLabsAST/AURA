@@ -27,29 +27,37 @@ package com.sun.labs.aura.grid.util;
 import com.sun.caroline.platform.BaseFileSystem;
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
 import com.sun.labs.aura.grid.ServiceAdapter;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.rmi.RemoteException;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.Map.Entry;
 
 /**
- * Edit filesystem meta data
- * @author jalex
+ * View filesystem meta data
  */
 public class FSMetaData extends ServiceAdapter {
+
+    @ConfigString(defaultValue = "live-aura.dist")
+    public final static String PROP_FS_NAME = "fsName";
+
+    protected String fsName;
+
     public String serviceName() {
         return "FSMetaData";
     }
     
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
+        fsName = ps.getString(PROP_FS_NAME);
+        //fsName = "foo-replicant-0";
     }
 
     public void start() {
         BaseFileSystem fs;
         try {
-            fs = (BaseFileSystem)grid.getFileSystem("jeff-replicant-00");
+            fs = (BaseFileSystem)grid.getFileSystem(fsName);
         } catch(RemoteException ex) {
             logger.severe("Error getting filesystem");
             return;
@@ -61,6 +69,11 @@ public class FSMetaData extends ServiceAdapter {
         
         BaseFileSystemConfiguration fsc = fs.getConfiguration();
         Map<String,String> md = fsc.getMetadata();
+
+        for (Entry<String,String> e : md.entrySet()) {
+            System.out.println(String.format("%20s %20s", e.getKey(), e.getValue()));
+        }
+        /*
         md.put("prefix", "00");
         fsc.setMetadata(md);
         try {
@@ -68,7 +81,9 @@ public class FSMetaData extends ServiceAdapter {
         } catch (Exception rx) {
             logger.log(Level.SEVERE, "Error setting file system metadata for " + fs.getName(), rx);
         }
+
         logger.info("Done");
+        */
     }
 
     public void stop() {
