@@ -1,0 +1,10 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP -DauraInstance=$INSTANCE \
+    com.sun.labs.aura.grid.ServiceDeployer \
+    /com/sun/labs/aura/grid/aura/auraConfig.xml createSmall
+
