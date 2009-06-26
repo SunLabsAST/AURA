@@ -631,8 +631,14 @@ public class BerkeleyDataWrapper {
                 TransactionConfig txConf = new TransactionConfig();
                 txConf.setWriteNoSync(true);
                 txn = dbEnv.beginTransaction(null, txConf);
+                long prevID = pa.getID();
                 if (!allAttn.putNoOverwrite(txn, pa)) {
                     log.warning("Failed to insert attention since primary key already exists: " + pa);
+                    try {
+                        throw new AuraException("Failed to insert attention.  PrevID was " + prevID);
+                    } catch (AuraException e) {
+                        log.log(Level.WARNING, "", e);
+                    }
                 }
                 txn.commit();
                 return;
