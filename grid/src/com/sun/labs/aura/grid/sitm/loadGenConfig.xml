@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 /*
  * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
@@ -21,30 +23,20 @@
  * Park, CA 94025 or visit www.sun.com if you need additional
  * information or have any questions.
  */
-package com.sun.labs.aura.dbbrowser.client.shell;
+-->
 
-import java.io.Serializable;
+<config>
+    <component name="loadGen" type="com.sun.labs.aura.grid.sitm.GridLoadGenerator">
+        <property name="numUsers" value="2000"/>
+        <property name="numThreads" value="100"/>
+        <property name="time" value="300"/>
+    </component>
 
-/**
- * Result of a shell call
- */
-public class ShellResult implements Serializable {
-    protected long time = 0;
-    protected String text = "";
+    <component name="start-loadGen" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>loadGen</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
 
-    public ShellResult() {
-    }
-
-    public ShellResult(long time, String text) {
-        this.time = time;
-        this.text = text;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public String getText() {
-        return text;
-    }
-}
+</config>

@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2007-2009 Sun Microsystems, Inc. All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
@@ -168,26 +169,16 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
     
     public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINER)) {
-            logger.finer(
-                    String.format("pc %s gIs start", prefixCode.toString()));
-        }
+        enter("gSIs");
         List<Scored<Item>> ret = strategy.getScoredItems(keys);
-        if(logger.isLoggable(Level.FINER)) {
-            logger.finer(String.format("pc %s gIs done", prefixCode.toString()));
-        }
+        exit("gSIs");
         return ret;
     }
 
     public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINER)) {
-            logger.finer(
-                    String.format("pc %s gIs start", prefixCode.toString()));
-        }
+        enter("gIs");
         Collection<Item> ret = strategy.getItems(keys);
-        if(logger.isLoggable(Level.FINER)) {
-            logger.finer(String.format("pc %s gIs done", prefixCode.toString()));
-        }
+        exit("gIs");
         return ret;
     }
 
@@ -327,13 +318,9 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf) 
             throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("pc %s query start", prefixCode.toString()));
-        }
+        enter("query");
         List<Scored<String>> ret = strategy.query(query, sort, n, rf);
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("pc %s query done", prefixCode.toString()));
-        }
+        exit("query", query);
         return ret;
     }
     
@@ -344,13 +331,9 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public List<Scored<String>> query(Element query, String sort, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("pc %s query start", prefixCode.toString()));
-        }
+        enter("query");
         List<Scored<String>> ret = strategy.query(query, sort, n, rf);
-        if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("pc %s query done", prefixCode.toString()));
-        }
+        exit("query", query.toString());
         return ret;
     }
 
@@ -396,13 +379,9 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv, 
             MarshalledObject<SimilarityConfig> config) throws AuraException, RemoteException {
-        if(logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, String.format("pc %s fs start", prefixCode));
-        }
+        enter("fs");
         MarshalledObject<List<Scored<String>>> ret = strategy.findSimilar(dv, config);
-        if(logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, String.format("pc %s fs stop", prefixCode));
-        }
+        exit("fs");
         return ret;
     }
 
@@ -716,6 +695,22 @@ public class PartitionClusterImpl implements PartitionCluster,
             close();
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to close properly", e);
+        }
+    }
+
+    protected void enter(String name) {
+        if(logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, String.format("pc %s T%s enter %s", prefixCode, Thread.currentThread().getId(), name));
+        }
+    }
+
+    protected void exit(String name) {
+        exit(name, "");
+    }
+
+    protected void exit(String name, String extra) {
+        if(logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, String.format(" pc %s T%s exit  %s: %s", prefixCode, Thread.currentThread().getId(), name, extra));
         }
     }
 
