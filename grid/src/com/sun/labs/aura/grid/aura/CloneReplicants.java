@@ -56,8 +56,8 @@ public class CloneReplicants extends Aura {
         // Update the metadata in the configuration.
         Map<String, String> mdm = config.getMetadata();
         mdm.put("prefix", np);
+        mdm.put("instance", newInstance);
         config.setMetadata(mdm);
-        logger.info(String.format("Cloning %s", sfs.getName()));
         BaseFileSystem cfs = sfs.createClone(cloneName, config);
     }
 
