@@ -222,7 +222,10 @@ h2 {
   text-decoration: line-through;
 }
 
-
+.smallSurveyLink {
+    color: #f8981d;
+    text-decoration: none;
+}
 
 .tag1 {
     color: #f8981d;

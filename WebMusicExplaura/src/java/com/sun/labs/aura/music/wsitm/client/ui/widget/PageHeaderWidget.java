@@ -233,7 +233,7 @@ public class PageHeaderWidget extends Swidget implements HasListeners {
         hP.add(search);
 
         Label surveyTxt = new Label("Tell us what you think; take our 1 minute survey");
-        surveyTxt.addStyleName("tag1 pointer");
+        surveyTxt.addStyleName("smallSurveyLink pointer");
         surveyTxt.getElement().getStyle().setPropertyPx("fontSize", 10);
         surveyTxt.getElement().getStyle().setPropertyPx("marginTop", -5);
         surveyTxt.addClickHandler(new ClickHandler() {

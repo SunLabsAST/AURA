@@ -73,6 +73,7 @@ public abstract class TagWidget extends Composite {
     public abstract void redrawTagCloud();
     public abstract void removeItem(String itemId);
     public abstract void removeAllItems(boolean updateRecommendations);
+    public abstract void highlightItem(String itemId);
 
     public void updateRecommendations() {
         mainPanel.invokeFetchNewRecommendations();

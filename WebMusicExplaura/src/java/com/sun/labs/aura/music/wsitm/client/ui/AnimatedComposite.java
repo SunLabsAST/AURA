@@ -161,6 +161,11 @@ public abstract class AnimatedComposite extends Composite {
         }
 
         public void preEvent(NEffect theEffect) {}
+
+        @Override
+        public void duringEvent(NEffect theEffect) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
     }
     
 }

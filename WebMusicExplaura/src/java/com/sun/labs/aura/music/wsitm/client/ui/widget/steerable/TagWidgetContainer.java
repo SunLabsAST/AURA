@@ -130,4 +130,9 @@ public class TagWidgetContainer extends TagWidget {
     public double getMaxWeight() {
         return activeTagWidget.getMaxWeight();
     }
+
+    @Override
+    public void highlightItem(String itemId) {
+        activeTagWidget.highlightItem(itemId);
+    }
 }

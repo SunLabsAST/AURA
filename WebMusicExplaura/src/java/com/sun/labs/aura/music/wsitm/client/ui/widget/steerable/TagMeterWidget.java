@@ -181,6 +181,11 @@ public class TagMeterWidget extends TagWidget {
         return tagCloud.containsKey(itemId);
     }
 
+    @Override
+    public void highlightItem(String itemId) {
+        //TODO!!!
+    }
+
     /**
      * Item wrapping a CloudItem for display in the meter UI
      */
