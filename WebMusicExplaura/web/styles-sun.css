@@ -186,13 +186,13 @@ h2 {
 }
 .popRight {
     border: #707277 solid;
-    color: #efa053;
-    background-color: #efa053;
-    background: #efa053;
+    color: #e6b585;
+    background-color: #e6b585;
+    background: #e6b585;
     border-left-width: 0px;
-	border-bottom-width: 1px;
-	border-right-width: 1px;
-	border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
 }
 
 .tagDiff1 {
@@ -278,8 +278,11 @@ h2 {
     color: #6cb33f;
     text-decoration: line-through;
 }
+.tagColor {
+    color: black;
+}
 .tagColorAdded {
-  color : #8d8db1;
+    font-style: italic;
 }
 
 .contextMenuItem {

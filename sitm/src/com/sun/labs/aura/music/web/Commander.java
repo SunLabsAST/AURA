@@ -62,7 +62,17 @@ public class Commander {
     private boolean log;
     private long lastCommandTime = 0;
     private long minimumCommandPeriod = 0L;
-    private DocumentBuilder builder;
+    private static ThreadLocal<DocumentBuilder> builder = new ThreadLocal<DocumentBuilder>() {
+        @Override
+        protected DocumentBuilder initialValue() {
+            try {
+                return DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                System.out.println("Can't load parser " + e.getMessage());
+            }
+            return null;
+        }
+    };
     private PrintStream logFile;
     private int commandsSent = 0;
     private int cacheHits = 0;
@@ -86,11 +96,6 @@ public class Commander {
         trace = Boolean.getBoolean("trace");
         traceSends = Boolean.getBoolean("traceSends");
         log = Boolean.getBoolean("log");
-        try {
-            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IOException("Can't load parser " + e);
-        }
 
         if (trace) {
             System.out.println("Tracing is on");
@@ -149,14 +154,16 @@ public class Commander {
     }
 
     // BUG fix this threading model
-    public synchronized Document sendCommand(String command) throws IOException {
+    public Document sendCommand(String command) throws IOException {
         Document document = null;
 
         if (useCache) {
-            document = (Document) cache.sget(command);
-            if (document != null) {
-                cacheHits++;
-                return document;
+            synchronized (cache) {
+                document = (Document) cache.sget(command);
+                if (document != null) {
+                    cacheHits++;
+                    return document;
+                }
             }
         }
 
@@ -164,7 +171,7 @@ public class Commander {
         commandsSent++;
 
         try {
-            document = builder.parse(is);
+            document = builder.get().parse(is);
         } catch (SAXException e) {
             throw new IOException("SAX Parse Error " + e);
         } finally {
@@ -176,12 +183,14 @@ public class Commander {
         }
         
         if (useCache) {
-            cache.sput(command, document);
+            synchronized(cache) {
+                cache.sput(command, document);
+            }
         }
         return document;
     }
 
-    public synchronized InputStream sendCommandRaw(String command) throws IOException {
+    public InputStream sendCommandRaw(String command) throws IOException {
         try {
             String fullCommand = prefix + command + fixSuffix(command, suffix);
 
