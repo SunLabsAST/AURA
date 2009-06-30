@@ -226,11 +226,8 @@
             <fileset dir="dist">
                 <include name="grid.jar"/>
             </fileset>
-            <fileset dir="../aura/dist">
-                <include name="aura.jar"/>
-            </fileset>
-            <fileset dir="../../../minion/trunk/minion/dist/">
-                <include name="minion.jar"/>
+            <fileset dir="../SitmLoadGenerator/dist/">
+                <include name="SitmLoadGenerator.jar"/>
             </fileset>
         </dav:put>
         <!-- Redo the jar target so that the service deployer is the main program! -->
