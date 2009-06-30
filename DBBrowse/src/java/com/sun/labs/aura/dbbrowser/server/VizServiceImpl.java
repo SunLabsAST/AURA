@@ -74,6 +74,8 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     protected List<ServiceItem> svcs;
     
     protected StatService statService;
+
+    protected boolean statsDown = true;
     
     protected HashMap<String,Replicant> prefixToRep =
             new HashMap<String,Replicant>();
@@ -190,9 +192,13 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                     }
                     stats.putTime(name.toString(), d);
                 }
+                statsDown = false;
             } catch (RemoteException e) {
-                logger.log(Level.WARNING, "Failed to communicate with stats server", e);
-                throw new RuntimeException("Failed to load stats", e);
+                if (statsDown == false) {
+                    logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+                    statsDown = true;
+                    throw new RuntimeException("Failed to load stats", e);
+                }
             }
         }
         return stats;
@@ -213,9 +219,13 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                        statService.setDouble(repStatName(currPrefix, name.toString()) + "-time", 0);
                     }
                 }
+                statsDown = false;
             } catch (RemoteException e) {
-                logger.log(Level.WARNING, "Failed to communicate with stats server", e);
-                throw new RuntimeException("Failed to reset stats");
+                if (statsDown == false) {
+                    logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+                    statsDown = true;
+                    throw new RuntimeException("Failed to reset stats");
+                }
             }
         }
     }
@@ -231,8 +241,12 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                     result.put(src, statService.getDouble(stat));
                 }
             }
+            statsDown = false;
         } catch (RemoteException e) {
-            logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+            if (statsDown == false) {
+                logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+                statsDown = true;
+            }
         }
         return result;
     }
@@ -252,8 +266,12 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                     result.put(name, statService.getDouble(statName));
                 }
             }
+            statsDown = false;
         } catch (RemoteException e) {
-            logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+            if (statsDown == false) {
+                logger.log(Level.WARNING, "Failed to communicate with stats server", e);
+                statsDown = true;
+            }
         }
         return result;
     }

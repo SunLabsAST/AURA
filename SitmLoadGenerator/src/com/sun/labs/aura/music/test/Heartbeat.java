@@ -27,7 +27,6 @@ package com.sun.labs.aura.music.test;
 import com.sun.labs.aura.music.webservices.api.Item;
 import com.sun.labs.aura.music.webservices.api.Scored;
 import com.sun.labs.aura.music.webservices.api.SitmAPI;
-import com.sun.labs.aura.music.webservices.api.SitmAPIImpl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +39,7 @@ import java.util.Random;
  */
 public class Heartbeat {
     private final static String DEFAULT_EMAIL_ADDRESS = "aura-admin@sun.com";
-    private final static String DEFAULT_URL = "http://www.tastekeeper.com/SitmWebServices/";
+    private final static String DEFAULT_URL = "http://music.tastekeeper.com/api/";
     private final static int DEFAULT_TIME = 60;
     private final static String SEP = "\t";
 

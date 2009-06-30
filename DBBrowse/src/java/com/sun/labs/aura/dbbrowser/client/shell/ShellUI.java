@@ -1,6 +1,25 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+ *
+ * This code is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2
+ * only, as published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License version 2 for more details (a copy is
+ * included in the LICENSE file that accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License
+ * version 2 along with this work; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ *
+ * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
+ * Park, CA 94025 or visit www.sun.com if you need additional
+ * information or have any questions.
  */
 
 package com.sun.labs.aura.dbbrowser.client.shell;
@@ -34,16 +53,16 @@ public class ShellUI extends DockPanel {
     public ShellUI() {
         service = GWTMainEntryPoint.getShellService();
 
-        HorizontalPanel inputArea = new HorizontalPanel();
+        final HorizontalPanel inputArea = new HorizontalPanel();
         inputArea.setStylePrimaryName("shell-input");
         final Button runBtn = new Button("Run", new ClickListener() {
             public void onClick(Widget sender) {
                 //
                 // Get the command from the text box
                 String cmd = cmdInput.getText();
-
-                addToHistory(cmd);
-                sendCommand(cmd);
+                Label history = addToHistory(cmd);
+                cmdInput.selectAll();
+                sendCommand(history, cmd);
             }
         });
         runBtn.setStylePrimaryName("shell-inputButton");
@@ -92,9 +111,35 @@ public class ShellUI extends DockPanel {
         add(history, EAST);
 
         add(time, SOUTH);
+
+        //
+        // Set up a button that we can use to get help, but don't add it
+        // to the UI until help is available
+        final Button helpBtn = new Button("Help", new ClickListener() {
+            public void onClick(Widget sender) {
+                //
+                // Open a browser window to the help page
+                String url= Window.Location.getHref() + "ShellHelpText";
+                String target = "_blank";
+                String features = "toolbar=0,location=0,status=0,menubar=0";
+                Window.open(url, target, features);
+            }
+        });
+        helpBtn.setStylePrimaryName("shell-inputButton");
+
+        //
+        // Make a call so that the servlet init happens and we can get
+        // our help text
+        final AsyncCallback callback = new AsyncCallback() {
+            public void onFailure(Throwable t) {}
+            public void onSuccess(Object result) {
+                inputArea.add(helpBtn);
+            }
+        };
+        service.runCommand("", "", callback);
     }
 
-    protected void sendCommand(String cmd) {
+    protected void sendCommand(final Label history, String cmd) {
         //
         // Send the command to the server
         final AsyncCallback callback = new AsyncCallback() {
@@ -103,7 +148,9 @@ public class ShellUI extends DockPanel {
             }
 
             public void onSuccess(Object result) {
-                showResult((ShellResult)result);
+                ShellResult sr = (ShellResult)result;
+                showResult(sr);
+                history.setTitle(sr.getText());
             }
         };
         service.runCommand(cmd, scriptDialog.getScript(), callback);
@@ -115,7 +162,7 @@ public class ShellUI extends DockPanel {
         time.setText("Took " + result.getTime() + "ms");
     }
 
-    protected void addToHistory(String cmd) {
+    protected Label addToHistory(String cmd) {
         //
         // Make a link that runs the command and add it to the top of the
         // panel
@@ -126,10 +173,12 @@ public class ShellUI extends DockPanel {
                 Label clicked = (Label)sender;
                 String text = clicked.getText();
                 cmdInput.setText(text);
-                sendCommand(text);
+                cmdInput.selectAll();
+                sendCommand(clicked, text);
             }
         });
         history.insert(cmdLabel, 0);
+        return cmdLabel;
     }
 
 

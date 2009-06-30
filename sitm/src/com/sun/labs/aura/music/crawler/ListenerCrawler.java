@@ -604,13 +604,18 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
                 List<String> listenerIDs = getAllListenerIDs();
                 logger.info(crawlerName+"Crawler: Updating aggregated charts for " +
                         listenerIDs.size() + " listeners");
+                int cnt = 0;
+                long startTime = System.currentTimeMillis();
                 for (String id : listenerIDs) {
                     Listener listener = mdb.getListener(id);
                     if (listener != null && listener.playHistoryAggregationNeedsUpdate()) {
                         updateListenerAggregatedPlayCharts(listener);
                         mdb.flush(listener);
+                        cnt++;
                     }
                 }
+                logger.info(crawlerName+"Crawler: Done updating aggregated charts. " +
+                        cnt + " needed update. " + ((System.currentTimeMillis() - startTime) / 1000) + "secs");
 
                 fp.end();
 

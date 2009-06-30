@@ -16,6 +16,10 @@
         <servlet-name>ShellService</servlet-name>
         <servlet-class>com.sun.labs.aura.dbbrowser.server.ShellServiceImpl</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ShellHelpText</servlet-name>
+        <servlet-class>com.sun.labs.aura.dbbrowser.server.ShellHelpText</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DBService</servlet-name>
         <url-pattern>/com.sun.labs.aura.dbbrowser.GWTMain/dbservice</url-pattern>
@@ -27,6 +31,10 @@
     <servlet-mapping>
         <servlet-name>ShellService</servlet-name>
         <url-pattern>/com.sun.labs.aura.dbbrowser.GWTMain/shellservice</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ShellHelpText</servlet-name>
+        <url-pattern>/ShellHelpText</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

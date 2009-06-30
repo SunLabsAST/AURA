@@ -26,8 +26,12 @@
 -->
 
 <config>
-    
+
+    <property name="filesystem" value="live-aura.dist"/>
+
     <component name="metaData" type="com.sun.labs.aura.grid.util.FSMetaData">
+        <property name="onGrid" value="false"/>
+        <property name="fsName" value="${filesystem}"/>
     </component>
     
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
