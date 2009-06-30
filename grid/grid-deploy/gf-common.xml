@@ -40,28 +40,17 @@
   <!-- We only need to copy the ant build file to unzip the distribution -->
     <target name="copy-support-files"
 	  description="Copy the build support files from the dist directory into the www filesystem" 
-	  depends="upload-distribution">
+	  depends="create-web-collection">
         <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
         <!-- upload service configuration files -->
             <fileset dir="${basedir}/on-grid-config/gf">
                 <include name="*"/>
             </fileset>
         </dav:put>
-        <!-- update the configuration files contained in the distribution -->
-        <dav:copy url="${config.url}/unzip-dist.xml"
-	      destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
-	      verbose="true"
-	      overwrite="true"
-	      userid="${user}" password="${pw}"/>
-        <dav:copy url="${config.url}/asadmin.pass"
-	      destination="${dav.url}/${www.filesystem}/asadmin.pass"
-	      verbose="true"
-	      overwrite="true"
-	      userid="${user}" password="${pw}"/>
     </target>
 
   <!-- Update service configuration files -->
-    <target name="update-config" description="updates service configuration">
+    <target name="update-config" description="updates service configuration" depends="copy-support-files">
     <!-- update the configuration files contained in the distribution -->
         <dav:copy url="${config.url}/gf/domain.xml"
 	      destination="${dav.url}/${service.conf}/domain.xml"
