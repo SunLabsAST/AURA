@@ -69,6 +69,11 @@ public class ShellServiceImpl extends RemoteServiceServlet implements
         } catch (AuraException e) {
             logger.log(Level.INFO, "Failed to set up shell", e);
         }
+
+        //
+        // Get the output from help and put it in the servlet context
+        ShellResult help = runCommand("help", "");
+        context.setAttribute("shell-help", help.getText());
     }
 
     protected DataStore getStore() throws AuraException {
