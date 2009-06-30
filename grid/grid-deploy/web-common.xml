@@ -166,7 +166,7 @@
 	<include name="*"/>
       </fileset>
       <fileset dir="${basedir}/on-grid-config">
-	<include name="*"/>
+	<include name="**/*"/>
       </fileset>
     </dav:put>
   </target>
@@ -177,7 +177,7 @@
     <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
       <!-- upload service configuration files -->
       <fileset dir="${basedir}/on-grid-config">
-	<include name="*"/>
+	<include name="**/*"/>
       </fileset>
     </dav:put>
   </target>

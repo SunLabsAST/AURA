@@ -29,7 +29,7 @@
 	 xmlns:dav="antlib:org.apache.webdav.ant"
 	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
 
-  <property name="service.base" value="glassfishv3-prelude"/>
+  <property name="service.base" value="glassfishv3"/>
 
   <import file="web-common.xml"/>
 
@@ -38,30 +38,30 @@
   <property name="service.conf" value="${www.filesystem}/${service.base}/glassfish/domains/${domain}/config/"/>
 
   <!-- We only need to copy the ant build file to unzip the distribution -->
-  <target name="copy-support-files" description="Copy the build support files from the dist directory into the www filesystem" depends="upload-distribution">
-    <dav:copy url="${config.url}/unzip-dist.xml"
-	      destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
-	      verbose="true"
-	      overwrite="true"
-	      userid="${user}" password="${pw}"/>
-    <dav:copy url="${config.url}/asadmin.pass"
-	      destination="${dav.url}/${www.filesystem}/asadmin.pass"
-	      verbose="true"
-	      overwrite="true"
-	      userid="${user}" password="${pw}"/>
-  </target>
-
-  <!-- Update service configuration files -->
-    <target name="update-config" description="updates service configuration">
-    <!-- update the configuration files contained in the distribution -->
+    <target name="copy-support-files"
+	  description="Copy the build support files from the dist directory into the www filesystem" 
+	  depends="create-web-collection">
         <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
-      <!-- upload service configuration files -->
-            <fileset dir="${basedir}/on-grid-config">
-                <include name="domain.xml"/>
-                <include name="admin-keyfile"/>
-                <include name="keyfile"/>
+        <!-- upload service configuration files -->
+            <fileset dir="${basedir}/on-grid-config/gf">
+                <include name="*"/>
             </fileset>
         </dav:put>
+    </target>
+
+  <!-- Update service configuration files -->
+    <target name="update-config" description="updates service configuration" depends="copy-support-files">
+    <!-- update the configuration files contained in the distribution -->
+        <dav:copy url="${config.url}/gf/domain.xml"
+	      destination="${dav.url}/${service.conf}/domain.xml"
+	      verbose="true"
+	      overwrite="true"
+	      userid="${user}" password="${pw}"/>
+        <dav:copy url="${config.url}/gf/server.policy"
+	      destination="${dav.url}/${service.conf}/server.policy"
+	      verbose="true"
+	      overwrite="true"
+	      userid="${user}" password="${pw}"/>
     </target>
 
   <!-- Deploy a war file on-grid -->
@@ -81,8 +81,8 @@
       <!-- An address, since we need to talk to the servers -->
       <caroline:intaddress name="deploy-int" networkname="${network}"/>
       <!-- Set environment variables -->
-      <env key="AS_INSTALL" value="/files/working/glassfish"/>
-      <env key="AS_INSTALL_LIB" value="/files/working/glassfish/modules"/>
+      <env key="AS_INSTALL" value="/files/working/${service.base}/glassfish"/>
+      <env key="AS_INSTALL_LIB" value="/files/working/${service.base}/glassfish/modules"/>
       <!-- Specify the command line -->
       <arg value="-jar"/>
       <arg value="/files/working/${service.base}/glassfish/modules/admin-cli.jar"/>
@@ -103,7 +103,7 @@
   
   <!-- Undeploy a war file on-grid -->
   <target name="undeploy-war"
-	  description="Deploys a war file on the grid"
+	  description="Undeploys a war file on the grid"
 	  depends="create-deploy-intaddress">
 
     <!-- Creates and starts a Caroline process to run ant and have it deploy
