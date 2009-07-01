@@ -60,7 +60,7 @@ public class Commander {
     private boolean trace;
     private boolean traceSends;
     private boolean log;
-    private long lastCommandTime = 0;
+    private Long lastCommandTime = new Long(0L);
     private long minimumCommandPeriod = 0L;
     private static ThreadLocal<DocumentBuilder> builder = new ThreadLocal<DocumentBuilder>() {
         @Override
@@ -84,6 +84,8 @@ public class Commander {
     private boolean useCache;
     private final int CACHE_SIZE = 500;
     private final int CACHE_SECS2LIVE = 60 * 60;
+
+    private boolean synchronizeSendCommand = true;
 
     public Commander(String name, String prefix, String suffix) throws IOException {
         this(name, prefix, suffix, false);
@@ -114,6 +116,10 @@ public class Commander {
         if (useCache) {
             cache = new ExpiringLRUCache(CACHE_SIZE, CACHE_SECS2LIVE);
         }
+    }
+
+    public void setSynchronizeSendCommand(boolean sync) {
+        this.synchronizeSendCommand = sync;
     }
 
     public void setTraceSends(boolean traceSends) {
@@ -191,14 +197,25 @@ public class Commander {
     }
 
     public InputStream sendCommandRaw(String command) throws IOException {
+        if (synchronizeSendCommand) {
+            synchronized (lastCommandTime) {
+                long curGap = System.currentTimeMillis() - lastCommandTime;
+                long delayTime = minimumCommandPeriod - curGap;
+                delay(delayTime);
+
+                InputStream is = doSendCommandRaw(command);
+                lastCommandTime = System.currentTimeMillis();
+
+                return is;
+            }
+        } else {
+            return doSendCommandRaw(command);
+        }
+    }
+
+    private InputStream doSendCommandRaw(String command) throws IOException {
         try {
             String fullCommand = prefix + command + fixSuffix(command, suffix);
-
-            long curGap = System.currentTimeMillis() - lastCommandTime;
-            long delayTime = minimumCommandPeriod - curGap;
-
-
-            delay(delayTime);
 
             // URL url = new URL(fullCommand);
             URI uri = new URI(fullCommand);
@@ -229,7 +246,6 @@ public class Commander {
                 }
             }
 
-            lastCommandTime = System.currentTimeMillis();
             if (is == null) {
                 System.out.println(name + " retry failure  cmd: " + url);
                 throw new IOException("Can't send command");

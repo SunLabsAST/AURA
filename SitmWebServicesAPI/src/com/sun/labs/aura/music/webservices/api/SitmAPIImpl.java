@@ -48,6 +48,7 @@ public class SitmAPIImpl extends SitmAPI {
         String suffix = debug  ? "&debug=true" : "";
         commander = new Commander("sitm", host, suffix);
         commander.setTraceSends(trace);
+        commander.setSynchronizeSendCommand(false);
         monitor = new Monitor(false, periodicDump);
     }
 
