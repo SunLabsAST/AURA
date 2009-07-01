@@ -37,6 +37,7 @@ public class WebPanel extends FlowPanel implements Comparable {
     protected int numActive = 0;
     protected StyleLabel numSessions;
     protected String procName;
+    protected StyleLabel numThreadsLabel;
 
     public WebPanel(String procName) {
         super();
@@ -48,6 +49,8 @@ public class WebPanel extends FlowPanel implements Comparable {
         add(numSessions);
         cpuLoad = Util.getHisto("CPU", 0, 100, 50, "00.0%");
         add(cpuLoad);
+        numThreadsLabel = new StyleLabel("", "viz-statLabel");
+        add(numThreadsLabel);
     }
 
     public void setCPULoad(double load) {
@@ -57,6 +60,12 @@ public class WebPanel extends FlowPanel implements Comparable {
         remove(index);
         cpuLoad = newLoad;
         insert(cpuLoad, index);
+    }
+
+    public void setNumThreads(double threads) {
+        int numThreads = (int) threads;
+        numThreadsLabel.setText("Num Threads: " + numThreads);
+
     }
 
     public void setActiveSessions(int numActive) {
