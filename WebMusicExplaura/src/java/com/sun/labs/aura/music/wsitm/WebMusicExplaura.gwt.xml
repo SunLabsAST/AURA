@@ -9,6 +9,7 @@
     <entry-point class="com.sun.labs.aura.music.wsitm.client.Main"/>
 
     <stylesheet src="styles-shared.css"/>
+    <stylesheet src="styles-sun.css"/>
     <!-- Do not define servlets here, use web.xml -->
 
 
