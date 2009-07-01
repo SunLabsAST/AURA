@@ -141,10 +141,13 @@ public class ServletListener implements ServletContextListener {
             ProcessRegistration reg = (ProcessRegistration)context.getAttribute("reg");
             Metrics proc = reg.getMetrics(true);
             float totalLoad = 0;
+            int numThreads = 0;
             for (ThreadMetrics thread : proc.getThreadMetrics()) {
                 totalLoad += thread.getPercentCpu();
+                numThreads++;
             }
             getStatService(context).setDouble(statPrefix(context) + "PERCENT_CPU", totalLoad);
+            getStatService(context).setDouble(statPrefix(context) + "NUM_THREADS", numThreads);
 
             //
             // Get the number of active sessions in the root context
