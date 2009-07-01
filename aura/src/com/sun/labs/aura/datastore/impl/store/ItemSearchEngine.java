@@ -67,6 +67,7 @@ import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import com.sun.labs.util.FileUtil;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -183,6 +184,13 @@ public class ItemSearchEngine implements Configurable {
         indexDir = ps.getString(PROP_INDEX_DIR);
 
         //
+        // Get rid of the index directory.
+        if(ps.getBoolean(PROP_DELETE_INDEX)) {
+            logger.info(String.format("Deleting index directory"));
+            FileUtil.deleteDirectory(new File(indexDir));
+        }
+
+        //
         // If the index directory doesn't exist, then we needed to initialize it.
         engineWasIntialized = !(new File(indexDir).exists());
 
@@ -208,8 +216,7 @@ public class ItemSearchEngine implements Configurable {
             }
             try {
                 logger.info("Copying search index into temp dir");
-                DirCopier dc = new DirCopier(new File(indexDir), td);
-                dc.copy();
+                FileUtil.dirCopier(new File(indexDir), td);
                 logger.info("Copying completed");
                 indexDir = tds;
             } catch(IOException ex) {
@@ -914,6 +921,13 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigString(mandatory = false)
     public static final String PROP_PREFIX = "prefix";
+
+    /**
+     * Whether we should delete our index directory at startup.
+     * Use with caution, eh?
+     */
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_DELETE_INDEX = "deleteIndex";
 
     /**
      * The configurable index directory.
