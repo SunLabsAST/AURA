@@ -34,29 +34,6 @@
     <property name="service.conf" value="${www.filesystem}/${service.base}/conf/"/>
     <property name="service.webapps" value="${service.working}/webapps/"/>
 
-    <target name="copy-support-files"
-    description="Copy the build support files to the grid"
-    depends="upload-distribution,update-config">
-      <!-- Copy the policy and build files from the distribution -->
-        <dav:copy url="${config.url}/jsk-all.policy"
-		destination="${dav.url}/${www.filesystem}/jsk-all.policy"
-		verbose="true"
-		overwrite="true"
-		userid="${user}" password="${pw}"/>
-
-        <dav:copy url="${config.url}/unzip-dist.xml"
-		destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
-		verbose="true"
-		overwrite="true"
-		userid="${user}" password="${pw}"/>
-
-        <dav:copy url="${config.url}/deploy-war.xml"
-		destination="${dav.url}/${www.filesystem}/deploy-war.xml"
-		verbose="true"
-		overwrite="true"
-		userid="${user}" password="${pw}"/>
-    </target>
-    
     <!-- Deploy a war file on-grid -->
     <target name="deploy-war"
         description="Deploys a war file on the grid"

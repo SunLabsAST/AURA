@@ -129,7 +129,7 @@
   <!-- Upload Resources to Caroline filesystems -->
 
   <!-- create a WebDAV collection to upload Ant jars to-->
-  <target name="create-ant-collection" description="creates Ant package" depends="create-packages-filesystem">
+  <target name="create-ant-collection" description="creates Ant package">
     <dav:mkcol url="${dav.url}/${ant.col}" userid="${user}" password="${pw}"/>
   </target>
 
@@ -171,21 +171,33 @@
     </dav:put>
   </target>
 
-  <!-- Update service configuration files -->
-  <target name="update-config" description="updates service configuration">
-    <!-- update the configuration files contained in the distribution -->
-    <dav:put url="${dav.url}/${service.conf}" userid="${user}" verbose="true" password="${pw}" lock="false">
-      <!-- upload service configuration files -->
-      <fileset dir="${basedir}/on-grid-config">
-	<include name="**/*"/>
-      </fileset>
-    </dav:put>
-  </target>
+<target name="copy-support-files"
+    description="Copy the build support files to the grid"
+    depends="upload-distribution,update-config">
+      <!-- Copy the policy and build files from the distribution -->
+    <dav:copy url="${config.url}/jsk-all.policy"
+		destination="${dav.url}/${www.filesystem}/jsk-all.policy"
+		verbose="true"
+		overwrite="true"
+		userid="${user}" password="${pw}"/>
+
+    <dav:copy url="${config.url}/unzip-dist.xml"
+		destination="${dav.url}/${www.filesystem}/unzip-dist.xml"
+		verbose="true"
+		overwrite="true"
+		userid="${user}" password="${pw}"/>
+
+    <dav:copy url="${config.url}/deploy-war.xml"
+		destination="${dav.url}/${www.filesystem}/deploy-war.xml"
+		verbose="true"
+		overwrite="true"
+		userid="${user}" password="${pw}"/>
+</target>
 
   <!-- unzip service distribution on-grid -->
   <target name="unzip-distribution" 
 	  description="unzips the service distribution"
-	  depends="upload-distribution, create-packages-filesystem, copy-support-files">
+	  depends="upload-distribution,copy-support-files">
 
     <!-- Creates and starts a Caroline process to unzip service
 	 distribution -->
@@ -217,11 +229,6 @@
   </target>
 
   <!-- Create Caroline Resources -->
-
-  <!-- create a caroline filesystem to upload the Ant jars to -->
-  <target name="create-packages-filesystem"
-	  description="creates packages filsystem if it doesn't exist">
-  </target>
 
   <!-- create a caroline filesystem to upload the service distribution to -->
   <target name="create-filesystem"
