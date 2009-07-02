@@ -41,6 +41,8 @@
     <target name="update-config" 
     description="copies service configuration into the correct position">
     <!-- update the configuration files contained in the distribution -->
+        <echo message="Source URL: ${config.url}/gf/domain.xml"/>
+        <echo message="Dest URL: ${dav.url}/${service.conf}/domain.xml"/>
         <dav:copy url="${config.url}/gf/domain.xml"
 	      destination="${dav.url}/${service.conf}/domain.xml"
 	      verbose="true"
