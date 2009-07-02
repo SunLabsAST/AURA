@@ -34,6 +34,8 @@ import com.google.gdata.data.youtube.YouTubeMediaContent;
 import com.google.gdata.data.youtube.YouTubeMediaGroup;
 import com.google.gdata.data.youtube.YouTubeNamespace;
 import com.google.gdata.util.ServiceException;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
+import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -43,15 +45,15 @@ import java.util.List;
  *
  * @author plamere
  */
-public class Youtube2 {
+public class Youtube2 extends WebServiceAccessor {
 
-    private final static String DEVELOPER_ID = "oONGHZSHcBU";
     private final static String YOUTUBE_GDATA_SERVER = "http://gdata.youtube.com";
     private final static String VIDEOS_FEED = YOUTUBE_GDATA_SERVER + "/feeds/api/videos";
     private YouTubeService yts;
 
-    public Youtube2() {
-        yts = new YouTubeService("project-aura");
+    public Youtube2() throws AuraException {
+        super("Youtube v2", "YOUTUBE_API_KEY");
+        yts = new YouTubeService("project-aura", API_KEY);
     }
 
     public List<YoutubeVideo> musicVideoSearch(String artistName, int max) throws IOException {

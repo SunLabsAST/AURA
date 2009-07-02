@@ -25,15 +25,15 @@
 package com.sun.labs.aura.music.web.youtube;
 
 import com.sun.labs.aura.music.web.Commander;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
 import com.sun.labs.aura.music.web.XmlUtil;
+import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -43,13 +43,16 @@ import org.w3c.dom.NodeList;
  *
  * @author plamere
  */
-public class Youtube {
+public class Youtube extends WebServiceAccessor {
+
     private Commander commander;
     
     /** Creates a new instance of Youtube */
-    public Youtube() {
+    public Youtube() throws AuraException {
+        super("Youtube v1", "YOUTUBE_API_KEY");
+
         try {
-            commander = new Commander("YouTube", "http://www.youtube.com/api2_rest?dev_id=oONGHZSHcBU", "");
+            commander = new Commander("YouTube", "http://www.youtube.com/api2_rest?dev_id=" + API_KEY, "");
             commander.setTraceSends(false);
             commander.setTrace(false);
             commander.setMinimumCommandPeriod(1000L);
@@ -58,7 +61,7 @@ public class Youtube {
         }
     }
     
-    // http://www.youtube.com/api2_rest?method=youtube.videos.list_by_tag&dev_id=oONGHZSHcBU&tag=weezer&page=1
+    // http://www.youtube.com/api2_rest?method=youtube.videos.list_by_tag&dev_id=KEY&tag=weezer&page=1
     
     public List<YoutubeVideo> musicSearch(String query, int maxResults) throws IOException {
         List<YoutubeVideo>  videos = new ArrayList<YoutubeVideo>(100);
@@ -147,7 +150,7 @@ public class Youtube {
         }
     }
     
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, AuraException {
         Youtube youtube = new Youtube();
         
         List<YoutubeVideo> videos = youtube.musicSearch("yes", 20);

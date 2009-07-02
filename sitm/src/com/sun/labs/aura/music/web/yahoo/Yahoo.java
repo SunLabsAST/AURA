@@ -25,7 +25,9 @@
 package com.sun.labs.aura.music.web.yahoo;
 
 import com.sun.labs.aura.music.web.Commander;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
 import com.sun.labs.aura.music.web.XmlUtil;
+import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -38,14 +40,16 @@ import org.w3c.dom.NodeList;
  *
  * @author plamere
  */
-public class Yahoo {
-    private final static String APP_ID = "FrodoBaggins";
+public class Yahoo extends WebServiceAccessor {
+
     Commander commander;
     
     /** Creates a new instance of Yahoo */
-    public Yahoo() {
+    public Yahoo() throws AuraException {
+        super("Yahoo", "YAHOO_APP_ID");
+        
         try {
-            commander = new Commander("Yahoo", "http://search.yahooapis.com/WebSearchService/V1/webSearch?appid=" + APP_ID, "");
+            commander = new Commander("Yahoo", "http://search.yahooapis.com/WebSearchService/V1/webSearch?appid=" + API_KEY, "");
             commander.setTraceSends(false);
             commander.setTrace(false);
             commander.setMinimumCommandPeriod(1000L);
@@ -78,7 +82,7 @@ public class Yahoo {
     // http://search.yahooapis.com/WebSearchService/V1/webSearch?appid=FrodoBaggins&site=en.wikipedia.org&query=emo+music+genre
     
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws AuraException {
         Yahoo yahoo = new Yahoo();
         showBestWikiMatch(yahoo, "alt country genre music");
         showBestWikiMatch(yahoo, "dnb genre music");

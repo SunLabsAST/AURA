@@ -106,17 +106,20 @@ public class TagCrawler implements AuraService, Configurable {
 
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
-        logger = ps.getLogger();
-        forceCrawl = ps.getBoolean(PROP_FORCE_CRAWL);
-        updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
-
-        wikipedia = new Wikipedia();
-        youtube = new Youtube2();
-        flickr = new FlickrManager();
-        yahoo = new Yahoo();
-        rcmStore = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
-        rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
-        util = new Util(flickr, youtube);
+        try {
+            logger = ps.getLogger();
+            forceCrawl = ps.getBoolean(PROP_FORCE_CRAWL);
+            updateRateInSeconds = ps.getInt(PROP_UPDATE_RATE);
+            wikipedia = new Wikipedia();
+            youtube = new Youtube2();
+            flickr = new FlickrManager();
+            yahoo = new Yahoo();
+            rcmStore = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
+            rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
+            util = new Util(flickr, youtube);
+        } catch (AuraException ex) {
+            logger.severe("Unable to initialise crawlers: "+ex.getMessage());
+        }
     }
 
     private LastFM2 getLastFM2() throws AuraException, RemoteException {

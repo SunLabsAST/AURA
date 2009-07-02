@@ -30,6 +30,8 @@ import com.aetrion.flickr.photos.Photo;
 import com.aetrion.flickr.photos.PhotoList;
 import com.aetrion.flickr.photos.SearchParameters;
 import com.aetrion.flickr.photos.PhotosInterface;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
+import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,9 +43,10 @@ import org.xml.sax.SAXException;
  *
  * @author plamere
  */
-public class FlickrManager {
+public class FlickrManager extends WebServiceAccessor {
 
-    private final static String FLICKR_ID = "edced8597f71de94baa0505840b34a7b";
+    private String FLICKR_SHARED_SECRET;
+
     private final static int MAX_PER_PAGE = 500;
     private final static boolean ONLY_ATTRIBUTION_LICENSE = false;
     private final static boolean ONLY_CC_LICENSE = true;
@@ -53,7 +56,11 @@ public class FlickrManager {
     /**
      * Creates a new instance of FlickrManager
      */
-    public FlickrManager() {
+    public FlickrManager() throws AuraException {
+
+        super("Flickr", "FLICKR_API_KEY");
+        FLICKR_SHARED_SECRET = getProperty("FLICKR_SHARED_SECRET");
+
         // ban photos by photographers that tag spam
         bannedPhotographers.add("phlezk");
     }
@@ -105,8 +112,8 @@ public class FlickrManager {
     }
 
     private List<Image> getImagesByTags(String[] tags, boolean all, int max, boolean interesting) {
-        Flickr flickr = new Flickr(FLICKR_ID);
-        flickr.setSharedSecret("f7f20b719f360458");
+        Flickr flickr = new Flickr(API_KEY);
+        flickr.setSharedSecret(FLICKR_SHARED_SECRET);
         PhotosInterface photosInterface = flickr.getPhotosInterface();
 
         List<Image> list = new ArrayList<Image>(max);
@@ -176,6 +183,7 @@ public class FlickrManager {
             delay(1);
         } catch (FlickrException ex) {
             error("Flickr is complaining " + ex);
+            ex.printStackTrace();
             delay(1);
         } catch (Exception e) {
             error("Unexpected exception " + e);
@@ -186,8 +194,8 @@ public class FlickrManager {
     }
 
     private List<Image> getImagesByText(String text, boolean all, int max, boolean interesting) {
-        Flickr flickr = new Flickr(FLICKR_ID);
-        flickr.setSharedSecret("f7f20b719f360458");
+        Flickr flickr = new Flickr(API_KEY);
+        flickr.setSharedSecret(FLICKR_SHARED_SECRET);
         PhotosInterface photosInterface = flickr.getPhotosInterface();
 
         List<Image> list = new ArrayList<Image>(max);
@@ -393,7 +401,7 @@ public class FlickrManager {
         dumpPhotos(fm, "Mo' Horizons");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws AuraException {
         FlickrManager fm = new FlickrManager();
         troublesomeArtists(fm);
 

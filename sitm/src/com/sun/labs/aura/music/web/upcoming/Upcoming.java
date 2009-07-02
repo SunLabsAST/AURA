@@ -25,6 +25,8 @@
 package com.sun.labs.aura.music.web.upcoming;
 
 import com.sun.labs.aura.music.web.Commander;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
+import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -37,19 +39,23 @@ import org.w3c.dom.NodeList;
  *
  * @author plamere
  */
-public class Upcoming {
+public class Upcoming extends WebServiceAccessor {
+
     private Commander commander;
     
     /** Creates a new instance of Upcoming */
-    public Upcoming() throws IOException {
-        commander = new Commander("upcoming", "http://upcoming.yahooapis.com/services/rest/?api_key=fdb4bbe79f", "");
+    public Upcoming() throws IOException, AuraException {
+
+        super("Upcoming", "UPCOMING_API_KEY");
+
+        commander = new Commander("upcoming", "http://upcoming.yahooapis.com/services/rest/?api_key=" + API_KEY, "");
         commander.setTraceSends(false);
         commander.setRetries(1);
         commander.setTimeout(10000);
         commander.setMinimumCommandPeriod(1000);
     }
     
-    // http://upcoming.yahooapis.com/services/rest/?api_key=fdb4bbe79f&method=event.search&search_text=miles+davis&category_id=1
+    // http://upcoming.yahooapis.com/services/rest/?api_key=KEY&method=event.search&search_text=miles+davis&category_id=1
     public List<UpcomingEvent> searchEventsByArtist(String artistName) throws IOException {
         String encodedName = normalizeName(artistName);
         Document doc = commander.sendCommand("&method=event.search&category_id=1&search_text=" + encodedName);

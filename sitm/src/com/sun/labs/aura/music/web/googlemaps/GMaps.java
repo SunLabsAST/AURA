@@ -25,6 +25,8 @@
 package com.sun.labs.aura.music.web.googlemaps;
 
 import com.sun.labs.aura.music.web.Commander;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
+import com.sun.labs.aura.util.AuraException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,14 +36,14 @@ import java.io.InputStreamReader;
  *
  * @author plamere
  */
-public class GMaps {
+public class GMaps extends WebServiceAccessor {
 
-    //private String API_KEY = "BQIAAAAAwwPlYWQe-nE08q4dzHhDRRyw6J6P0HL6EteUvYVXZenhdQVwxRatKyCGAMwshEi0A_3n-HL411loQ";
-    private String API_KEY = "ABQIAAAAAwwPlYWQe-nE08q4dzHhDRQ8Robh6HvpClbSAttr2ReK-j9H2RTIvOlFanZ0EWazEeJQWhFV17Kc1Q";
     private Commander commander;
-//http://maps.google.com/maps/geo?q=nashua+nh&output=xml&sensor=true_or_false&key=abcdefg
 
-    public GMaps() throws IOException {
+    public GMaps() throws IOException, AuraException {
+
+        super("GoogleMaps", "GOOGLEMAPS_API_KEY");
+
         commander = new Commander("google maps", "http://maps.google.com/maps/geo", "&output=csv&sensor=false&key=" + API_KEY);
         commander.setRetries(1);
         commander.setTimeout(1000);

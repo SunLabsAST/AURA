@@ -25,6 +25,7 @@
 package com.sun.labs.aura.music.web.lastfm;
 
 import com.sun.labs.aura.music.web.Commander;
+import com.sun.labs.aura.music.web.WebServiceAccessor;
 import com.sun.labs.aura.music.web.XmlUtil;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
@@ -33,7 +34,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -42,24 +42,13 @@ import org.w3c.dom.Node;
  * Wrapper for Last.fm API 2.0
  * @author plamere
  */
-public class LastFM2Impl implements LastFM2 {
+public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
 
-    private String API_KEY = null;
     private Commander commander;
 
     public LastFM2Impl() throws AuraException, IOException {
 
-        try {
-            Properties properties = new Properties();
-            properties.load(this.getClass().getClassLoader().getResourceAsStream("com/sun/labs/aura/music/resource/api.properties"));
-            API_KEY = properties.getProperty("LASTFM_API_KEY");
-        } catch (IOException ex) {
-            throw new AuraException("No Last.fm API key available. " +
-                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
-        } catch (NullPointerException ex2) {
-            throw new AuraException("No Last.fm API key available. " +
-                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
-        }
+        super("Last.fm v2", "LASTFM_API_KEY");
 
         commander = new Commander("last.fm2", "http://ws.audioscrobbler.com/2.0/", "&api_key=" + API_KEY, true);
         commander.setRetries(1);
