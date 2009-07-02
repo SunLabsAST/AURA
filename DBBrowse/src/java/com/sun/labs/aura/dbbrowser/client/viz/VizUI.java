@@ -341,6 +341,12 @@ public class VizUI extends DockPanel {
             } else {
                 panel.setActiveSessions(0);
             }
+            Double numThreads = stats.get(procName + ":" + "NUM_THREADS");
+            if (numThreads != null) {
+                panel.setNumThreads(numThreads);
+            } else {
+                panel.setNumThreads(0);
+            }
         }
 
         if (!panels.isEmpty()) {
