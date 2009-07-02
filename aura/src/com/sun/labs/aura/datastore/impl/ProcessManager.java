@@ -40,6 +40,7 @@ public interface ProcessManager extends Component, Remote {
      */
     public enum StatName {
         PERCENT_CPU,
+        NUM_THREADS,
     }
 
     /**
