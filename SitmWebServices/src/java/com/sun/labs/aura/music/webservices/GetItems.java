@@ -31,6 +31,10 @@ import com.sun.labs.aura.music.webservices.Util.ErrorCode;
 import com.sun.labs.aura.util.AuraException;
 import java.io.PrintWriter;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -39,6 +43,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class GetItems extends StandardService {
 
+    protected final static Logger logger = Logger.getLogger("GetItems");
+    
     private enum Format {
         FULL, COMPACT
     };
@@ -56,23 +62,36 @@ public class GetItems extends StandardService {
     @Override
     protected void go(HttpServletRequest request, PrintWriter out, MusicDatabase mdb)
             throws AuraException, ParameterException, RemoteException {
+        long funcStart = System.currentTimeMillis();
         ItemFormatterManager formatter = getItemFormatterManager();
         String itemID = getParam(request, "key");
         OutputType outputType = (OutputType) getParamAsEnum(request, "outputType", OutputType.values());
-
         String[] keys = itemID.split(",");
+        if (keys.length == 0) {
+            throw new ParameterException(ErrorCode.MissingArgument, "key");
+        }
+        //
+        // Put all the keys in a list
+        List keysToFetch = new ArrayList<String>();
         for (String key : keys) {
             key = key.trim();
-            long fetchStart = System.currentTimeMillis();
-            Item item = mdb.getDataStore().getItem(key);
-            long delta = System.currentTimeMillis() - fetchStart;
-            if (item != null) {
-                out.println(formatter.toXML(item, outputType));
-                out.println("<!-- item fetch in " + delta + " ms -->");
-            } else {
-                throw new ParameterException(ErrorCode.NotFound, key);
-            }
+            keysToFetch.add(key);
         }
+        //
+        // Get the items from the datastore
+        Collection<Item> items = mdb.getDataStore().getItems(keysToFetch);
+        if (items.isEmpty()) {
+            throw new ParameterException(ErrorCode.NotFound, itemID);
+        }
+        long delta = System.currentTimeMillis() - funcStart;
+        //
+        // Print 'em out
+        for (Item item : items) {
+            out.println(formatter.toXML(item, outputType));
+        }
+        out.println("<!-- item fetch in " + delta + " ms -->");
+        //logger.severe(String.format("GetItems for %d no out %d", keys.length, delta));
+        //logger.severe(String.format("GetItems for %d took   %d", keys.length, System.currentTimeMillis() - funcStart));
     }
     /** 
      * Returns a short description of the servlet.
