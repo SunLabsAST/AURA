@@ -399,6 +399,20 @@ public abstract class ItemAdapter implements Serializable {
         }
     }
 
+    protected void incrementTag(String field, String tagName, int count) {
+        if (count > 0) {
+            Map<String, Tag> tagMap = getTagMap(field);
+            if (tagMap == null || !tagMap.containsKey(tagName)) {
+                setTag(field, tagName, count);
+            } else {
+                Tag tag = tagMap.get(tagName);
+                tag.accum(count);
+                tagMap.put(tagName, tag);
+                modified = true;
+            }
+        }
+    }
+
     protected void removeTag(String field, String tagName) {
         Map<String, Tag> tagMap = getTagMap(field);
         if (tagMap != null) {

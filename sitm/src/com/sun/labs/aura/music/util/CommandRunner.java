@@ -66,7 +66,7 @@ public class CommandRunner {
 
         for (Commander c : commanders) {
             if (trace) {
-                System.out.println("    " + c + " " + c.getExecuteTime() + " ms");
+                System.out.println("    " + c.getName() + " " + c.getExecuteTime() + " ms");
             }
             if (c.getException() != null) {
                 trace(c, "exception");

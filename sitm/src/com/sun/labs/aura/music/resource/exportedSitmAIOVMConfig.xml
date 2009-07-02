@@ -134,6 +134,7 @@
         <!--<property name="updateRateInSeconds" value="604800"/> -->
         <property name="updateRateInSeconds" value="1000"/>
         <property name="crawlAlbumBlurbs" value="false"/>
+        <property name="crawlEchoNestReviewsBlogs" value="true" />
     </component>
 
     <component name="tagCrawler" type="com.sun.labs.aura.music.crawler.TagCrawler">
@@ -151,7 +152,7 @@
         <property name="artistCrawler" value="artistCrawler"/>
         <property name="crawlerStateDir" value="${auraHome}/db/listener_crawler.state"/>
         <property name="enableListenerDiscovery" value="true" />
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="INFO"/>
         <property name="nbrChartWeek" value="2" />
         <property name="maxListeners" value="200" />
         <property name="defaultPeriod" value="604800"/>

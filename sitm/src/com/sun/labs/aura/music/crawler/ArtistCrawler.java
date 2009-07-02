@@ -27,7 +27,9 @@ package com.sun.labs.aura.music.crawler;
 import com.echonest.api.v3.EchoNestException;
 import com.echonest.api.v3.artist.ArtistAPI;
 import com.echonest.api.v3.artist.Audio;
+import com.echonest.api.v3.artist.Blog;
 import com.echonest.api.v3.artist.DocumentList;
+import com.echonest.api.v3.artist.Review;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
@@ -38,6 +40,7 @@ import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.music.Album;
 import com.sun.labs.aura.music.Artist;
+import com.sun.labs.aura.music.Artist.TagType;
 import com.sun.labs.aura.music.ArtistTag;
 import com.sun.labs.aura.music.ArtistTagRaw;
 import com.sun.labs.aura.music.Event;
@@ -215,6 +218,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             maxArtists = ps.getInt(PROP_MAX_ARTISTS);
             crawlAlbumBlurbs = ps.getBoolean(PROP_CRAWL_ALBUM_BLURBS);
             maxBlurbPages = ps.getInt(PROP_MAX_BLURB_PAGES);
+            crawlEchoNestReviewsBlogs = ps.getBoolean(PROP_CRAWL_ECHONEST_REVIEWSBLOGS);
             util = new Util(flickr, youtube);
             tagFilter = new TagFilter();
             createStateFileDirectory();
@@ -385,6 +389,33 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         }
     }
 
+    private Map<String, Integer> strToBlurbs(List<String> reviews) {
+        return strToBlurbs(reviews, new HashMap<String, Integer>());
+    }
+
+    private Map<String, Integer> strToBlurbs(List<String> reviews, Map<String, Integer> map) {
+        for (String review : reviews) {
+            if (review == null || review.isEmpty()) {
+                System.out.println("emtpy string!!");
+                continue;
+            }
+            review = Utilities.detag(review);
+            String words = normalizeText(" " + review + " ");
+            for (String tag : tagFilter.getAllTagAliases()) {
+                int count = findMatches(tag, words);
+                if (count > 0) {
+                    String mappedTag = tagFilter.mapTagName(tag);
+                    Integer c = map.get(mappedTag);
+                    if (c == null) {
+                        c = Integer.valueOf(0);
+                    }
+                    map.put(mappedTag, c + count);
+                }
+            }
+        }
+        return map;
+    }
+
     private void updateArtists(boolean force, long period) throws AuraException, RemoteException, InterruptedException {
         List<Scored<String>> scoredArtists = getAllArtistsSortedByLastCrawl();
         for (Scored<String> sartist : scoredArtists) {
@@ -401,26 +432,6 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 logger.fine(artist.getName() + " is up to date");
             }
         }
-    }
-
-    private List<Scored<String>> getAllArtistsWithPopularity() throws AuraException, RemoteException {
-        List<Scored<String>> artistList = new ArrayList();
-
-        DBIterator iter = getDataStore().getAllIterator(ItemType.ARTIST);
-
-        try {
-            while (iter.hasNext()) {
-                Item item = (Item) iter.next();
-                Artist artist = new Artist(item);
-                artistList.add(new Scored<String>(artist.getKey(), artist.getPopularity()));
-            }
-
-        } finally {
-            iter.close();
-        }
-        Collections.sort(artistList, ScoredComparator.COMPARATOR);
-        Collections.reverse(artistList);
-        return artistList;
     }
 
     private List<Scored<String>> getAllArtistsSortedByLastCrawl() throws AuraException, RemoteException {
@@ -892,8 +903,14 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         }
     }
 
+    /**
+     * Crawl all albums for a given artist to collect reviews and use them to
+     * as blurb tags
+     */
     private void crawlAmazonForBlurbs(Artist artist) throws AuraException, RemoteException {
-        Map<String, Integer> blurbMap = new HashMap();
+
+        List<String> allReviews = new ArrayList<String>();
+
         int maxAlbums = artist.getAlbums().size();
         int pages = getNumBlurbPages(artist);
 
@@ -902,25 +919,34 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             for (String albumID : artist.getAlbums()) {
                 Item albumItem = getDataStore().getItem(albumID);
                 if (albumItem != null) {
+
                     Album album = new Album(getDataStore().getItem(albumID));
-                    crawlAlbumBlurbs(artist, album, blurbMap, pages);
+                    try {
+                        if (album.getAsin() != null && album.getAsin().length() > 0) {
+                            allReviews.addAll(amazon.lookupReviews(album.getAsin(), pages));
+                        }
+                    } catch (IOException ioe) {
+                        logger.warning("Trouble collecting reviews from " +
+                                album.getTitle() + " for " + artist.getName());
+                    }
                 }
             }
 
-            int curSize = artist.getBlurbTags().size();
+            Map<String, Integer> blurbMap = strToBlurbs(allReviews);
+            int curSize = artist.getTags(TagType.BLURB).size();
             // if we found more tags than before, replace the
             // old ones with the new ones.
             if (blurbMap.size() > curSize) {
                 for (Map.Entry<String, Integer> entry : blurbMap.entrySet()) {
                     if (entry.getValue() >= minBlurbCount) {
-                        artist.setBlurbTag(entry.getKey(), entry.getValue());
+                        artist.setTag(TagType.BLURB, entry.getKey(), entry.getValue());
                     }
                 }
             }
 
             // some debugging code
-            if (logger.isLoggable(Level.INFO)) {
-                List<Tag> tags = artist.getBlurbTags();
+            if (logger.isLoggable(Level.FINE)) {
+                List<Tag> tags = artist.getTags(TagType.BLURB);
                 logger.fine("====== Blurbs for " + artist.getName() + " === albums: " + maxAlbums);
                 for (Tag tag : tags) {
                     logger.fine(String.format("(%s,%d)", tag.getName(), tag.getCount()));
@@ -958,34 +984,6 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
         }
         return 0;
-    }
-
-    // for a particular album of an artist, got to amazon and collect a set
-    // of reviews (there are about 5 reviews per page) and scrape the words for
-    // blurbtags
-    private void crawlAlbumBlurbs(Artist artist, Album album, Map<String, Integer> map, int maxPages) {
-        try {
-            if (album.getAsin() != null && album.getAsin().length() > 0) {
-                List<String> reviews = amazon.lookupReviews(album.getAsin(), maxPages);
-                for (String review : reviews) {
-                    review = Utilities.detag(review);
-                    String words = normalizeText(" " + review + " ");
-                    for (String tag : tagFilter.getAllTagAliases()) {
-                        int count = findMatches(tag, words);
-                        if (count > 0) {
-                            String mappedTag = tagFilter.mapTagName(tag);
-                            Integer c = map.get(mappedTag);
-                            if (c == null) {
-                                c = Integer.valueOf(0);
-                            }
-                            map.put(mappedTag, c + count);
-                        }
-                    }
-                }
-            }
-        } catch (IOException ioe) {
-            logger.warning("Trouble collecting reviews from " + album.getTitle() + " for " + artist.getName());
-        }
     }
 
     private void addSpotifyInfo(Artist artist) throws IOException {
@@ -1028,6 +1026,47 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         // Get familiarity and hotttnesss
         artist.setFamiliarity(echoNest.getFamiliarity(artist.getEchoNestId()));
         artist.setHotttnesss(echoNest.getHotness(artist.getEchoNestId()));
+
+        // Get blogs and reviews. Crawl them every 5 updates except if one of them is empty
+        if (crawlEchoNestReviewsBlogs && (artist.getUpdateCount() % 5 == 0 ||
+                Math.min(artist.getTags(TagType.BLOG_EN).size(), 
+                artist.getTags(TagType.REVIEW_EN).size())==0)) {
+
+            // Maximum number of "pages" to get
+            int maxI;
+            if (artist.getUpdateCount() < 10) {
+                maxI = 0;
+            } else {
+                maxI = 3;
+            }
+
+            List<String> reviews = new ArrayList<String>();
+            for (int i=0; i<=maxI; i++) {
+                for (Review r : echoNest.getReviews(artist.getEchoNestId(), i*15, 15).getDocuments()) {
+                    if (!artist.crawledEchoNestDocId(r.getId())) {
+                        if (r.getReviewText() != null && !r.getReviewText().isEmpty()) {
+                            reviews.add(r.getReviewText());
+                            artist.addCrawledEchoNestDocId(r.getId());
+                        } else if (r.getSummary() != null && !r.getSummary().isEmpty()) {
+                            reviews.add(r.getSummary());
+                            artist.addCrawledEchoNestDocId(r.getId());
+                        }
+                    }
+                }
+            }
+            artist.incrementTags(TagType.REVIEW_EN, strToBlurbs(reviews));
+
+            List<String> blogs = new ArrayList<String>();
+            for (int i=0; i<=maxI; i++) {
+                for (Blog b : echoNest.getBlogs(artist.getEchoNestId(), i*15, 15).getDocuments()) {
+                    if (!artist.crawledEchoNestDocId(b.getId())) {
+                        blogs.add(b.getSummary());
+                        artist.addCrawledEchoNestDocId(b.getId());
+                    }
+                }
+            }
+            artist.incrementTags(TagType.BLOG_EN, strToBlurbs(blogs));
+        }
     }
 
     /**
@@ -1049,7 +1088,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         for (String tag : tagFilter.getAllTagAliases()) {
             int count = findMatches(tag, words);
             if (count > 0) {
-                artist.setBioTag(tagFilter.mapTagName(tag), count);
+                artist.setTag(TagType.BIO, tagFilter.mapTagName(tag), count);
             // logger.info("Adding " + tag + ":" + count);
             }
         }
@@ -1102,13 +1141,13 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 getDataStore().putItem(item);
                 logger.fine("Adding raw tag " + item.getKey());
             }
-            artist.setSocialTagRaw(normTagName, normFreq);
+            artist.setTag(TagType.SOCIAL_RAW, normTagName, normFreq);
 
             
             // Add social tag
             String tagName = tagFilter.mapTagName(tag.getName());
             if (tagName != null) {
-                artist.setSocialTag(tagName, normFreq);
+                artist.setTag(TagType.SOCIAL, tagName, normFreq);
             }
         }
     }
@@ -1162,5 +1201,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     @ConfigInteger(defaultValue = 10)
     public final static String PROP_MAX_BLURB_PAGES = "maxBlurbPages";
     private int maxBlurbPages;
+    @ConfigBoolean(defaultValue = true)
+    public final static String PROP_CRAWL_ECHONEST_REVIEWSBLOGS = "crawlEchoNestReviewsBlogs";
+    private boolean crawlEchoNestReviewsBlogs;
 }
 

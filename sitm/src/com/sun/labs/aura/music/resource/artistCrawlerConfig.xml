@@ -65,6 +65,8 @@
         <property name="crawlerStateDir" value="${cacheDir}/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="604800"/>
+        <property name="crawlAlbumBlurbs" value="false"/>
+        <property name="crawlEchoNestReviewsBlogs" value="true" />
     </component>
 
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

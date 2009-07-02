@@ -58,17 +58,31 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_FAMILIARITY = "familiarity";
     public final static String FIELD_HOTTTNESSS = "hotttnesss";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
+
     public final static String FIELD_SOCIAL_TAGS = "socialTags";
     public final static String FIELD_SOCIAL_TAGS_RAW = "socialTagsRaw";
     public final static String FIELD_BIO_TAGS = "bioTags";
     public final static String FIELD_BLURB_TAGS = "blurbTags";
+    public final static String FIELD_REVIEW_TAGS_EN = "reviewTagsEn";
+    public final static String FIELD_BLOG_TAGS_EN = "blogTagsEn";
+
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_LAST_CRAWL = "lastCrawl";
     public final static String FIELD_UPDATE_COUNT = "updateCount";
     public final static String FIELD_AUDIO = "audio";
     public final static String FIELD_ECHONEST_ID = "echoNestId";
+    public final static String FIELD_ECHONEST_CRAWLED_DOC_IDS = "echoNestCrawledDocIds";
     public final static String FIELD_LISTENER_PLAY_COUNTS = "listenersPlayCnts";
+
+    public static enum TagType {
+        SOCIAL,
+        SOCIAL_RAW,
+        BIO,
+        BLURB,
+        REVIEW_EN,
+        BLOG_EN
+    }
 
     public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
         public int compare(Artist o1, Artist o2) {
@@ -105,6 +119,7 @@ public class Artist extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.ARTIST, key, name));
     }
 
+    @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
             ds.defineField(FIELD_ALBUM, Item.FieldType.STRING, StoreFactory.INDEXED);
@@ -121,10 +136,14 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_FAMILIARITY, Item.FieldType.FLOAT, StoreFactory.INDEXED);
             ds.defineField(FIELD_HOTTTNESSS, Item.FieldType.FLOAT, StoreFactory.INDEXED);
             ds.defineField(FIELD_RELATED_ARTISTS, Item.FieldType.STRING, StoreFactory.INDEXED);
+
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BIO_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BLURB_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_REVIEW_TAGS_EN, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_BLOG_TAGS_EN, Item.FieldType.STRING, StoreFactory.INDEXED);
+
             ds.defineField(FIELD_URLS);
             ds.defineField(FIELD_VIDEOS);
             ds.defineField(FIELD_SPOTIFY);
@@ -132,11 +151,90 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_UPDATE_COUNT);
             ds.defineField(FIELD_AUDIO);
             ds.defineField(FIELD_ECHONEST_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_ECHONEST_CRAWLED_DOC_IDS);
             ds.defineField(FIELD_LISTENER_PLAY_COUNTS, Item.FieldType.STRING, StoreFactory.INDEXED);
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
     }
+
+    private String tagTypeToField(TagType tt) {
+        switch (tt) {
+            case SOCIAL:        return FIELD_SOCIAL_TAGS;
+            case SOCIAL_RAW:    return FIELD_SOCIAL_TAGS_RAW;
+            case BIO:           return FIELD_BIO_TAGS;
+            case BLURB:         return FIELD_BLURB_TAGS;
+            case REVIEW_EN:     return FIELD_REVIEW_TAGS_EN;
+            case BLOG_EN:       return FIELD_BLOG_TAGS_EN;
+            default:            throw new RuntimeException("Invalid parameter '"+tt.toString()+"'");
+        }
+    }
+
+    /**
+     * Gets tags for the artist
+     * @param tt type of tags
+     * @return list of tags
+     */
+    public List<Tag> getTags(TagType tt) {
+        return getTagsAsList(tagTypeToField(tt));
+    }
+
+    /**
+     * Sets a tag to the artist
+     * @param tt type of tag
+     * @param tag name of the tag
+     * @param count tag count
+     */
+    public void setTag(TagType tt, String tag, int count) {
+        setTag(tagTypeToField(tt), tag, count);
+    }
+
+    /**
+     * Sets a map of tags to the artist
+     * @param tt type of tag
+     * @param tags tag names and associated counts
+     */
+    public void setTags(TagType tt, Map<String, Integer> tags) {
+        for (String tName : tags.keySet()) {
+            setTag(tt, tName, tags.get(tName));
+        }
+    }
+
+    public void incrementTag(TagType tt, String tag, int count) {
+        incrementTag(tagTypeToField(tt), tag, count);
+    }
+
+    public void incrementTags(TagType tt, Map<String, Integer> tags) {
+        for (String tName : tags.keySet()) {
+            incrementTag(tt, tName, tags.get(tName));
+        }
+    }
+
+    /**
+     * Clears all of the tags of the given type
+     * @param tt type of tag
+     */
+    public void clearTags(TagType tt) {
+        clearTags(tagTypeToField(tt));
+    }
+
+    /**
+     * Checks if the given docId was already counted in the blog and review tags fields
+     * @param docId echonest document id
+     * @return was the document already counted
+     */
+    public boolean crawledEchoNestDocId(String docId) {
+        return getFieldAsStringSet(FIELD_ECHONEST_CRAWLED_DOC_IDS).contains(docId);
+    }
+
+    /**
+     * Sets a given document id as counted for the blog and review tag counts
+     * @param docId echonest document id
+     */
+    public void addCrawledEchoNestDocId(String docId) {
+        appendToField(FIELD_ECHONEST_CRAWLED_DOC_IDS, docId);
+    }
+
 
     /**
      * Gets a numerical description of how hottt an artist currently is
@@ -294,6 +392,7 @@ public class Artist extends ItemAdapter {
      * Adds a frequent tag
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void addAutoTag(String tag, int count) {
         addTag(FIELD_AUTO_TAGS, tag, count);
@@ -302,6 +401,7 @@ public class Artist extends ItemAdapter {
     /**
      * Gets the artist's auto tags 
      * @return tag map
+     * @deprecated
      */
     public List<Tag> getAutoTags() {
         return getTagsAsList(FIELD_AUTO_TAGS);
@@ -311,6 +411,7 @@ public class Artist extends ItemAdapter {
      * Sets an auto tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void setAutoTag(String tag, int count) {
         setTag(FIELD_AUTO_TAGS, tag, count);
@@ -318,6 +419,7 @@ public class Artist extends ItemAdapter {
 
     /**
      * Clears all of the autotags
+     * @deprecated
      */
     public void clearAutoTags() {
         clearTags(FIELD_AUTO_TAGS);
@@ -326,6 +428,7 @@ public class Artist extends ItemAdapter {
     /**
      * Gets the artist's social tags 
      * @return tag map
+     * @deprecated
      */
     public List<Tag> getSocialTags() {
         return getTagsAsList(FIELD_SOCIAL_TAGS);
@@ -335,6 +438,7 @@ public class Artist extends ItemAdapter {
      * Adds a social tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void addSocialTag(String tag, int count) {
         addTag(FIELD_SOCIAL_TAGS, tag, count);
@@ -344,6 +448,7 @@ public class Artist extends ItemAdapter {
      * Sets a social tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void setSocialTag(String tag, int count) {
         setTag(FIELD_SOCIAL_TAGS, tag, count);
@@ -351,6 +456,7 @@ public class Artist extends ItemAdapter {
 
     /**
      * Clears the social tags
+     * @deprecated
      */
     public void clearSocialTags() {
         clearTags(FIELD_SOCIAL_TAGS);
@@ -359,6 +465,7 @@ public class Artist extends ItemAdapter {
     /**
      * Gets the artist's raw social tags
      * @return tag map
+     * @deprecated
      */
     public List<Tag> getSocialTagsRaw() {
         return getTagsAsList(FIELD_SOCIAL_TAGS_RAW);
@@ -368,6 +475,7 @@ public class Artist extends ItemAdapter {
      * Adds a raw social tag to the artist
      * @param tag tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void addSocialTagRaw(String tag, int count) {
         addTag(FIELD_SOCIAL_TAGS_RAW, tag, count);
@@ -377,6 +485,7 @@ public class Artist extends ItemAdapter {
      * Sets a raw social tag to the artists
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void setSocialTagRaw(String tag, int count) {
         setTag(FIELD_SOCIAL_TAGS_RAW, tag, count);
@@ -384,6 +493,7 @@ public class Artist extends ItemAdapter {
 
     /**
      * Clears the raw social tags
+     * @deprecated
      */
     public void clearSocialTagsRaw() {
         clearTags(FIELD_SOCIAL_TAGS_RAW);
@@ -392,6 +502,7 @@ public class Artist extends ItemAdapter {
     /**
      * Gets the artist's bio tags 
      * @return tag map
+     * @deprecated
      */
     public List<Tag> getBioTags() {
         return getTagsAsList(FIELD_BIO_TAGS);
@@ -401,6 +512,7 @@ public class Artist extends ItemAdapter {
      * Adds a bio tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void addBioTag(String tag, int count) {
         addTag(FIELD_BIO_TAGS, tag, count);
@@ -410,6 +522,7 @@ public class Artist extends ItemAdapter {
      * Sets a bio tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void setBioTag(String tag, int count) {
         setTag(FIELD_BIO_TAGS, tag, count);
@@ -417,6 +530,7 @@ public class Artist extends ItemAdapter {
     
     /**
      * Clears the bio tags
+     * @deprecated
      */
     public void clearBioTags() {
         clearTags(FIELD_BIO_TAGS);
@@ -425,6 +539,7 @@ public class Artist extends ItemAdapter {
     /**
      * Gets the artist's blurb tags 
      * @return tag map
+     * @deprecated
      */
     public List<Tag> getBlurbTags() {
         return getTagsAsList(FIELD_BLURB_TAGS);
@@ -434,6 +549,7 @@ public class Artist extends ItemAdapter {
      * Adds a blurb tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void addBlurbTag(String tag, int count) {
         addTag(FIELD_BLURB_TAGS, tag, count);
@@ -443,6 +559,7 @@ public class Artist extends ItemAdapter {
      * Sets a blurb tag to the artist
      * @param tag name of the tag
      * @param count tag count
+     * @deprecated
      */
     public void setBlurbTag(String tag, int count) {
         setTag(FIELD_BLURB_TAGS, tag, count);
@@ -450,6 +567,7 @@ public class Artist extends ItemAdapter {
 
     /**
      * Clears the blurb tags
+     * @deprecated 
      */
     public void clearBlurbTags() {
         clearTags(FIELD_BLURB_TAGS);
