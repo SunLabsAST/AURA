@@ -72,7 +72,7 @@ public class GetApml extends StandardService {
         Listener listener = mdb.getListener(key);
         if (listener != null) {
             Concept[] explicitConcepts = getArtistNameConcepts(mdb, showArtistNames,
-                    listener.getFavoriteArtist(), maxCount);
+                    listener.getAggregatedPlayCount(), maxCount);
             Concept[] implicitConcepts = getConcepts(listener.getSocialTags(), maxCount);
             Profile profile = new Profile("music", implicitConcepts, explicitConcepts);
             APML apml = new APML("taste data for user " + listener.getKey());
