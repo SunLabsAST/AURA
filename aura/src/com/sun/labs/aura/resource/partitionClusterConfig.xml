@@ -74,7 +74,7 @@
         <propertylist name="dataStoreHeads">
             <type>com.sun.labs.aura.datastore.DataStore</type>
         </propertylist>
-        <property name="logLevel" value="FINER"/>
+        <property name="logLevel" value="INFO"/>
         <property name="processManager" value="processManager"/>
     </component>
 
