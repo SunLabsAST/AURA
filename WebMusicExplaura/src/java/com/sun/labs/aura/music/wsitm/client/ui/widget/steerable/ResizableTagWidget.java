@@ -108,6 +108,7 @@ public class ResizableTagWidget extends TagWidget {
         tagCloud = new HashMap<String, SpannedNEffectPanel>();
         fP.addMouseListener(new MouseListener() {
 
+            @Override
             public void onMouseDown(Widget arg0, int newX, int newY) {
                 lastY = newY;
                 lastX = newX;
@@ -115,8 +116,10 @@ public class ResizableTagWidget extends TagWidget {
                 ((FocusPanel) arg0).setFocus(false);
             }
 
+            @Override
             public void onMouseEnter(Widget arg0) {}
 
+            @Override
             public void onMouseLeave(Widget arg0) {
                 boolean wasTrue = false;
                 for (SpannedNEffectPanel sep : tagCloud.values()) {
@@ -160,8 +163,6 @@ public class ResizableTagWidget extends TagWidget {
 
                         if (oldSize != dW.getCurrentSize()) {
                             hasChanged = true;
-
-                            //dW.setXButtonPosition();
                         }
 
                         if (tempDiff != 0) {
@@ -185,8 +186,6 @@ public class ResizableTagWidget extends TagWidget {
 
                             if (oldSize != dW.getCurrentSize()) {
                                 hasChanged = true;
-
-                                //dW.setXButtonPosition();
                             }
 
                             if (Math.abs(dW.getCurrentSize()) > maxSize) {
@@ -202,6 +201,7 @@ public class ResizableTagWidget extends TagWidget {
                 ((FocusPanel) arg0).setFocus(false);
             }
 
+            @Override
             public void onMouseUp(Widget arg0, int arg1, int arg2) {
                 for (SpannedNEffectPanel sep : tagCloud.values()) {
                     ResizableTag dW = sep.getTag();

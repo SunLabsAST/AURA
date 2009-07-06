@@ -396,7 +396,6 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     private Map<String, Integer> strToBlurbs(List<String> reviews, Map<String, Integer> map) {
         for (String review : reviews) {
             if (review == null || review.isEmpty()) {
-                System.out.println("emtpy string!!");
                 continue;
             }
             review = Utilities.detag(review);
