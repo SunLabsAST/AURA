@@ -64,6 +64,7 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
         GET_SCORED_ITEMS,
         GET_TOP_AUTOTAG_TERMS,
         GET_TOP_TERMS,
+        GET_TOP_TERM_COUNTS,
         GET_TOP_VALUES,
         GET_USER,
         NEW_ITEM,
