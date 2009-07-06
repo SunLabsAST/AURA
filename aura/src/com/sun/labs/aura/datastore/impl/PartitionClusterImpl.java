@@ -39,6 +39,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -363,6 +364,11 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getTopTerms(key, field, n);
     }
 
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+        return strategy.getTopTermCounts(key, field, n);
+    }
     public List<Scored<String>> getExplanation(String key, String autoTag,
             int n)
             throws AuraException, RemoteException {

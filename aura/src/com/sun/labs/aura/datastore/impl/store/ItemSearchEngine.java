@@ -29,6 +29,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.CompositeResultsFilter;
@@ -50,6 +51,8 @@ import com.sun.labs.minion.classification.WeightedFeature;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.indexer.postings.PostingsIterator;
+import com.sun.labs.minion.indexer.postings.PostingsIteratorFeatures;
 import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.query.Relation;
 import com.sun.labs.minion.retrieval.CompositeDocumentVectorImpl;
@@ -592,6 +595,23 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+
+        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
+                new SimilarityConfig(field));
+                List<Counted<String>> ret = new  ArrayList<Counted<String>>();
+        if(dv == null) {
+            return ret;
+        }
+        WeightedFeature[] wf = dv.getFeatures();
+        Util.sort(wf, WeightedFeature.INV_COUNT_COMPARATOR);
+        for(int i = 0; i < wf.length && i < n; i++) {
+            ret.add(new Counted<String>(wf[i].getName(), wf[i].getFreq()));
+        }
+        return ret;
+    }
     public List<Scored<String>> getTopFeatures(String autotag, int n) {
         ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
         if(cm == null) {

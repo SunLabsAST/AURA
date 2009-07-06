@@ -34,6 +34,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -271,6 +272,10 @@ public interface PCStrategy {
      * Get top terms as a word cloud for a field in an item
      */
     public WordCloud getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException;
+
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
             throws AuraException, RemoteException;
 
     /**

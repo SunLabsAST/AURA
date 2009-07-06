@@ -39,6 +39,7 @@ import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
@@ -250,6 +251,8 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         nw.start();
         //
         // Figure out which partitions we need to talk to.
+        NanoWatch pcw = new NanoWatch();
+        pcw.start();
         Map<PartitionCluster, List<String>> m = new HashMap();
         for(String key : keys) {
             PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
@@ -259,6 +262,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                 m.put(pc, l);
             }
             l.add(key);
+        }
+        pcw.stop();
+        if(logger.isLoggable(Level.FINER)) {
+            logger.finer(String.format("dsh gIs find pcs got %d pcs for %d items took %.3f",
+                    m.size(), keys.size(), pcw.getTimeMillis()));
         }
 
         Collection<Item> ret;
@@ -1244,6 +1252,12 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         return pc.getTopTerms(key, field, n);
     }
 
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+        PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
+        return pc.getTopTermCounts(key, field, n);
+    }
     public List<Scored<String>> getExplanation(String key, String autoTag, int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
