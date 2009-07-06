@@ -63,6 +63,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.python.core.PyDictionary;
+import org.python.core.PyList;
 
 /**
  *
@@ -158,9 +160,9 @@ public class MusicDatabase {
         List<SimType> stypes = new ArrayList();
         stypes.add(new FieldSimType("Social Tags", "Similarity based upon Social Tags", Artist.FIELD_SOCIAL_TAGS));
         stypes.add(new FieldSimType("Raw Social Tags", "Similarity based upon Raw Social Tags", Artist.FIELD_SOCIAL_TAGS_RAW));
-        stypes.add(new FieldSimType("Bio Tags", "Similarity based upon BIO tags", Artist.FIELD_BIO_TAGS));
-        stypes.add(new FieldSimType("Blurb Tags", "Similarity based upon tags extracted from reviews", Artist.FIELD_BLURB_TAGS));
-        stypes.add(new FieldSimType("Auto Tags", "Similarity based upon Auto tags", Artist.FIELD_AUTO_TAGS));
+        stypes.add(new FieldSimType("Listeners", "Similarity based upon listeners' profile", Artist.FIELD_LISTENER_PLAY_COUNTS));
+        //stypes.add(new FieldSimType("Blurb Tags", "Similarity based upon tags extracted from reviews", Artist.FIELD_BLURB_TAGS));
+        //stypes.add(new FieldSimType("Auto Tags", "Similarity based upon Auto tags", Artist.FIELD_AUTO_TAGS));
         stypes.add(new FieldSimType("Related", "Similarity based upon related artists", Artist.FIELD_RELATED_ARTISTS));
         stypes.add(new AllSimType());
         simTypes = Collections.unmodifiableList(stypes);
@@ -442,18 +444,62 @@ public class MusicDatabase {
         return results;
     }
 
+    /**
+     * Gets the set of artistIds that have a particular attention associated with them
+     * @param listenerID look only for attentions for a particular user. can be null to search for all users
+     * @param type attention type
+     * @param max max results to return. no particular order is guaranteed. Use Integer.MAX_VALUE for no max value
+     * @return a set of artist ids
+     * @throws AuraException
+     * @throws RemoteException
+     */
     public Set<String> getAttendedToArtists(String listenerID, Attention.Type type, int max) throws AuraException, RemoteException {
         Set<String> results = new HashSet<String>();
         if (max > 0) {
-            AttentionConfig ac = new AttentionConfig();
-            ac.setSourceKey(listenerID);
-            ac.setType(type);
-            List<Attention> attns = getDataStore().getLastAttention(ac, max);
-            for (Attention attn : attns) {
-                if (isArtist(attn.getTargetKey())) {
-                    results.add(attn.getTargetKey());
+
+            AttentionConfig aC = new AttentionConfig();
+            if (listenerID != null) {
+                aC.setSourceKey(listenerID);
+            }
+            aC.setType(type);
+
+            // Only add the check for max value in the python script if we're actually
+            // asking for one
+            String maxStr="";
+            if (max<Integer.MAX_VALUE) {
+                maxStr = "       if len(s)>=" + max + ": break \n";
+            }
+
+            // TODO. Figure out why set() isn't working and use instead of dict
+            String script = "def process(attns): \n" +
+                            "   #s = set() \n" +
+                            "   s = {} \n" +
+                            "   for a in attns.toArray(): \n" +
+                            "       #s.add(a.getTargetKey()) \n" +
+                            "       s[a.getTargetKey()] = 0 \n" +
+                            maxStr +
+                            "   return s \n" +
+                            "\n"+
+                            "def collect(results): \n" +
+                            "   #s = set() \n" +
+                            "   s = {} \n" +
+                            "   for tS in results.toArray(): \n" +
+                            "       #s = s.union(tS) \n" +
+                            "       s.update(tS) \n" +
+                            "   return s";
+
+            PyDictionary pyDict = (PyDictionary) this.getDataStore().processAttention(aC, script, "python");
+            PyList items = pyDict.keys();
+            for (int i=0; i<items.size(); i++) {
+                String artistId =  (String) items.get(i);
+                if (isArtist(artistId)) {
+                    results.add(artistId);
+                }
+                if (results.size()>=max) {
+                    break;
                 }
             }
+
         }
         return results;
     }
@@ -1572,6 +1618,7 @@ public class MusicDatabase {
             this.field = fieldName;
         }
 
+        @Override
         public String getName() {
             return name;
         }
@@ -1580,15 +1627,18 @@ public class MusicDatabase {
             return description;
         }
 
+        @Override
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
             return artistFindSimilar(artistID, field, count);
         }
 
+        @Override
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count,
                 MusicDatabase.Popularity pop) throws AuraException {
             return artistFindSimilar(artistID, field, count, pop);
         }
 
+        @Override
         public List<Scored<String>> explainSimilarity(String id1, String id2, int count) throws AuraException {
             try {
                 return getDataStore().explainSimilarity(id1, id2, getFindSimilarConfig(field, count, null));
@@ -1612,25 +1662,30 @@ public class MusicDatabase {
             this.description = "Artist similarity based upon all fields";
         }
 
+        @Override
         public String getName() {
             return name;
         }
 
+        @Override
         public String getDescription() {
             return description;
         }
 
+        @Override
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count) throws AuraException {
             List<Scored<Item>> simItems = findSimilar(artistID, count, ItemType.ARTIST);
             return convertToScoredArtistList(simItems);
         }
 
+        @Override
         public List<Scored<Artist>> findSimilarArtists(String artistID, int count,
                 MusicDatabase.Popularity pop) throws AuraException {
             List<Scored<Item>> simItems = findSimilar(artistID, count, null, ItemType.ARTIST, pop, getMostPopularArtist().getPopularity());
             return convertToScoredArtistList(simItems);
         }
 
+        @Override
         public List<Scored<String>> explainSimilarity(String artistID1, String artistID2, int count) throws AuraException {
             return artistExplainSimilarity(artistID1, artistID2, count);
         }

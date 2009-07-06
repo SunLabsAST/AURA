@@ -32,7 +32,6 @@ import com.echonest.api.v3.artist.DocumentList;
 import com.echonest.api.v3.artist.Review;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.datastore.Attention;
-import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
@@ -97,8 +96,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Properties;
-import org.python.core.PyDictionary;
-import org.python.core.PyList;
 
 /**
  *
@@ -707,46 +704,23 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
         logger.info("ArtistAttentionCoherence: Running coherence check");
 
-        AttentionConfig aC = new AttentionConfig();
-        aC.setType(Attention.Type.PLAYED);
-
-        // TODO. Figure out why set() isn't working and use instead of dict
-        String script = "def process(attns): \n" +
-                        "   #s = set() \n" +
-                        "   s = {} \n" +
-                        "   for a in attns.toArray(): \n" +
-                        "       #s.add(a.getTargetKey()) \n" +
-                        "       s[a.getTargetKey()] = 0 \n" +
-                        "   return s \n"+
-                        "\n"+
-                        "def collect(results): \n" +
-                        "   #s = set() \n" +
-                        "   s = {} \n" +
-                        "   for tS in results.toArray(): \n" +
-                        "       #s = s.union(tS) \n" +
-                        "       s.update(tS) \n" +
-                        "   return s";
-
         int cnt = 0;
-        PyDictionary pyDict = (PyDictionary) this.getDataStore().processAttention(aC, script, "python");
-        PyList items = pyDict.keys();
-        logger.info("ArtistAttentionCoherence: Got "+items.size()+" unique artists from store");
-        for (int i=0; i<items.size(); i++) {
-            String artistId =  (String) items.get(i);
-
+        Set<String> artistIds = mdb.getAttendedToArtists(null, Attention.Type.PLAYED, Integer.MAX_VALUE);
+        logger.info("ArtistAttentionCoherence: Got " + artistIds.size() + " unique artists from store");
+        for (String artistId : artistIds) {
             // Look in the store
             Item item = getDataStore().getItem(artistId);
             if (item==null) {
                 // Look in the crawl queue
                 QueuedItem qA = new QueuedItem(artistId, -1);
                 if (!crawlQueue.contains(qA)) {
-                    logger.finer("ArtistAttentionCoherence: Added "+artistId+" to crawl queue");
+                    logger.finer("ArtistAttentionCoherence: Added " + artistId + " to crawl queue");
                     crawlQueue.add(qA);
                     cnt++;
                 }
             }
         }
-        logger.info("ArtistAttentionCoherence: Queued "+cnt+" artists");
+        logger.info("ArtistAttentionCoherence: Queued " + cnt + " artists");
         incrementModCounter(cnt);
     }
 
@@ -762,7 +736,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 Artist a = (Artist) iter.next();
                 a.clearListenersPlayCounts();
 
-                for (Scored<Listener> sL : mdb.getListenersForArtist(a.getKey(), 0)) {
+                for (Scored<Listener> sL : mdb.getListenersForArtist(a.getKey(), Integer.MAX_VALUE)) {
                     a.setListenersPlayCount(sL.getItem().getKey(), (int)sL.getScore());
                 }
                 mdb.flush(a);
