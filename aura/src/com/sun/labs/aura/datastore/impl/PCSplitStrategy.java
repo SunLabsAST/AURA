@@ -36,6 +36,7 @@ import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ReverseAttentionTimeComparator;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
@@ -427,6 +428,19 @@ public class PCSplitStrategy implements PCStrategy {
             WordCloud r = remote.getTopTerms(key, field, n);
             if (r != null) {
                 ret = r;
+            }
+        }
+        return ret;
+    }
+
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+        List<Counted<String>> ret = local.getTopTermCounts(key, field, n);
+        if(!keyIsLocal(key)) {
+            List<Counted<String>> rem = remote.getTopTermCounts(key, field, n);
+            if(rem != null) {
+                ret = rem;
             }
         }
         return ret;

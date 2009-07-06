@@ -35,6 +35,7 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -202,6 +203,12 @@ public class PCDefaultStrategy implements PCStrategy {
 
     public WordCloud getTopTerms(String key, String field, int n) throws AuraException, RemoteException {
         return replicant.getTopTerms(key, field, n);
+    }
+
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+        return replicant.getTopTermCounts(key, field, n);
     }
 
     public List<Scored<String>> getExplanation(String key, String autoTag, int n) throws AuraException, RemoteException {

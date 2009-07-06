@@ -29,6 +29,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.CompositeResultsFilter;
@@ -50,6 +51,8 @@ import com.sun.labs.minion.classification.WeightedFeature;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
+import com.sun.labs.minion.indexer.postings.PostingsIterator;
+import com.sun.labs.minion.indexer.postings.PostingsIteratorFeatures;
 import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.query.Relation;
 import com.sun.labs.minion.retrieval.CompositeDocumentVectorImpl;
@@ -67,6 +70,7 @@ import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import com.sun.labs.util.FileUtil;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -183,6 +187,13 @@ public class ItemSearchEngine implements Configurable {
         indexDir = ps.getString(PROP_INDEX_DIR);
 
         //
+        // Get rid of the index directory.
+        if(ps.getBoolean(PROP_DELETE_INDEX)) {
+            logger.info(String.format("Deleting index directory"));
+            FileUtil.deleteDirectory(new File(indexDir));
+        }
+
+        //
         // If the index directory doesn't exist, then we needed to initialize it.
         engineWasIntialized = !(new File(indexDir).exists());
 
@@ -208,8 +219,7 @@ public class ItemSearchEngine implements Configurable {
             }
             try {
                 logger.info("Copying search index into temp dir");
-                DirCopier dc = new DirCopier(new File(indexDir), td);
-                dc.copy();
+                FileUtil.dirCopier(new File(indexDir), td);
                 logger.info("Copying completed");
                 indexDir = tds;
             } catch(IOException ex) {
@@ -592,6 +602,23 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+
+        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
+                new SimilarityConfig(field));
+                List<Counted<String>> ret = new  ArrayList<Counted<String>>();
+        if(dv == null) {
+            return ret;
+        }
+        WeightedFeature[] wf = dv.getFeatures();
+        Util.sort(wf, WeightedFeature.INV_COUNT_COMPARATOR);
+        for(int i = 0; i < wf.length && i < n; i++) {
+            ret.add(new Counted<String>(wf[i].getName(), wf[i].getFreq()));
+        }
+        return ret;
+    }
     public List<Scored<String>> getTopFeatures(String autotag, int n) {
         ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
         if(cm == null) {
@@ -914,6 +941,13 @@ public class ItemSearchEngine implements Configurable {
      */
     @ConfigString(mandatory = false)
     public static final String PROP_PREFIX = "prefix";
+
+    /**
+     * Whether we should delete our index directory at startup.
+     * Use with caution, eh?
+     */
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_DELETE_INDEX = "deleteIndex";
 
     /**
      * The configurable index directory.

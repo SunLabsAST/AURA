@@ -27,6 +27,7 @@ package com.sun.labs.aura.datastore.impl.store;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
@@ -132,6 +133,23 @@ public interface LowLevelSearch extends Remote {
      * that there may be fewer than <code>n</code> terms returned.
      */
     public WordCloud getTopTerms(String key, String field, int n)
+            throws AuraException, RemoteException;
+
+    /**
+     * Gets the terms with the highest occurrence counts for a particular field in
+     * a particular document.  This can be used to fetch raw occurrence data
+     * for terms from the data store.
+     * @param key the key for which we want the data
+     * @param field the field that we want occurrence counts for
+     * @param n the number of terms to return.  If this value is less than zero,
+     * all terms and their counts will be returned.
+     * @return the list of the top <code>n</code> terms and their counts.
+     * The list will be returned in decreasing count order.
+     * @throws AuraException
+     * @throws RemoteException
+     */
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
             throws AuraException, RemoteException;
 
     /**

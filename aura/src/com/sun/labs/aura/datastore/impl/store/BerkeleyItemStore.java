@@ -49,6 +49,7 @@ import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
 import com.sun.labs.aura.util.Reindexer;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.service.StatService;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
@@ -1098,6 +1099,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         return ret;
     }
 
+    @Override
+    public List<Counted<String>> getTopTermCounts(String key, String field,
+                                                  int n)
+            throws AuraException, RemoteException {
+        StatState state = new StatState();
+        enter(StatName.GET_TOP_TERM_COUNTS, state);
+
+        List<Counted<String>> ret = searchEngine.getTopTermCounts(key, field, n);
+
+        exit(state);
+        return ret;
+    }
     @Override
     public List<Scored<String>> getExplanation(String key, String autoTag,
             int n)

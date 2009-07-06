@@ -173,9 +173,11 @@
 
 <target name="copy-support-files"
     description="Copy the build support files to the grid"
-    depends="upload-distribution,update-config">
+    depends="upload-distribution">
       <!-- Copy the policy and build files from the distribution -->
-    <dav:copy url="${config.url}/jsk-all.policy"
+        <echo message="Source URL: ${dav.url}/${dist.filesystem}/dist/jsk-all.policy"/>
+        <echo message="Dest URL: ${dav.url}/${www.filesystem}/jsk-all.policy"/>
+    <dav:copy url="${dav.url}/${dist.filesystem}/dist/jsk-all.policy"
 		destination="${dav.url}/${www.filesystem}/jsk-all.policy"
 		verbose="true"
 		overwrite="true"
