@@ -44,12 +44,16 @@ public abstract class WebServiceAccessor {
             properties = new Properties();
             properties.load(this.getClass().getClassLoader().getResourceAsStream("com/sun/labs/aura/music/resource/api.properties"));
             API_KEY = properties.getProperty(propertiesKey);
+            if (API_KEY==null) {
+                throw new AuraException("No " + serviceName + " API key available. " +
+                    "Please add key to properties file (com/sun/labs/aura/music/resource/api.properties).");
+            }
         } catch (IOException ex) {
             throw new AuraException("No " + serviceName + " API key available. " +
-                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+                    "Please create properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
         } catch (NullPointerException ex2) {
             throw new AuraException("No " + serviceName + " API key available. " +
-                    "Please set properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
+                    "Please create properties file (com/sun/labs/aura/music/resource/api.properties) to use.");
         }
     }
 
