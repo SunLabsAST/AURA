@@ -104,7 +104,7 @@
     <!-- A factory for our main dictionaries, with an unlimited cache -->
     <component name="cased_dict_factory" type="com.sun.labs.minion.indexer.dictionary.DictionaryFactory">
         <property name="entry_class_name" value="com.sun.labs.minion.indexer.entry.CasedDFOEntry"/>
-        <property name="cache_size" value="-1"/>
+        <property name="cache_size" value="2048"/>
     </component>
     
     <!-- A manager for classifier partitions -->
