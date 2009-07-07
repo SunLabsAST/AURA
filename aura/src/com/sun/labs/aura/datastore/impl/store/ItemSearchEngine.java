@@ -629,8 +629,7 @@ public class ItemSearchEngine implements Configurable {
             return new ArrayList<Counted<String>>();
         }
         PostingsIteratorFeatures feat = new PostingsIteratorFeatures();
-        feat.setFields(new int[]{fi.getID()});
-
+        feat.setFields(((SearchEngineImpl) engine).getPM().getMetaFile().getFieldArray(field));
         List<Counted<String>> ret = new ArrayList<Counted<String>>();
         for(DiskPartition p : ((SearchEngineImpl) engine).getPM().
                 getActivePartitions()) {

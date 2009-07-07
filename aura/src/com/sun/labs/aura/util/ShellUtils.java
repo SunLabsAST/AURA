@@ -101,7 +101,7 @@ public class ShellUtils {
         this.dataStore = aDataStore;
         this.statService = aStatService;
         setDisplayFields(new String[] {"_score", "aura-type", "aura-key"});
-        setDisplayFormat(" %.3s %s %s\n");
+        setDisplayFormat(" %.3f %s %s\n");
 
         shell.add("displayFields",
                 new CommandInterface() {
