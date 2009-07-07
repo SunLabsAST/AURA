@@ -21,7 +21,6 @@
  * Park, CA 94025 or visit www.sun.com if you need additional
  * information or have any questions.
  */
-
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.Indexable;
@@ -50,6 +49,8 @@ import com.sun.labs.minion.classification.FeatureCluster;
 import com.sun.labs.minion.classification.WeightedFeature;
 import com.sun.labs.minion.engine.SearchEngineImpl;
 import com.sun.labs.minion.indexer.entry.DocKeyEntry;
+import com.sun.labs.minion.indexer.entry.QueryEntry;
+import com.sun.labs.minion.indexer.partition.DiskPartition;
 import com.sun.labs.minion.indexer.partition.InvFileDiskPartition;
 import com.sun.labs.minion.indexer.postings.PostingsIterator;
 import com.sun.labs.minion.indexer.postings.PostingsIteratorFeatures;
@@ -150,11 +151,11 @@ public class ItemSearchEngine implements Configurable {
             // engine because we need to be able to handle fielded doc vectors
             // and postings.
             engine = SearchEngineFactory.getSearchEngine(indexDir,
-                    "aardvark_search_engine",
-                    cu);
+                                                         "aardvark_search_engine",
+                                                         cu);
         } catch(SearchEngineException see) {
             logger.log(Level.SEVERE, "error opening engine for: " + indexDir,
-                    see);
+                       see);
         }
     }
 
@@ -199,15 +200,15 @@ public class ItemSearchEngine implements Configurable {
                 copyLocation = System.getProperty("java.io.tmpdir");
             }
             String tds = String.format("%s%sreplicant-%s%sitemIndex.idx",
-                    copyLocation,
-                    File.separator,
-                    ps.getString(PROP_PREFIX),
-                    File.separator);
+                                       copyLocation,
+                                       File.separator,
+                                       ps.getString(PROP_PREFIX),
+                                       File.separator);
             File td = new File(tds);
             if(!td.mkdirs()) {
                 throw new PropertyException(ps.getInstanceName(),
-                        PROP_COPY_DIR,
-                        "Unable to make temporary directory for search index");
+                                            PROP_COPY_DIR,
+                                            "Unable to make temporary directory for search index");
             }
             try {
                 logger.info("Copying search index into temp dir");
@@ -217,8 +218,8 @@ public class ItemSearchEngine implements Configurable {
                 indexDir = tds;
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(),
-                        PROP_COPY_DIR,
-                        "Unable to copy search index directory");
+                                            PROP_COPY_DIR,
+                                            "Unable to copy search index directory");
             }
         }
         String engineConfig = ps.getString(PROP_ENGINE_CONFIG_FILE);
@@ -231,15 +232,15 @@ public class ItemSearchEngine implements Configurable {
             // engine because we need to be able to handle fielded doc vectors
             // and postings.
             engine = SearchEngineFactory.getSearchEngine(indexDir,
-                    "aardvark_search_engine",
-                    config);
+                                                         "aardvark_search_engine",
+                                                         config);
 
             if(ps.getBoolean(PROP_REGENERATE_TERM_STATS)) {
                 regenerateTermStats();
             }
         } catch(SearchEngineException see) {
             logger.log(Level.SEVERE, "error opening engine for: " + indexDir,
-                    see);
+                       see);
         }
 
         //
@@ -247,7 +248,7 @@ public class ItemSearchEngine implements Configurable {
         flushCheckInterval = ps.getInt(PROP_FLUSH_INTERVAL);
         flushTimer = new Timer("ItemSearchEngineFlushTimer");
         flushTimer.scheduleAtFixedRate(new FlushTimerTask(), flushCheckInterval,
-                flushCheckInterval);
+                                       flushCheckInterval);
 
     }
 
@@ -260,8 +261,9 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public void defineField(String fieldName,
-            Item.FieldType fieldType,
-            EnumSet<Item.FieldCapability> caps) throws AuraException {
+                            Item.FieldType fieldType,
+                            EnumSet<Item.FieldCapability> caps) throws
+            AuraException {
         EnumSet<FieldInfo.Attribute> attr =
                 EnumSet.of(
                 FieldInfo.Attribute.SAVED,
@@ -361,7 +363,7 @@ public class ItemSearchEngine implements Configurable {
                     // The content might contain XML or HTML, so let's get
                     // rid of that stuff.
                     indexVal = new IndexableString(indexVal.toString(),
-                            IndexableString.Type.HTML);
+                                                   IndexableString.Type.HTML);
                 }
                 im.put(e.getKey(), indexVal);
             }
@@ -487,7 +489,7 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public DocumentVector getDocumentVector(WordCloud cloud,
-            SimilarityConfig config) {
+                                            SimilarityConfig config) {
 
         //
         // Get weighted features from the cloud.  We'll only handle things with 
@@ -500,7 +502,8 @@ public class ItemSearchEngine implements Configurable {
         }
         if(config.getFields() == null) {
             DocumentVectorImpl dvi = new DocumentVectorImpl(engine,
-                    feat.toArray(new WeightedFeature[0]));
+                                                            feat.toArray(
+                    new WeightedFeature[0]));
             dvi.setField(config.getField());
             return dvi;
         } else {
@@ -520,7 +523,7 @@ public class ItemSearchEngine implements Configurable {
      * @see #getDocumentVector
      */
     public List<Scored<String>> findSimilar(DocumentVector dv,
-            SimilarityConfig config)
+                                            SimilarityConfig config)
             throws AuraException {
 
         //
@@ -537,7 +540,8 @@ public class ItemSearchEngine implements Configurable {
             Set<String> include = config.getInclude();
             if(include != null && include.size() > 0) {
                 ResultSet inc = ((SearchEngineImpl) engine).allTerms(include,
-                        config.getFieldNames(), false);
+                                                                     config.
+                        getFieldNames(), false);
                 sim = sim.intersect(inc);
             }
 
@@ -546,15 +550,16 @@ public class ItemSearchEngine implements Configurable {
             Set<String> exclude = config.getExclude();
             if(exclude != null && exclude.size() > 0) {
                 ResultSet exc = ((SearchEngineImpl) engine).anyTerms(exclude,
-                        config.getFieldNames(), false);
+                                                                     config.
+                        getFieldNames(), false);
                 sim = sim.difference(exc);
             }
             for(Result r : sim.getResults(0, config.getN(), config.getFilter())) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(),
-                        ri.getScore(),
-                        ri.getSortVals(),
-                        ri.getDirections()));
+                                           ri.getScore(),
+                                           ri.getSortVals(),
+                                           ri.getDirections()));
             }
         } catch(SearchEngineException see) {
             throw new AuraException("Error getting similar items", see);
@@ -581,8 +586,10 @@ public class ItemSearchEngine implements Configurable {
 
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
-        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
-                new SimilarityConfig(field));
+        DocumentVectorImpl dv =
+                (DocumentVectorImpl) getDocumentVector(key,
+                                                       new SimilarityConfig(
+                field));
         if(dv == null) {
             return new WordCloud();
         }
@@ -599,9 +606,11 @@ public class ItemSearchEngine implements Configurable {
                                                   int n)
             throws AuraException, RemoteException {
 
-        DocumentVectorImpl dv = (DocumentVectorImpl) getDocumentVector(key,
-                new SimilarityConfig(field));
-                List<Counted<String>> ret = new  ArrayList<Counted<String>>();
+        DocumentVectorImpl dv =
+                (DocumentVectorImpl) getDocumentVector(key,
+                                                       new SimilarityConfig(
+                field));
+        List<Counted<String>> ret = new ArrayList<Counted<String>>();
         if(dv == null) {
             return ret;
         }
@@ -612,13 +621,51 @@ public class ItemSearchEngine implements Configurable {
         }
         return ret;
     }
+
+    public List<Counted<String>> getTermCounts(String term, String field, int n)
+            throws AuraException, RemoteException {
+        FieldInfo fi = engine.getFieldInfo(field);
+        if(fi == null) {
+            return new ArrayList<Counted<String>>();
+        }
+        PostingsIteratorFeatures feat = new PostingsIteratorFeatures();
+        feat.setFields(new int[]{fi.getID()});
+
+        List<Counted<String>> ret = new ArrayList<Counted<String>>();
+        for(DiskPartition p : ((SearchEngineImpl) engine).getPM().
+                getActivePartitions()) {
+            QueryEntry qe = p.getTerm(term);
+            if(qe == null) {
+                continue;
+            }
+            PostingsIterator pi = qe.iterator(feat);
+            while(pi.next()) {
+                //
+                // The document key is the string that we'll store.
+                if(!p.isDeleted(pi.getID())) {
+                    DocKeyEntry dke = p.getDocumentTerm(pi.getID());
+                    ret.add(new Counted<String>(dke.getName().toString(),
+                                                pi.getFreq()));
+                }
+            }
+        }
+        Counted[] arr = ret.toArray(new Counted[0]);
+        Util.sort(arr, Counted.INV_COUNT_COMPARATOR);
+        ret.clear();
+        for(int i = 0; i < n && i < arr.length; i++) {
+            ret.add((Counted<String>) arr[i]);
+        }
+        return ret;
+    }
+
     public List<Scored<String>> getTopFeatures(String autotag, int n) {
         ClassifierModel cm = ((SearchEngineImpl) engine).getClassifier(autotag);
         if(cm == null) {
             return new ArrayList<Scored<String>>();
         }
-        PriorityQueue<FeatureCluster> q = new PriorityQueue<FeatureCluster>(n,
-                FeatureCluster.weightComparator);
+        PriorityQueue<FeatureCluster> q =
+                new PriorityQueue<FeatureCluster>(n,
+                                                  FeatureCluster.weightComparator);
         for(FeatureCluster fc : cm.getFeatures()) {
             if(q.size() < n) {
                 q.offer(fc);
@@ -651,7 +698,7 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
-            int n)
+                                                       int n)
             throws AuraException, RemoteException {
         List<WeightedFeature> l = ((SearchEngineImpl) engine).
                 getSimilarClassifierTerms(a1, a2, n);
@@ -674,7 +721,7 @@ public class ItemSearchEngine implements Configurable {
      * contribution towards the autotagging.
      */
     public List<Scored<String>> getExplanation(String key, String autoTag,
-            int n)
+                                               int n)
             throws AuraException, RemoteException {
         ClassifierModel cm = ((SearchEngineImpl) engine).getClassifierManager().
                 getClassifier(autoTag);
@@ -703,9 +750,10 @@ public class ItemSearchEngine implements Configurable {
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
-    public List<Scored<String>> find(String name, String val, int n) throws AuraException, RemoteException {
+    public List<Scored<String>> find(String name, String val, int n) throws
+            AuraException, RemoteException {
         FieldEvaluator fe = new FieldEvaluator(name, Relation.Operator.EQUALS,
-                val);
+                                               val);
         ResultSet rs = fe.eval(engine);
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
@@ -719,15 +767,16 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public List<Scored<String>> query(String query, String sort, int n,
-            ResultsFilter rf) throws AuraException, RemoteException {
+                                      ResultsFilter rf) throws AuraException,
+            RemoteException {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
             for(Result r : engine.search(query, sort).getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(),
-                        ri.getScore(),
-                        ri.getSortVals(),
-                        ri.getDirections()));
+                                           ri.getScore(),
+                                           ri.getSortVals(),
+                                           ri.getDirections()));
             }
         } catch(SearchEngineException see) {
             //
@@ -746,15 +795,16 @@ public class ItemSearchEngine implements Configurable {
     }
 
     public List<Scored<String>> query(Element query, String sort, int n,
-            ResultsFilter rf) throws AuraException, RemoteException {
+                                      ResultsFilter rf) throws AuraException,
+            RemoteException {
         List<Scored<String>> ret = new ArrayList<Scored<String>>();
         try {
             for(Result r : engine.search(query, sort).getResults(0, n, rf)) {
                 ResultImpl ri = (ResultImpl) r;
                 ret.add(new Scored<String>(ri.getKey(),
-                        ri.getScore(),
-                        ri.getSortVals(),
-                        ri.getDirections()));
+                                           ri.getScore(),
+                                           ri.getSortVals(),
+                                           ri.getDirections()));
             }
         } catch(SearchEngineException see) {
             //
@@ -790,7 +840,7 @@ public class ItemSearchEngine implements Configurable {
             ResultSetImpl rs = (ResultSetImpl) engine.search(String.format(
                     "autotag = \"%s\"", autotag));
             for(Result r : rs.getResultsForScoredField(0, n, "autotag", autotag,
-                    "autotag-score")) {
+                                                       "autotag-score")) {
                 ret.add(new Scored<String>(r.getKey(), r.getScore()));
             }
             return ret;
@@ -829,7 +879,8 @@ public class ItemSearchEngine implements Configurable {
         }
         List<String> autotags = (List<String>) ((InvFileDiskPartition) dke.
                 getPartition()).getFieldStore().getSavedFieldData("autotag",
-                dke.getID(), true);
+                                                                  dke.getID(),
+                                                                  true);
         if(autotags.size() == 0) {
 
             //

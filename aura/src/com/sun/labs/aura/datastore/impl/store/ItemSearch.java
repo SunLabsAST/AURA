@@ -181,6 +181,22 @@ public interface ItemSearch {
             throws AuraException, RemoteException;
 
     /**
+     * Gets the counts for a given term in a given field across all of the
+     * items in the collection.
+     * @param term the term to look for.
+     * @param field the field of interest
+     * @param n the number of counts to return.  If this value is less than zero,
+     * all counts will be returned.
+     * @return A list of counted strings.  The item in the counted string will
+     * be the key of a document where the term occurs, and the count will be the
+     * number of times that the term occurs in that document.
+     * @throws AuraException
+     * @throws RemoteException
+     */
+    public List<Counted<String>> getTermCounts(String term, String field, int n)
+            throws AuraException, RemoteException;
+
+    /**
      * Gets an explanation as to why a given autotag would be applied to 
      * a given document.
      * 

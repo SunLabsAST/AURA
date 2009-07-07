@@ -44,6 +44,7 @@ import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.WordCloud;
+import com.sun.labs.minion.ClusterStatistics;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
@@ -1258,6 +1259,70 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         return pc.getTopTermCounts(key, field, n);
     }
+    public List<Counted<String>> getTermCounts(final String term, final String field, final int n)
+            throws AuraException, RemoteException {
+        
+        Set<PartitionCluster> clusters = trie.getAll();
+        List<Callable<List<Counted<String>>>> callers =
+                new ArrayList<Callable<List<Counted<String>>>>();
+        //
+        final PCLatch latch = new PCLatch(allPrefixes, clusters.size());
+
+        // Here's our list of callers to find similar.  Each one will be given
+        // a handle to a countdown latch to watch when they finish.
+        for(PartitionCluster p : clusters) {
+            callers.add(new PCCaller(p, (ResultsFilter) null) {
+
+                public List<Counted<String>> call()
+                        throws AuraException, RemoteException {
+                    try {
+                        if(pause > 0) {
+                            try {
+                                Thread.sleep(pause);
+                            } catch(InterruptedException ie) {
+                            }
+                        }
+                        if(logger.isLoggable(Level.FINER)) {
+                            logger.finer(String.format("dsh pc %s fs call", pc.
+                                    getPrefix().toString()));
+                        }
+                            return pc.getTermCounts(term, field, n);
+                    } finally {
+                        latch.countDown(pc.getPrefix().toString());
+                    }
+
+                }
+            });
+        }
+
+        //
+        // Run the computation, sort the results and return.
+        try {
+            List<Future<List<Counted<String>>>> futures =
+                    new ArrayList<Future<List<Counted<String>>>>();
+            for(Callable c : callers) {
+                futures.add(executor.submit(c));
+            }
+
+            List<Counted<String>> l = new ArrayList<Counted<String>>();
+            for(Future<List<Counted<String>>> f : futures) {
+                l.addAll(f.get());
+            }
+            Counted[] arr = l.toArray(new Counted[0]);
+            com.sun.labs.minion.util.Util.sort(arr, Counted.INV_COUNT_COMPARATOR);
+            l.clear();
+
+            for(int i = 0; i < arr.length && i < n; i++) {
+                l.add(arr[i]);
+            }
+            return l;
+        } catch(ExecutionException ex) {
+            checkAndThrow(ex);
+            return new ArrayList<Counted<String>>();
+        } catch(InterruptedException ie) {
+            throw new AuraException("getTermCounts interrupted", ie);
+        }
+   }
     public List<Scored<String>> getExplanation(String key, String autoTag, int n)
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));

@@ -278,7 +278,10 @@ public interface PCStrategy {
                                                   int n)
             throws AuraException, RemoteException;
 
-    /**
+    public List<Counted<String>> getTermCounts(String term, String field, int n)
+            throws AuraException, RemoteException;
+    
+     /**
      * Get explanation terms for why a key was given an autotag
      */
     public List<Scored<String>> getExplanation(String key, String autoTag,

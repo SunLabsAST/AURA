@@ -919,6 +919,27 @@ public class ShellUtils {
                     }
                 });
 
+        shell.add("getTermCounts",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String term = args[1];
+                        String field = args.length > 2 ? args[2] : "content";
+                        List<Counted<String>> docs = dataStore.getTermCounts(term, field, nHits);
+                        for(Counted<String> doc : docs) {
+                            shell.getOutput().printf("%d %s\n", doc.getCount(),
+                                    doc.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "<term> [<field>] gets the top terms by count from the given field (default: content) in the given document.";
+                    }
+                });
+
         shell.add("explain",
                 new CommandInterface() {
 
