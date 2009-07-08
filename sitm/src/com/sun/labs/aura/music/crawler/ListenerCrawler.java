@@ -637,13 +637,13 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
 
     private void updateListenerTags(Listener listener) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
-        List<Scored<String>> scoredArtistIDs = mdb.getAllArtistsAsIDs(listener.getKey());
+        List<Scored<String>> scoredArtistIDs = mdb.getWeightedAttendedArtistsAsIDs(listener.getKey());
         double max = getMax(scoredArtistIDs);
         for (Scored<String> scoredArtistID : scoredArtistIDs) {
             Artist artist = mdb.artistLookup(scoredArtistID.getItem());
             double artistWeight = 100.0 * scoredArtistID.getScore() / max;
             if (artist != null) {
-                List<Tag> tags = artist.getSocialTags();
+                List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
                 for (Tag tag : tags) {
                     logger.finer("Adding " + tag.getName() + " " + tag.getCount() + " " + artistWeight + " " +
                             tag.getCount() * artistWeight);

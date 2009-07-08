@@ -214,7 +214,7 @@ public class MusicShell implements AuraService, Configurable {
                 String qname = sutils.stuff(args, 1);
                 Artist artist = findArtist(qname);
                 if (artist != null) {
-                    List<Tag> tags = artist.getSocialTags();
+                    List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
                     System.out.println("Frequent tags for " + artist.getName());
                     sutils.dumpTags(tags);
                     return "";
@@ -321,7 +321,7 @@ public class MusicShell implements AuraService, Configurable {
                     String qname = sutils.stuff(args, 1);
                     Artist artist = findArtist(qname);
                     if (artist != null) {
-                        List<Tag> tags = artist.getSocialTags();
+                        List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
                         for (Tag tag : tags) {
                             System.out.println(tag.getName());
                         }
@@ -679,13 +679,13 @@ public class MusicShell implements AuraService, Configurable {
     }
 
     private void repairTags(Artist artist) throws AuraException, RemoteException {
-        List<Tag> tags = artist.getSocialTags();
+        List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
         if (tags.size() > 0 && tags.get(0).getCount() == 101) {
             System.out.println("Fixing " + artist.getName());
             for (Tag tag : tags) {
                 int c = tag.getCount() - 1;
                 int score = c * c + 1;
-                artist.setSocialTag(tag.getName(), score);
+                artist.setTag(Artist.TagType.SOCIAL, tag.getName(), score);
             }
             artist.flush(musicDatabase.getDataStore());
         } else {
@@ -707,6 +707,7 @@ public class MusicShell implements AuraService, Configurable {
      * @param ps the property sheet
      * @throws com.sun.labs.util.props.PropertyException
      */
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
         artistCrawler = (Crawler) ps.getComponent(PROP_ARTIST_CRAWLER);

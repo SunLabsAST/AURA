@@ -45,7 +45,8 @@ public class AddAttentionData extends StandardService {
         addParam("srcKey", "the key of the attention source");
         addParam("tgtKey", "the key of the attentin target");
         addParam("type", "the type of the attention");
-        addParam("value", null, "the optional value associated with the attention type");
+        addParam("sval", null, "the optional string value associated with the attention type");
+        addParam("lval", null, "the optional long value associated with the attention type");
     }
 
     /** 
@@ -61,7 +62,8 @@ public class AddAttentionData extends StandardService {
         String srcKey = getParam(request, "srcKey");
         String destKey = getParam(request, "tgtKey");
         Attention.Type type = (Attention.Type) getParamAsEnum(request, "type", Attention.Type.values());
-        String value = getParam(request, "value");
+        String sval = getParam(request, "sval");
+        Long lval = new Long(getParam(request, "lval"));
 
         if (!mdb.isValidApplication(appKey)) {
             throw new ParameterException(ErrorCode.BadArgument, "not a valid application");
@@ -70,7 +72,7 @@ public class AddAttentionData extends StandardService {
         if (!mdb.hasAuthorization(appKey, DBOperation.AddAttention)) {
             throw new ParameterException(ErrorCode.NotAuthorized, "application not authorized to add attention data");
         }
-        mdb.addAttention(srcKey, destKey, type, value);
+        mdb.addAttention(srcKey, destKey, type, sval, lval);
     }
 
     /**

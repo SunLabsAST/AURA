@@ -319,7 +319,17 @@ public class MusicDatabase {
         }
     }
 
-    public void addAttention(String srcKey, String targetKey, Attention.Type type, String value)
+    /**
+     * Adds an attention
+     * @param srcKey the source key for the attention
+     * @param targetKey the target key for the attention
+     * @param type the type of attention
+     * @param value string value to be associated with the attention
+     * @throws AuraException
+     * @throws RemoteException
+     */
+    public void addAttention(String srcKey, String targetKey, 
+                            Attention.Type type, String sval, Long lval)
             throws AuraException, RemoteException {
 
         if (getDataStore().getItem(srcKey) == null) {
@@ -333,41 +343,32 @@ public class MusicDatabase {
         Attention attention = null;
         switch (type) {
             case PLAYED:
-                if (value == null) {
-                    value = "1";
+                if (lval == null) {
+                    lval = new Long(1);
                 }
-                try {
-                    Long lvalue = Long.parseLong(value);
-                    if (lvalue < 1 || lvalue > 1000) {
-                        throw new AuraException("Playcount out of valid range");
-                    }
-                    attention = StoreFactory.newAttention(srcKey, targetKey, type, lvalue);
-                } catch (NumberFormatException nfe) {
-                    throw new AuraException("value must be numeric");
+                if (lval < 1 || lval > 1000) {
+                    throw new AuraException("Playcount out of valid range");
                 }
+                attention = StoreFactory.newAttention(srcKey, targetKey, type,
+                        new Date(), lval, sval);
                 break;
             case RATING:
-                if (value == null) {
-                    throw new AuraException("rating attention must have a value");
+                if (lval == null || lval < 1 || lval > 5) {
+                    throw new AuraException("rating out of valid range (1-5)");
                 }
-                try {
-                    Long lvalue = Long.parseLong(value);
-                    if (lvalue < 1 || lvalue > 5) {
-                        throw new AuraException("rating out of valid range (1-5)");
-                    }
-                    attention = StoreFactory.newAttention(srcKey, targetKey, type, lvalue);
-                } catch (NumberFormatException nfe) {
-                    throw new AuraException("value must be numeric");
-                }
+                attention = StoreFactory.newAttention(srcKey, targetKey, type,
+                        new Date(), lval, sval);
                 break;
             case TAG:
-                if (value == null) {
-                    throw new AuraException("tag attention must have a value");
+                if (sval == null) {
+                    throw new AuraException("tag attention must have a string value");
                 }
-                attention = StoreFactory.newAttention(srcKey, targetKey, type, value);
+                attention = StoreFactory.newAttention(srcKey, targetKey, type,
+                        new Date(), lval, sval);
                 break;
             default:
-                attention = StoreFactory.newAttention(srcKey, targetKey, type);
+                attention = StoreFactory.newAttention(srcKey, targetKey, type,
+                        new Date(), lval, sval);
         }
         getDataStore().attend(attention);
     }
@@ -413,8 +414,8 @@ public class MusicDatabase {
     /**
      * Gets the Favorite artists IDs for a listener
      * @param listener the listener of interest
-     * @param max the maximum number to return
-     * @return the set of artist IDs
+     * @param max the maximum number of return. no particular order is garanteed
+     * @return the set of artist objects
      * @throws com.sun.labs.aura.util.AuraException
      * @throws java.rmi.RemoteException
      */
@@ -423,6 +424,14 @@ public class MusicDatabase {
         return artistLookup(keys);
     }
 
+    /**
+     * Gets the favorite artists' keys for a listener
+     * @param listenerID the listener of interest
+     * @param max the maximum number of return. no particular order is garanteed
+     * @return the set of artist IDs
+     * @throws AuraException
+     * @throws RemoteException
+     */
     public Set<String> getFavoriteArtistKeys(String listenerID, int max) throws AuraException, RemoteException {
         Listener listener = getListener(listenerID);
         List<Tag> tags = listener.getAggregatedPlayCount();
@@ -436,6 +445,15 @@ public class MusicDatabase {
         return results;
     }
 
+    /**
+     * Gets the set of artistIds that have the RATED, VIEWED or PLAYED attention associated
+     * with them and a particular listener
+     * @param listenerID the listener of interest
+     * @param max the maximum number of return. no particular order is garanteed
+     * @return the set of artist ids
+     * @throws AuraException
+     * @throws RemoteException
+     */
     public Set<String> getAttendedToArtists(String listenerID, int max) throws AuraException, RemoteException {
         Set<String> results = new HashSet<String>();
         results.addAll(getAttendedToArtists(listenerID, Attention.Type.RATING, max - results.size()));
@@ -566,20 +584,11 @@ public class MusicDatabase {
         return sm.getAll();
     }
 
-    public List<Scored<String>> getAllArtistsAsIDs(String listenerID) throws AuraException, RemoteException {
-        ScoredManager<String> sm = new ScoredManager();
-        AttentionConfig ac = new AttentionConfig();
-        ac.setSourceKey(listenerID);
-        List<Attention> attns = getDataStore().getLastAttention(ac, MAX_ATTENTION_GET);
-        for (Attention attn : attns) {
-            if (isArtist(attn.getTargetKey())) {
-                sm.accum(attn.getTargetKey(), getAttentionScore(attn));
-            }
-        }
-        return sm.getAll();
+    public List<Scored<String>> getWeightedAttendedArtistsAsIDs(String listenerID) throws AuraException, RemoteException {
+        return getWeightedAttendedArtistsAsIDs(listenerID, MAX_ATTENTION_GET);
     }
 
-    public List<Scored<String>> getAllArtistsAsIDs(String listenerID, int max) throws AuraException, RemoteException {
+    public List<Scored<String>> getWeightedAttendedArtistsAsIDs(String listenerID, int max) throws AuraException, RemoteException {
         ScoredManager<String> sm = new ScoredManager();
         AttentionConfig ac = new AttentionConfig();
         ac.setSourceKey(listenerID);
@@ -679,8 +688,7 @@ public class MusicDatabase {
         return getDataStore().getLastAttention(ac, count);
     }
 
-    public TagCloud tagCloudCreate(
-            String id, String name) throws AuraException {
+    public TagCloud tagCloudCreate(String id, String name) throws AuraException {
         if (getTagCloud(id) == null) {
             Item item = StoreFactory.newItem(ItemType.TAG_CLOUD, id, name);
             return new TagCloud(item);
@@ -690,8 +698,7 @@ public class MusicDatabase {
 
     }
 
-    public TagCloud getTagCloud(
-            String id) throws AuraException {
+    public TagCloud getTagCloud(String id) throws AuraException {
         try {
             Item item = getDataStore().getItem(id);
             return new TagCloud(item);
@@ -804,8 +811,7 @@ public class MusicDatabase {
      * @return the artist or null if the artist could not be found
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public Artist artistLookup(
-            String artistID) throws AuraException {
+    public Artist artistLookup(String artistID) throws AuraException {
         Item item = getItem(artistID);
         if (item != null) {
             typeCheck(item, ItemType.ARTIST);
@@ -849,8 +855,7 @@ public class MusicDatabase {
         return recommendationManager.getArtistRecommendationTypes();
     }
 
-    public RecommendationType getArtistRecommendationType(
-            String recTypeName) {
+    public RecommendationType getArtistRecommendationType(String recTypeName) {
         return recommendationManager.getArtistRecommendationType(recTypeName);
     }
 
@@ -1016,14 +1021,14 @@ public class MusicDatabase {
     }
 
     /**
-     * Find the most similar listenr to a given listeners
+     * Find the most similar listenr to a given listeners based on their listener habbits
      * @param userID the ID of the user
      * @param count the number of similar listeners to return
      * @return a list of listeners scored by their similarity to the seed listener.
      * @throws com.sun.labs.aura.util.AuraException
      */
     public List<Scored<Listener>> listenerFindSimilar(String userID, int count) throws AuraException {
-        return listenerFindSimilar(userID, null, count);
+        return listenerFindSimilar(userID, Listener.FIELD_AGGREGATED_PLAY_HISTORY, count);
     }
 
     /**

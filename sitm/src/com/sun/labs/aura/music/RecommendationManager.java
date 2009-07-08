@@ -314,7 +314,7 @@ public class RecommendationManager {
                 if (otherListenerID.equals(listenerID)) {
                     continue;
                 }
-                List<Scored<String>> scoredKeys = mdb.getAllArtistsAsIDs(otherListenerID, count);
+                List<Scored<String>> scoredKeys = mdb.getWeightedAttendedArtistsAsIDs(otherListenerID, count);
                 for (Scored<String> scoredKey : scoredKeys) {
                     if (!skipIDs.contains(scoredKey.getItem())) {
                         Artist artist = mdb.artistLookup(scoredKey.getItem());
