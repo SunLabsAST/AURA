@@ -33,6 +33,7 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.WeightedField;
 import com.sun.labs.minion.util.NanoWatch;
@@ -101,7 +102,7 @@ public class ShellUtils {
         this.dataStore = aDataStore;
         this.statService = aStatService;
         setDisplayFields(new String[] {"_score", "aura-type", "aura-key"});
-        setDisplayFormat(" %.3s %s %s\n");
+        setDisplayFormat(" %.3f %s %s\n");
 
         shell.add("displayFields",
                 new CommandInterface() {
@@ -916,6 +917,27 @@ public class ShellUtils {
 
                     public String getHelp() {
                         return "<key> [<field>] gets the top terms by count from the given field (default: content) in the given document.";
+                    }
+                });
+
+        shell.add("getTermCounts",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args)
+                            throws Exception {
+                        String term = args[1];
+                        String field = args.length > 2 ? args[2] : "content";
+                        List<Counted<String>> docs = dataStore.getTermCounts(term, field, nHits, new TypeFilter(ItemType.ARTIST));
+                        for(Counted<String> doc : docs) {
+                            shell.getOutput().printf("%d %s\n", doc.getCount(),
+                                    doc.getItem());
+                        }
+
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "<term> [<field>] gets the top terms by count from the given field (default: content) in the given document.";
                     }
                 });
 

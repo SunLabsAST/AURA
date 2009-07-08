@@ -21,11 +21,10 @@
  * Park, CA 94025 or visit www.sun.com if you need additional
  * information or have any questions.
  */
-
 package com.sun.labs.aura.util;
 
-
 import java.io.Serializable;
+import java.util.Comparator;
 
 /**
  * Items that have a count associated with them.
@@ -35,14 +34,14 @@ public class Counted<T extends Comparable<T>> implements Serializable {
 
     private T item;
 
-    private long count;
+    private int count;
 
     /**
      * Creates a scored item
      * @param item the item
      * @param count the count
      */
-    public Counted(T item, long count) {
+    public Counted(T item, int count) {
         this.item = item;
         this.count = count;
     }
@@ -54,7 +53,7 @@ public class Counted<T extends Comparable<T>> implements Serializable {
     public T getItem() {
         return item;
     }
-    
+
     public String toString() {
         return String.format("<%d, %s>", count, item.toString());
     }
@@ -63,14 +62,14 @@ public class Counted<T extends Comparable<T>> implements Serializable {
      * Gets the score of the item
      * @return  the score for the scored item
      */
-    public long getCount() {
+    public int getCount() {
         return count;
     }
 
-    public void setCount(long count) {
+    public void setCount(int count) {
         this.count = count;
     }
-    
+
     public boolean equals(Object o) {
         if(o == null) {
             return false;
@@ -86,11 +85,11 @@ public class Counted<T extends Comparable<T>> implements Serializable {
         Counted c = (Counted) o;
         return item.equals(c.item) && count == c.count;
     }
-    
+
     public int hashCode() {
         return item.hashCode();
     }
-    
+
     public int compareTo(Counted<T> o) {
         int cmp = ((Comparable) item).compareTo(o);
         if(cmp == 0) {
@@ -103,4 +102,20 @@ public class Counted<T extends Comparable<T>> implements Serializable {
         }
         return cmp;
     }
+    public static final Comparator<Counted> COUNT_COMPARATOR = new Comparator<Counted>() {
+
+        @Override
+        public int compare(Counted o1, Counted o2) {
+            return o1.count - o2.count;
+        }
+    };
+
+    public static final Comparator<Counted> INV_COUNT_COMPARATOR = new Comparator<Counted>() {
+
+        @Override
+        public int compare(Counted o1, Counted o2) {
+            return o2.count - o1.count;
+        }
+    };
+
 }

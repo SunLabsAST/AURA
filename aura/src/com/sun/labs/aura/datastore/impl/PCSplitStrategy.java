@@ -446,6 +446,11 @@ public class PCSplitStrategy implements PCStrategy {
         return ret;
     }
 
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
+            throws AuraException, RemoteException {
+        return local.getTermCounts(term, field, n, rf);
+    }
+
     public List<Scored<String>> getExplanation(String key, String autoTag, int n) throws AuraException, RemoteException {
         //
         // fetch the local copy then see if there is a newer one on the remote

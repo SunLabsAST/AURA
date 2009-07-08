@@ -21,7 +21,6 @@
  * Park, CA 94025 or visit www.sun.com if you need additional
  * information or have any questions.
  */
-
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sun.labs.aura.datastore.Item;
@@ -46,8 +45,9 @@ import java.util.List;
  * @see ItemSearch
  */
 public interface LowLevelSearch extends Remote {
-    
-    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException;
+
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws
+            AuraException, RemoteException;
 
     /**
      * Gets the most frequent values for the named field.
@@ -60,7 +60,8 @@ public interface LowLevelSearch extends Remote {
      * @throws java.rmi.RemoteException
      */
     public List<FieldFrequency> getTopValues(String field, int n,
-            boolean ignoreCase) throws AuraException, RemoteException;
+                                             boolean ignoreCase) throws
+            AuraException, RemoteException;
 
     /**
      * Runs a query against the map data and returns the top n results.
@@ -78,7 +79,8 @@ public interface LowLevelSearch extends Remote {
      * @param n the number of results to return
      * @return the top results for the query
      */
-    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, String sort, int n,
+                                      ResultsFilter rf)
             throws AuraException, RemoteException;
 
     /**
@@ -90,7 +92,8 @@ public interface LowLevelSearch extends Remote {
      * @return the keys for the top results for the query
      */
     public List<Scored<String>> query(Element query, int n,
-            ResultsFilter rf) throws AuraException, RemoteException;
+                                      ResultsFilter rf) throws AuraException,
+            RemoteException;
 
     /**
      * Runs a query against the map data and returns the top n results.
@@ -103,14 +106,17 @@ public interface LowLevelSearch extends Remote {
      * criteria.
      */
     public List<Scored<String>> query(Element query, String sort, int n,
-            ResultsFilter rf) throws AuraException, RemoteException;
+                                      ResultsFilter rf) throws AuraException,
+            RemoteException;
 
-    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config)
+    public MarshalledObject<DocumentVector> getDocumentVector(String key,
+                                                              SimilarityConfig config)
             throws AuraException, RemoteException;
-    
-    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config)
+
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud,
+                                                              SimilarityConfig config)
             throws AuraException, RemoteException;
-    
+
     /**
      * Finds a the n most similar items to the given vector.
      * @param dv the vector for the item that we want to find similar items to
@@ -119,8 +125,9 @@ public interface LowLevelSearch extends Remote {
      * similarity to the given item.  The similarity of the items is based on 
      * all of the indexed text associated with the item in the data store.
      */
-    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> dv,
-            MarshalledObject<SimilarityConfig> config)
+    public MarshalledObject<List<Scored<String>>> findSimilar(
+            MarshalledObject<DocumentVector> dv,
+                                                              MarshalledObject<SimilarityConfig> config)
             throws AuraException, RemoteException;
 
     /**
@@ -152,6 +159,9 @@ public interface LowLevelSearch extends Remote {
                                                   int n)
             throws AuraException, RemoteException;
 
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
+            throws AuraException, RemoteException;
+
     /**
      * Gets an explanation as to why a given autotag would be applied to 
      * a given document.
@@ -164,9 +174,9 @@ public interface LowLevelSearch extends Remote {
      * contribution towards the autotagging.
      */
     public List<Scored<String>> getExplanation(String key, String autoTag,
-            int n)
+                                               int n)
             throws AuraException, RemoteException;
-    
+
     /**
      * Gets the items that have had a given autotag applied to them.
      * @param autotag the tag that we want items to have been assigned
@@ -214,6 +224,6 @@ public interface LowLevelSearch extends Remote {
      * @throws java.rmi.RemoteException
      */
     public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
-            int n)
+                                                       int n)
             throws AuraException, RemoteException;
 }
