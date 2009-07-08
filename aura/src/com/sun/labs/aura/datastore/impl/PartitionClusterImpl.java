@@ -370,9 +370,9 @@ public class PartitionClusterImpl implements PartitionCluster,
         return strategy.getTopTermCounts(key, field, n);
     }
     
-    public List<Counted<String>> getTermCounts(String term, String field, int n)
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return strategy.getTermCounts(term, field, n);
+        return strategy.getTermCounts(term, field, n, rf);
     }
 
     public List<Scored<String>> getExplanation(String key, String autoTag,

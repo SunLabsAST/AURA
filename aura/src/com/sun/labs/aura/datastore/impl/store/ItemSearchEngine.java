@@ -59,6 +59,7 @@ import com.sun.labs.minion.query.Relation;
 import com.sun.labs.minion.retrieval.CompositeDocumentVectorImpl;
 import com.sun.labs.minion.retrieval.DocumentVectorImpl;
 import com.sun.labs.minion.retrieval.FieldEvaluator;
+import com.sun.labs.minion.retrieval.ResultAccessorImpl;
 import com.sun.labs.minion.retrieval.ResultImpl;
 import com.sun.labs.minion.retrieval.ResultSetImpl;
 import com.sun.labs.minion.util.DirCopier;
@@ -622,7 +623,7 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
-    public List<Counted<String>> getTermCounts(String term, String field, int n)
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         FieldInfo fi = engine.getFieldInfo(field);
         if(fi == null) {
@@ -631,17 +632,37 @@ public class ItemSearchEngine implements Configurable {
         PostingsIteratorFeatures feat = new PostingsIteratorFeatures();
         feat.setFields(((SearchEngineImpl) engine).getPM().getMetaFile().getFieldArray(field));
         List<Counted<String>> ret = new ArrayList<Counted<String>>();
+
+        ResultAccessorImpl ri = null;
+        if(rf != null) {
+            ri= new ResultAccessorImpl();
+        }
         for(DiskPartition p : ((SearchEngineImpl) engine).getPM().
                 getActivePartitions()) {
             QueryEntry qe = p.getTerm(term);
             if(qe == null) {
                 continue;
             }
+            if(ri != null) {
+                ri.setPartition((InvFileDiskPartition) p);
+            }
             PostingsIterator pi = qe.iterator(feat);
             while(pi.next()) {
                 //
-                // The document key is the string that we'll store.
+                // We won't return deleted documents.
                 if(!p.isDeleted(pi.getID())) {
+
+                    //
+                    // We won't return documents that don't pass the filter.
+                    if(rf != null) {
+                        ri.setCurrDoc(pi.getID());
+                        if(!rf.filter(ri)) {
+                            continue;
+                        }
+                    }
+
+                    //
+                    // Return the document key and the frequency.
                     DocKeyEntry dke = p.getDocumentTerm(pi.getID());
                     ret.add(new Counted<String>(dke.getName().toString(),
                                                 pi.getFreq()));

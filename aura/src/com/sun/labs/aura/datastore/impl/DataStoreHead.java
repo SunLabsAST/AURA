@@ -1259,7 +1259,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         return pc.getTopTermCounts(key, field, n);
     }
-    public List<Counted<String>> getTermCounts(final String term, final String field, final int n)
+    public List<Counted<String>> getTermCounts(final String term, final String field, final int n, ResultsFilter rf)
             throws AuraException, RemoteException {
         
         Set<PartitionCluster> clusters = trie.getAll();
@@ -1271,7 +1271,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Here's our list of callers to find similar.  Each one will be given
         // a handle to a countdown latch to watch when they finish.
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, (ResultsFilter) null) {
+            callers.add(new PCCaller(p, rf) {
 
                 public List<Counted<String>> call()
                         throws AuraException, RemoteException {
@@ -1282,11 +1282,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                             } catch(InterruptedException ie) {
                             }
                         }
-                        if(logger.isLoggable(Level.FINER)) {
-                            logger.finer(String.format("dsh pc %s fs call", pc.
-                                    getPrefix().toString()));
-                        }
-                            return pc.getTermCounts(term, field, n);
+                        return pc.getTermCounts(term, field, n, rf);
                     } finally {
                         latch.countDown(pc.getPrefix().toString());
                     }

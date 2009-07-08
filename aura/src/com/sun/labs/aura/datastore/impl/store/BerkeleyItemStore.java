@@ -1111,9 +1111,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         exit(state);
         return ret;
     }
-    public List<Counted<String>> getTermCounts(String term, String field, int n)
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
             throws AuraException, RemoteException {
-        return searchEngine.getTermCounts(term, field, n);
+        return searchEngine.getTermCounts(term, field, n, rf);
     }
     @Override
     public List<Scored<String>> getExplanation(String key, String autoTag,

@@ -193,7 +193,7 @@ public interface ItemSearch {
      * @throws AuraException
      * @throws RemoteException
      */
-    public List<Counted<String>> getTermCounts(String term, String field, int n)
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
 
     /**

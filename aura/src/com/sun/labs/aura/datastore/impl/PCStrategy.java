@@ -278,7 +278,7 @@ public interface PCStrategy {
                                                   int n)
             throws AuraException, RemoteException;
 
-    public List<Counted<String>> getTermCounts(String term, String field, int n)
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
             throws AuraException, RemoteException;
     
      /**
