@@ -48,6 +48,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ShellUtils;
 import com.sun.labs.aura.service.StatService;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.util.command.CommandInterface;
@@ -469,15 +470,15 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
-        shell.add("findListenersForArtist", new CommandInterface() {
+        shell.add("getListenersForArtist", new CommandInterface() {
 
             @Override
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 String artistID = args[1];
-                List<Scored<Listener>> lL = musicDatabase.getListenersForArtist(artistID, 10);
+                List<Counted<String>> lL = musicDatabase.getListenersIdsForArtist(artistID, 10);
                 if (lL.size() > 0) {
-                    for (Scored<Listener> sL : lL) {
-                        System.out.println("    "+sL.getItem().getLastFmName()+"      "+sL.getScore());
+                    for (Counted<String> sL : lL) {
+                        System.out.println("    "+sL.getItem()+"      "+sL.getCount());
                     }
                 } else {
                     System.out.println("    No listeners found.");

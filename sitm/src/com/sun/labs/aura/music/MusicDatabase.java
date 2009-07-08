@@ -35,6 +35,7 @@ import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.RemoteMultiComponentManager;
@@ -48,7 +49,6 @@ import com.sun.labs.minion.query.Element;
 import com.sun.labs.minion.query.Equals;
 import com.sun.labs.minion.query.Not;
 import com.sun.labs.minion.query.Substring;
-import com.sun.labs.minion.query.Term;
 import com.sun.labs.minion.query.Undefined;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
@@ -510,7 +510,7 @@ public class MusicDatabase {
             PyList items = pyDict.keys();
             for (int i=0; i<items.size(); i++) {
                 String artistId =  (String) items.get(i);
-                if (isArtist(artistId)) {
+                if (isMbid(artistId)) {
                     results.add(artistId);
                 }
                 if (results.size()>=max) {
@@ -573,7 +573,7 @@ public class MusicDatabase {
         try {
             while (attentionIterator.hasNext()) {
                 Attention attn = attentionIterator.next();
-                if (isArtist(attn.getTargetKey())) {
+                if (isMbid(attn.getTargetKey())) {
                     sm.accum(attn.getTargetKey(), getAttentionScore(attn));
                 }
 
@@ -594,7 +594,7 @@ public class MusicDatabase {
         ac.setSourceKey(listenerID);
         List<Attention> attns = getDataStore().getLastAttention(ac, max);
         for (Attention attn : attns) {
-            if (isArtist(attn.getTargetKey())) {
+            if (isMbid(attn.getTargetKey())) {
                 sm.accum(attn.getTargetKey(), getAttentionScore(attn));
             }
 
@@ -630,7 +630,7 @@ public class MusicDatabase {
      * @param id MusicBrainz to validate
      * @return weather the given id is a valid MusicBrainz id
      */
-    public boolean isArtist(String id) {
+    public boolean isMbid(String id) {
         if (id != null) {
             return mbidRegex.matcher(id).matches();
         }
@@ -641,20 +641,12 @@ public class MusicDatabase {
      * Gets the top listeners for an artist
      * @param artistId artist key
      * @param count number of listeners to return
-     * @return
-     * @throws AuraException
-     * @throws RemoteException
+     * @return a sorted list of counted listener ids
      */
-    public List<Scored<Listener>> getListenersForArtist(String artistId, int count)
+    public List<Counted<String>> getListenersIdsForArtist(String artistId, int count) 
             throws AuraException, RemoteException {
-        // Get all listeners that have listened to the current artist
-        Equals qE = new Equals("aura-type", ItemType.USER.toString());
-        Term mbid = new Term(artistId);
-        mbid.addField(Listener.FIELD_AGGREGATED_PLAY_HISTORY);
-        And a1 = new And(qE, mbid);
-
-        return convertToScoredListenerList(getDataStore().query(a1,
-                "-" + Listener.FIELD_AGGREGATED_PLAY_HISTORY, count, null));
+        return getDataStore().getTermCounts(artistId, 
+                Listener.FIELD_AGGREGATED_PLAY_HISTORY, count, new TypeFilter(ItemType.USER));
     }
 
     public List<Scored<Artist>> getRecommendations(String listenerID, int max) throws AuraException, RemoteException {
