@@ -209,6 +209,8 @@ public class ItemFormatter {
         if (o instanceof Tag) {
             Tag t = (Tag) o;
             return "<" + fieldName + " name=\"" + Util.filter(t.getName()) + "\" freq=\"" + t.getCount() + "\"/>";
+        } else if (o == null) {
+            return String.format("<%s>null</%s>", fieldName, fieldName);
         } else {
             return "<" + fieldName + ">" + Util.filter(o.toString()) + "</" + fieldName + ">";
         }
