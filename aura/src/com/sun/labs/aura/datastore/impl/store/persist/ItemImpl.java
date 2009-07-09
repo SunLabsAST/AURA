@@ -36,12 +36,14 @@ import com.sleepycat.persist.model.SecondaryKey;
 import com.sleepycat.persist.raw.RawObject;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
+import com.sun.labs.minion.util.LRACache;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.Adler32;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -59,7 +62,7 @@ import java.util.zip.GZIPOutputStream;
  */
 @Entity(version = 2)
 public class ItemImpl implements Item {
-    private static final long serialVersionUID = 2;
+    private static final long serialVersionUID = 3;
     
     /** Items also have String keys that for now we'll say are unique */
     @PrimaryKey
@@ -78,7 +81,14 @@ public class ItemImpl implements Item {
     
     /** Persistent data for the HashMap of values */
     protected byte[] mapBytes;
-    
+
+    /**
+     * The mapCache is a map from item key to a pair of checksum(mapBytes) and
+     * the deserialized map.  To use it, look up a pair via the item key, then
+     * see if the cached checksum matches the current one.  If so, use the map.
+     */
+    protected static Map<String,ItemMapHolder> mapCache;
+
     /** Instantiated hashmap from the mapBytes */
     private transient HashMap<String,Serializable> map = null;
     
@@ -180,6 +190,13 @@ public class ItemImpl implements Item {
         getMap();
         return map.get(field);
     }
+
+    private static Map<String,ItemMapHolder> getMapCache() {
+        if (mapCache == null) {
+            mapCache = Collections.synchronizedMap(new LRACache<String,ItemMapHolder>(2500));
+        }
+        return mapCache;
+    }
     
     /**
      * Gets the internal copy of the map used by this item.
@@ -187,6 +204,22 @@ public class ItemImpl implements Item {
      */
     private void getMap() {
         if (map == null && mapBytes != null && mapBytes.length > 0) {
+            //
+            // consult the cache to see if we've recently derserialized
+            // this object
+            ItemMapHolder imh = getMapCache().get(getKey());
+            if (imh != null) {
+                //
+                // We have a cache value, does it match?
+                Adler32 sum = new Adler32();
+                sum.update(mapBytes);
+                if (imh.getSum() == sum.getValue()) {
+                    map = imh.getMap();
+                    return;
+                }
+            }
+
+
             // deserialize mapBytes into map object
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream(mapBytes);
@@ -199,6 +232,13 @@ public class ItemImpl implements Item {
                 logger.log(Level.WARNING,
                         "Map serialization failed for item " + this, e);
             }
+
+            //
+            // cache this map in case we need to deserialize it again soon
+            Adler32 sum = new Adler32();
+            sum.update(mapBytes);
+            getMapCache().put(getKey(), new ItemMapHolder(sum.getValue(), map));
+
         } else if (map == null) {
             map = new HashMap<String,Serializable>();
         }
@@ -316,6 +356,24 @@ public class ItemImpl implements Item {
         @Override
         public boolean equals(Object o) {
             return o instanceof GZIPConversion;
+        }
+    }
+
+    static class ItemMapHolder {
+        protected Long checksum;
+        protected HashMap<String,Serializable> map;
+        
+        public ItemMapHolder(Long checksum, HashMap<String,Serializable> map) {
+            this.checksum = checksum;
+            this.map = map;
+        }
+
+        public Long getSum() {
+            return checksum;
+        }
+
+        public HashMap<String,Serializable> getMap() {
+            return map;
         }
     }
 }
