@@ -532,7 +532,7 @@ public class DataManager implements Configurable {
             userKey = decryptUserKey(userKey);
         }
         if (target!=null) {
-            mdb.addAttention(userKey, target, Attention.Type.SEARCH, searchValue);
+            mdb.addAttention(userKey, target, Attention.Type.SEARCH, searchValue, null);
         }
     }
 

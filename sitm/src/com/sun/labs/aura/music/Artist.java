@@ -28,6 +28,7 @@ import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
@@ -852,6 +853,16 @@ public class Artist extends ItemAdapter {
      */
     public void setListenersPlayCount(String listenerId, int count) {
         setTag(FIELD_LISTENER_PLAY_COUNTS, listenerId, count);
+    }
+
+    /**
+     * Sets the play count for a list of listeners
+     * @param listeners list of counted listeners
+     */
+    public void setListenersPlayCount(List<Counted<String>> listeners) {
+        for (Counted<String> cL : listeners) {
+            setListenersPlayCount(cL.getItem(), (int)cL.getCount());
+        }
     }
 
     /**

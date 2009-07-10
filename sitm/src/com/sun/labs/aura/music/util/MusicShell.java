@@ -48,6 +48,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ShellUtils;
 import com.sun.labs.aura.service.StatService;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.Tag;
 import com.sun.labs.aura.util.WordCloud;
 import com.sun.labs.util.command.CommandInterface;
@@ -214,7 +215,7 @@ public class MusicShell implements AuraService, Configurable {
                 String qname = sutils.stuff(args, 1);
                 Artist artist = findArtist(qname);
                 if (artist != null) {
-                    List<Tag> tags = artist.getSocialTags();
+                    List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
                     System.out.println("Frequent tags for " + artist.getName());
                     sutils.dumpTags(tags);
                     return "";
@@ -321,7 +322,7 @@ public class MusicShell implements AuraService, Configurable {
                     String qname = sutils.stuff(args, 1);
                     Artist artist = findArtist(qname);
                     if (artist != null) {
-                        List<Tag> tags = artist.getSocialTags();
+                        List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
                         for (Tag tag : tags) {
                             System.out.println(tag.getName());
                         }
@@ -469,15 +470,15 @@ public class MusicShell implements AuraService, Configurable {
             }
         });
 
-        shell.add("findListenersForArtist", new CommandInterface() {
+        shell.add("getListenersForArtist", new CommandInterface() {
 
             @Override
             public String execute(CommandInterpreter ci, String[] args) throws Exception {
                 String artistID = args[1];
-                List<Scored<Listener>> lL = musicDatabase.getListenersForArtist(artistID, 10);
+                List<Counted<String>> lL = musicDatabase.getListenersIdsForArtist(artistID, 10);
                 if (lL.size() > 0) {
-                    for (Scored<Listener> sL : lL) {
-                        System.out.println("    "+sL.getItem().getLastFmName()+"      "+sL.getScore());
+                    for (Counted<String> sL : lL) {
+                        System.out.println("    "+sL.getItem()+"      "+sL.getCount());
                     }
                 } else {
                     System.out.println("    No listeners found.");
@@ -679,13 +680,13 @@ public class MusicShell implements AuraService, Configurable {
     }
 
     private void repairTags(Artist artist) throws AuraException, RemoteException {
-        List<Tag> tags = artist.getSocialTags();
+        List<Tag> tags = artist.getTags(Artist.TagType.SOCIAL);
         if (tags.size() > 0 && tags.get(0).getCount() == 101) {
             System.out.println("Fixing " + artist.getName());
             for (Tag tag : tags) {
                 int c = tag.getCount() - 1;
                 int score = c * c + 1;
-                artist.setSocialTag(tag.getName(), score);
+                artist.setTag(Artist.TagType.SOCIAL, tag.getName(), score);
             }
             artist.flush(musicDatabase.getDataStore());
         } else {
@@ -707,6 +708,7 @@ public class MusicShell implements AuraService, Configurable {
      * @param ps the property sheet
      * @throws com.sun.labs.util.props.PropertyException
      */
+    @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         tagCrawler = (TagCrawler) ps.getComponent(PROP_TAG_CRAWLER);
         artistCrawler = (Crawler) ps.getComponent(PROP_ARTIST_CRAWLER);

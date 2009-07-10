@@ -67,6 +67,7 @@ import com.sun.labs.aura.music.web.wikipedia.WikiInfo;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.youtube.Youtube2;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
@@ -681,6 +682,15 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
         });
 
+        runner.add(new Commander("listenerPlayCount") {
+
+            @Override
+            public void go() throws Exception {
+                artist.clearListenersPlayCounts();
+                artist.setListenersPlayCount(mdb.getListenersIdsForArtist(artist.getKey(), Integer.MAX_VALUE));
+            }
+        });
+
         try {
             runner.go();
         } catch (Exception e) {
@@ -724,10 +734,12 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         incrementModCounter(cnt);
     }
 
+    /**
+     * For each artist, update the listener play count vector.
+     * @throws AuraException
+     * @throws RemoteException
+     */
     private void updateListenerPlayCounts() throws AuraException, RemoteException {
-
-        if (true)
-        throw new UnsupportedOperationException("Not supported yet.");
 
         // Go through all artists
         DBIterator<Item> iter = getDataStore().getAllIterator(ItemType.ARTIST);
@@ -736,8 +748,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 Artist a = (Artist) iter.next();
                 a.clearListenersPlayCounts();
 
-                for (Scored<Listener> sL : mdb.getListenersForArtist(a.getKey(), Integer.MAX_VALUE)) {
-                    a.setListenersPlayCount(sL.getItem().getKey(), (int)sL.getScore());
+                for (Counted<String> cL : mdb.getListenersIdsForArtist(a.getKey(), Integer.MAX_VALUE)) {
+                    a.setListenersPlayCount(cL.getItem(), (int)cL.getCount());
                 }
                 mdb.flush(a);
             }
@@ -746,7 +758,6 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         }
 
     }
-
 
     private void addMusicBrainzInfoIfNecessary(Artist artist) throws AuraException, RemoteException {
 
