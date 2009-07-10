@@ -1,0 +1,26 @@
+<config>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraGroup" value="live-aura"/>
+    <property name="logLevel" value="WARNING"/>
+
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore" />
+
+    <component name="bridge" type="com.sun.labs.aura.bridge.AuraBridge">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="logLevel" value="INFO"/>
+    </component>
+
+    <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>bridge</item>
+        </propertylist>
+    </component>
+
+</config>
