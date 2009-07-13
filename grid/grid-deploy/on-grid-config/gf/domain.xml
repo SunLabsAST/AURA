@@ -166,7 +166,7 @@
           </protocol>
         </protocols>
         <network-listeners>
-          <network-listener port="80" protocol="http-listener-1" transport="tcp" name="http-listener-1" thread-pool="http-thread-pool" />
+          <network-listener port="80" protocol="http-listener-1" transport="tcp" name="http-listener-1" thread-pool="thread-pool-1" />
           <network-listener port="8181" enabled="false" protocol="http-listener-2" transport="tcp" name="http-listener-2" thread-pool="http-thread-pool" />
           <network-listener port="4848" protocol="admin-listener" transport="tcp" name="admin-listener" thread-pool="http-thread-pool" />
         </network-listeners>
@@ -176,7 +176,7 @@
       </network-config>
       <thread-pools>
         <thread-pool name="http-thread-pool" max-queue-size="4096" />
-        <thread-pool max-thread-pool-size="200" name="thread-pool-1" />
+        <thread-pool max-thread-pool-size="200" min-thread-pool-size="150" name="thread-pool-1" />
       </thread-pools>
     </config>
   </configs>

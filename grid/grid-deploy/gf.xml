@@ -49,11 +49,11 @@
       <arg value="-Xmx1400m"/>
       <arg value="-Xms1400m"/>
       <arg value="-Xss128k"/>
-      <arg value="-XX:+DisableExplicitGC"/>
+      <!--<arg value="-XX:+DisableExplicitGC"/>
       <arg value="-XX:+UseParallelOldGC"/>
       <arg value="-Dcom.sun.enterprise.server.ss.ASQuickStartup=false"/>
       <arg value="-XX:+AggressiveOpts"/>
-      <arg value="-XX:-UseBiasedLocking"/>
+      <arg value="-XX:-UseBiasedLocking"/> -->
 
       <!-- Standard stuff for GF -->
       <arg value="-XX:+UnlockDiagnosticVMOptions"/>
