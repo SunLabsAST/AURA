@@ -1,0 +1,26 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+
+STARTER=$1
+if [ -z "$STARTER" ] ; then
+    STARTER=createVPN
+fi
+
+AWK=gawk
+if [ -z "`which $AWK`" ]; then
+    AWK=awk
+fi
+
+INSTANCE=`$AWK -F= '/instance/ {gsub(/ /,"",$2); print $2}' ~/.caroline`
+
+
+echo starter:  $STARTER
+echo instance: $INSTANCE
+
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME \
+    com.sun.labs.aura.AuraServiceStarter \
+    /com/sun/labs/aura/grid/aura/auraConfig.xml $STARTER
+

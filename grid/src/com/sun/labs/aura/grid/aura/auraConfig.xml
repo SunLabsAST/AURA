@@ -85,6 +85,12 @@
         <property name="destroy" value="true"/>
     </component>
 
+    <component name="createAuraVPN" type="com.sun.labs.aura.grid.aura.CreateVPN">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numAddresses" value="3"/>
+    </component>
+
     <component name="create" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>createAura</item>
@@ -151,6 +157,13 @@
     <component name="stopad" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>stopAuraAndDestroyAll</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="createVPN" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>createAuraVPN</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
