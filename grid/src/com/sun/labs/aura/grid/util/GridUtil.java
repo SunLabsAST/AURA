@@ -47,6 +47,7 @@ import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.caroline.platform.StartFailureException;
 import com.sun.caroline.platform.StorageManagementException;
+import com.sun.caroline.platform.VpnConfiguration;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -639,6 +640,23 @@ public class GridUtil {
         } catch(DuplicateNameException dne) {
             NetworkSetting ns = grid.getNetworkSetting(natName);
             ns.changeConfiguration(netConf);
+        }
+    }
+
+    /**
+     * Creates a VPN with the given addresses available for use by clients.
+     * 
+     * @param availableAddresses up to six addresses to use for clients
+     */
+    public void createVPN(List<UUID> availableAddresses) throws Exception {
+        VpnConfiguration vpn = new VpnConfiguration(availableAddresses,
+                                                    instance + "-auraNet");
+        String vpnName = instance + "-vpn";
+        try {
+            grid.createNetworkSetting(vpnName, vpn);
+        } catch (DuplicateNameException dne) {
+            NetworkSetting ns = grid.getNetworkSetting(vpnName);
+            ns.changeConfiguration(vpn);
         }
     }
 
