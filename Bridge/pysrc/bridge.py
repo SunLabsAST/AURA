@@ -38,44 +38,79 @@ class AuraBridge():
         self._bridge = AuraBridge()
 
 
-    def getItem(self, key):
-        """
-        Gets an item from the store
-        """
-	return self._bridge.pyGetItem(key)
+#############################################
+#   Implementation of ItemStore interface   #
+#############################################
+    def get_item(self, key):
+        """Gets an item from the store"""
+	return self._bridge.getItem(key)
 
 
-    def getItems(self, keys):
-        """
-        Gets a list of items from the store
-        """
+    def get_user(self, key):
+        """Gets a user from the store"""
+	return self._bridge.getUser(key)
+
+
+    def get_items(self, keys):
+        """Gets a list of items from the store"""
         if not isinstance(keys, list):
             raise WrongTypeException("keys argument should be a list")
 
         aL = self._bridge.getItems(_lst_to_jArrayList(keys))
-        return _jArrayList_to_lst(aL)
+        return _jarraylist_to_lst(aL)
 
 
-    def getAll(self, itemType):
+    def get_all(self, itemType):
         """
         Gets all items of a particular type from the store.
         This can be **VERY** long  
         """
-        jItemName = J.JClass("com.sun.labs.aura.datastore.Item").ItemType.valueOf(itemType)
-        jL = self._bridge.getAll(jItemName)
-        return _jArrayList_to_lst(jL)
+        if isinstance(itemType, str):
+            itemType = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf(itemType)
+        jL = self._bridge.getAll(itemType)
+        return _jarraylist_to_lst(jL)
 
 
+    def get_attention_count(self, attn_config):
+        """Gets the attention count for a particular attention configuration"""
+        _assert_type_attn_config(attn_config)
+        return self._bridge.getAttentionCount(attn_config).longValue()
+
+
+    def get_attention_since(self, attn_config, timestamp):
+        """Gets attentions created since timestamp, given an attention configuration"""
+        _assert_type_attn_config(attn_config)
+        aL = self._bridge.getAttentionSince(attn_config, J.java.util.Date(timestamp))
+        return _jarraylist_to_lst(aL)
+
+
+    def get_attention_since_count(self, attn_config, timestamp):
+        """Gets the attention count created since timestamp for a particular attention configuration"""
+        _assert_type_attn_config(attn_config)
+        return self._bridge.getAttentionSinceCount(attn_config, J.java.util.Date(timestamp)).longValue()
+
+
+    def get_last_attention(self, attn_config, count=10):
+        """Get the count last attentions given an attention configuration object"""
+        _assert_type_attn_config(attn_config)
+        return self._bridge.getLastAttention(attn_config, count)
+
+
+    def get_item_count(self, itemType):
+        """Gets the count for an item type"""
+        if isinstance(itemType, str):
+            itemType = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf(itemType)
+        return self._bridge.getItemCount(itemType)
 
 
 
 ####################################
 #        Utility functions         #
 ####################################
-def _jArrayList_to_lst(aL):
+def _jarraylist_to_lst(aL):
     return [aL.get(x) for x in xrange(aL.size())]            
 
-def _lst_to_jArrayList(l):
+def _lst_to_jarraylist(l):
     aL = J.java.util.ArrayList()
     for k in l:
         aL.add(k)
@@ -85,9 +120,28 @@ def _lst_to_jArrayList(l):
 
 
 
+####################################
+#     Type assertions functions    #
+####################################
+def _assert_type_attn_config(attn_config):
+    if not isinstance(attn_config, J.JClass("com.sun.labs.aura.datastore.AttentionConfig")):
+        raise WrongTypeException("Must use a valid attention config object. Use ClassFactory.new_attention_config()")
+
+
 class WrongTypeException(Exception):
     def __init__(self, value):
         self.value = value
     
     def __str__(self):
         return repr(self.value)
+
+
+
+
+
+class ClassFactory():
+
+    @staticmethod
+    def new_attention_config():
+        """Returns a new AttentionConfig object"""
+        return J.JClass("com.sun.labs.aura.datastore.AttentionConfig")()

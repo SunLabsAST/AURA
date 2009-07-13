@@ -91,20 +91,10 @@ public class AuraBridge implements Configurable, ItemStore {
      */
     private DataStore getDataStore() throws AuraException {
         try {
-            DataStore s = (DataStore) rcmStore.getComponent();
-            System.out.println(s.toString());
-            return s;
+            return (DataStore) rcmStore.getComponent();
         } catch (NullPointerException e) {
             throw new NullPointerException("Cannot access datastore");
         }
-    }
-
-
-    public Item getItemName(String id) throws AuraException, RemoteException {
-        Item i = getDataStore().getItem(id);
-        System.out.println("got i");
-
-        return i;
     }
 
     @Override
@@ -133,10 +123,6 @@ public class AuraBridge implements Configurable, ItemStore {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Item pyGetItem(String key) throws AuraException, RemoteException {
-        return getItem(key);
-    }
-
     @Override
     public Item getItem(String key) throws AuraException, RemoteException {
         return getDataStore().getItem(key);
@@ -149,7 +135,7 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public User getUser(String key) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().getUser(key);
     }
 
     @Override
@@ -199,7 +185,7 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public Long getAttentionCount(AttentionConfig ac) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().getAttentionCount(ac);
     }
 
     @Override
@@ -209,7 +195,7 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public List<Attention> getAttentionSince(AttentionConfig ac, Date timeStamp) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().getAttentionSince(ac, timeStamp);
     }
 
     @Override
@@ -219,12 +205,12 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public Long getAttentionSinceCount(AttentionConfig ac, Date timeStamp) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().getAttentionSinceCount(ac, timeStamp);
     }
 
     @Override
     public List<Attention> getLastAttention(AttentionConfig ac, int count) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().getLastAttention(ac, count);
     }
 
     @Override
@@ -254,7 +240,7 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public long getItemCount(ItemType itemType) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().getItemCount(itemType);
     }
 
     @Override
