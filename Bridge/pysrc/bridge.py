@@ -28,10 +28,11 @@ import os
 
 class AuraBridge():
 
-    def __init__(self, classpath_prefix=os.path.join("..", "dist")):
+    def __init__(self, jvm_path=J.getDefaultJVMPath(),
+                    classpath_prefix=os.path.join("..", "dist")):
     
 	cP = os.path.join(classpath_prefix, "Bridge.jar")
-        J.startJVM(J.getDefaultJVMPath(), "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
+        J.startJVM(jvm_path, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
                             "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
 
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
@@ -63,10 +64,9 @@ class AuraBridge():
     def get_all(self, itemType):
         """
         Gets all items of a particular type from the store.
-        This can be **VERY** long  
+        This can be **VERY** long. Consider using get_all_iterator()
         """
-        if isinstance(itemType, str):
-            itemType = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf(itemType)
+        itemType = _assert_type_itemtype(itemType)
         jL = self._bridge.getAll(itemType)
         return _jarraylist_to_lst(jL)
 
@@ -104,6 +104,40 @@ class AuraBridge():
 
 
 
+    ####################################
+    #       Iterator functions         #
+    ####################################
+    def get_all_iterator(self, itemType):
+        """Gets an iterator over all items of specified type"""
+        itemType = _assert_type_itemtype(itemType)
+        it_id = self._bridge.allItemsIteratorInit(itemType)
+        return self._iterator_loop(it_id)
+
+
+    def get_items_added_since_iterator(self, itemType, timestamp):
+        """Gets an iterator over all items of specified type added since the specified timestamp"""
+        itemType = _assert_type_itemtype(itemType)
+        timestamp = J.java.util.Date(timestamp)
+        it_id = self._bridge.initGetItemsAddedSinceIterator(itemType, timestamp)
+        return self._iterator_loop(it_id)
+
+
+    def _iterator_loop(self, it_id):
+        """Actual iterator loop used by all our iterators"""
+        try:
+            go = True
+            while go:
+                nextVal = self._bridge.iteratorNext(it_id)
+                if not nextVal is None:
+                    yield nextVal
+                else:
+                    go = False
+        finally:
+            self._bridge.iteratorClose(it_id)
+
+
+            
+
 ####################################
 #        Utility functions         #
 ####################################
@@ -126,6 +160,16 @@ def _lst_to_jarraylist(l):
 def _assert_type_attn_config(attn_config):
     if not isinstance(attn_config, J.JClass("com.sun.labs.aura.datastore.AttentionConfig")):
         raise WrongTypeException("Must use a valid attention config object. Use ClassFactory.new_attention_config()")
+
+def _assert_type_itemtype(itemType):
+    iT_class = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
+    if isinstance(itemType, str):
+        itemType = iT_class.valueOf(itemType)
+    elif not isinstance(itemType, iT_class):
+        raise WrongTypeException("Must use valid item type.")
+    return itemType
+
+
 
 
 class WrongTypeException(Exception):

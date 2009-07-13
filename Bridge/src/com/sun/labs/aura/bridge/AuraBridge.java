@@ -49,7 +49,9 @@ import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -62,12 +64,16 @@ public class AuraBridge implements Configurable, ItemStore {
     private static RemoteComponentManager rcmStore;
     private ConfigurationManager cm;
 
+    private Map<String, DBIterator> openIterators;
+
     public AuraBridge(String configFile) {
         try {
             URL configFileURL = AuraBridge.class.getResource(DEFAULT_PROP_SHEET);
             cm = new ConfigurationManager();
             cm.addProperties(configFileURL);
             rcmStore = new RemoteComponentManager(cm, DataStore.class);
+
+            openIterators = new HashMap<String, DBIterator>();
 
         } catch(IOException ex) {
             System.err.println("Error parsing configuration file: " + configFile);
@@ -119,11 +125,6 @@ public class AuraBridge implements Configurable, ItemStore {
     }
 
     @Override
-    public DBIterator<Item> getAllIterator(ItemType itemType) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public Item getItem(String key) throws AuraException, RemoteException {
         return getDataStore().getItem(key);
     }
@@ -160,11 +161,6 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public User putUser(User user) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp) throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -251,6 +247,55 @@ public class AuraBridge implements Configurable, ItemStore {
     @Override
     public void close() throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
+    /**********************
+     * Iterator functions
+     ***********************/
+
+    @Override
+    public DBIterator<Item> getAllIterator(ItemType itemType) throws AuraException, RemoteException {
+        throw new UnsupportedOperationException("Not supported. Use initAllItemsIterator() instead.");
+    }
+
+    public String allItemsIteratorInit(ItemType itemType) throws RemoteException, AuraException {
+        String itId = String.valueOf(new Date().getTime());
+        openIterators.put(itId, getDataStore().getAllIterator(itemType));
+        return itId;
+    }
+
+    @Override
+    public DBIterator<Item> getItemsAddedSince(ItemType type, Date timeStamp) throws AuraException, RemoteException {
+        throw new UnsupportedOperationException("Not supported. Use initGetItemsAddedSinceIterator() instead.");
+    }
+
+    public String initGetItemsAddedSinceIterator(ItemType type, Date timeStamp) throws AuraException, RemoteException {
+        String itId = String.valueOf(new Date().getTime());
+        openIterators.put(itId, getDataStore().getItemsAddedSince(type, timeStamp));
+        return itId;
+    }
+
+    public Object iteratorNext(String itId) throws RemoteException {
+        return openIterators.get(itId).next();
+    }
+
+    public boolean iteratorHasNext(String itId) throws RemoteException {
+        return openIterators.get(itId).hasNext();
+    }
+
+    public void iteratorClose(String itId) throws RemoteException {
+        if (openIterators.containsKey(itId)) {
+            openIterators.get(itId).close();
+            openIterators.remove(itId);
+        }
+    }
+
+    public void iteratorCloseAll() throws RemoteException {
+        for (DBIterator i : openIterators.values()) {
+            i.close();
+        }
+        openIterators.clear();
     }
 
 
