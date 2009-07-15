@@ -60,7 +60,9 @@ public class GetTags extends StandardService {
         OutputType outputType = (OutputType) getParamAsEnum(request, "outputType", OutputType.values());
         List<ArtistTag> tags = mdb.artistTagGetMostPopular(maxCount);
         for (ArtistTag tag : tags) {
-            out.println(formatter.toXML(tag.getItem(), outputType, (double) mdb.artistTagGetNormalizedPopularity(tag)));
+            if (tag != null) {
+                out.println(formatter.toXML(tag.getItem(), outputType, (double) mdb.artistTagGetNormalizedPopularity(tag)));
+            }
         }
     }
 

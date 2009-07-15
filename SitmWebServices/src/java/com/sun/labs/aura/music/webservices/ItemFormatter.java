@@ -176,7 +176,9 @@ public class ItemFormatter {
                 if (value instanceof Collection) {
                     sb.append(getOpenTag(fieldName + "-list"));
                     for (Object element : (Collection) value) {
-                        sb.append(toXMLString(fieldName, element));
+                        if (element != null) {
+                            sb.append(toXMLString(fieldName, element));
+                        }
                     }
                     sb.append(getCloseTag(fieldName + "-list"));
                 } else if (value instanceof Map) {
