@@ -172,7 +172,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException, RemoteException {
         enter("gSIs");
         List<Scored<Item>> ret = strategy.getScoredItems(keys);
-        exit("gSIs");
+        exit("gSIs", keys.get(0).getItem());
         return ret;
     }
 
@@ -712,7 +712,7 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     protected void enter(String name) {
         if(logger.isLoggable(Level.FINER)) {
-            logger.log(Level.FINER, String.format("pc %s T%s enter %s", prefixCode, Thread.currentThread().getId(), name));
+            logger.log(Level.FINER, String.format("pc  %s T%s enter %s", prefixCode, Thread.currentThread().getId(), name));
         }
     }
 
@@ -722,7 +722,7 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     protected void exit(String name, String extra) {
         if(logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, String.format(" pc %s T%s exit  %s: %s", prefixCode, Thread.currentThread().getId(), name, extra));
+            logger.log(Level.FINE, String.format(" pc  %s T%s exit  %s: %s", prefixCode, Thread.currentThread().getId(), name, extra));
         }
     }
 
