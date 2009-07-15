@@ -1482,7 +1482,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         if (logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
             state.timer.stop();
             double time = state.timer.getTimeMillis();
-            logger.fine(String.format("rep %s T%s exit %s after %.3f %s",
+            logger.fine(String.format(" rep %s T%s exit  %s after %.3f %s",
                                       prefixString,
                                       Thread.currentThread().getId(),
                                       state.name,

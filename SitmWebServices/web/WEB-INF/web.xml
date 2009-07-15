@@ -9,10 +9,6 @@
         <servlet-class>com.sun.labs.aura.music.webservices.FindSimilarArtists</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>AdminDashboard</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.AdminDashboard</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>ArtistSearch</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.ArtistSearch</servlet-class>
     </servlet>
@@ -35,10 +31,6 @@
     <servlet>
         <servlet-name>GetAllTagData</servlet-name>
         <servlet-class>com.sun.labs.aura.music.webservices.GetAllTagData</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>GetTagsForArtist</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.webservices.GetTagsForArtist</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>GetRecommendations</servlet-name>
@@ -122,10 +114,6 @@
         <url-pattern>/GetTags</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>GetTagsForArtist</servlet-name>
-        <url-pattern>/GetTagsForArtist</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>GetRecommendations</servlet-name>
         <url-pattern>/GetRecommendations</url-pattern>
     </servlet-mapping>
@@ -200,10 +188,6 @@
     <servlet-mapping>
         <servlet-name>GetTags</servlet-name>
         <url-pattern>/1.0/GetTags</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>GetTagsForArtist</servlet-name>
-        <url-pattern>/1.0/GetTagsForArtist</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>GetRecommendations</servlet-name>

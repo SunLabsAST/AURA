@@ -317,14 +317,19 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("dsh gIs for %d took %.3f",
+            logger.fine(String.format("dsh T%s gIs for %d took %.3f key0: %s",
+                    Thread.currentThread().getId(),
                     keys.size(),
-                    nw.getTimeMillis()));
+                    nw.getTimeMillis(),
+                    keys.toArray()[0]));
         }
         return ret;
     }
     
     private List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws RemoteException, AuraException {
+        if(logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("dsh T%d gIs for %d", Thread.currentThread().getId(), keys.size()));
+        }
 
         NanoWatch nw = new NanoWatch();
         nw.start();
@@ -417,9 +422,12 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         if(ret.size() > 0) {
             ret.get(0).time = nw.getTimeMillis();
             if(logger.isLoggable(Level.FINE)) {
-                logger.fine(String.format("dsh gSIs for %d took %.3f",
+                logger.fine(
+                        String.format("dsh T%s gSIs for %d took %.3f key0: %s",
+                        Thread.currentThread().getId(),
                         keys.size(),
-                        nw.getTimeMillis()));
+                        nw.getTimeMillis(),
+                        keys.get(0)));
             }
         } else {
             if(logger.isLoggable(Level.FINE)) {
