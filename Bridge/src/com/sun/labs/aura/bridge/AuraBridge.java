@@ -64,6 +64,8 @@ public class AuraBridge implements Configurable, ItemStore {
     private static RemoteComponentManager rcmStore;
     private ConfigurationManager cm;
 
+    private MusicDBBridge mdb;
+
     private Map<String, DBIterator> openIterators;
 
     public AuraBridge(String configFile) {
@@ -72,6 +74,7 @@ public class AuraBridge implements Configurable, ItemStore {
             cm = new ConfigurationManager();
             cm.addProperties(configFileURL);
             rcmStore = new RemoteComponentManager(cm, DataStore.class);
+            mdb = new MusicDBBridge(cm);
 
             openIterators = new HashMap<String, DBIterator>();
 
@@ -101,6 +104,10 @@ public class AuraBridge implements Configurable, ItemStore {
         } catch (NullPointerException e) {
             throw new NullPointerException("Cannot access datastore");
         }
+    }
+
+    public MusicDBBridge getMdb() {
+        return mdb;
     }
 
     @Override

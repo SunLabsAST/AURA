@@ -865,8 +865,7 @@ public class MusicDatabase {
      * @return the best matching artist or null if no match could be found.
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public Artist artistFindBestMatch(
-            String artistName) throws AuraException {
+    public Artist artistFindBestMatch(String artistName) throws AuraException {
         List<Scored<Artist>> artists = artistSearch(artistName, 1);
         if (artists.size() == 1) {
             return artists.get(0).getItem();
@@ -881,8 +880,7 @@ public class MusicDatabase {
      * @return the best matching artist tag or null if none could be found.
      * @throws com.sun.labs.aura.util.AuraException
      */
-    public ArtistTag artistTagFindBestMatch(
-            String artistTagName) throws AuraException {
+    public ArtistTag artistTagFindBestMatch(String artistTagName) throws AuraException {
         List<Scored<ArtistTag>> artistTags = artistTagSearch(artistTagName, 1);
         if (artistTags.size() == 1) {
             return artistTags.get(0).getItem();
