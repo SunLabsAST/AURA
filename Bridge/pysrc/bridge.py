@@ -37,11 +37,12 @@ class AuraBridge():
 
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
         self._bridge = AuraBridge()
+        self.mdb = MusicDatabase(self._bridge)
 
 
-#############################################
-#   Implementation of ItemStore interface   #
-#############################################
+    #############################################
+    #   Implementation of ItemStore interface   #
+    #############################################
     def get_item(self, key):
         """Gets an item from the store"""
 	return self._bridge.getItem(key)
@@ -111,7 +112,7 @@ class AuraBridge():
         """Gets an iterator over all items of specified type"""
         itemType = _assert_type_itemtype(itemType)
         it_id = self._bridge.allItemsIteratorInit(itemType)
-        return self._iterator_loop(it_id)
+        return _iterator_loop(it_id)
 
 
     def get_items_added_since_iterator(self, itemType, timestamp):
@@ -119,10 +120,64 @@ class AuraBridge():
         itemType = _assert_type_itemtype(itemType)
         timestamp = J.java.util.Date(timestamp)
         it_id = self._bridge.initGetItemsAddedSinceIterator(itemType, timestamp)
-        return self._iterator_loop(it_id)
+        return _iterator_loop(it_id)
 
 
-    def _iterator_loop(self, it_id):
+
+
+#####################################
+#     Implementation of MusicDb     #
+#####################################
+class MusicDatabase():
+
+    def __init__(self, bridge):
+        self._bridge = bridge
+
+
+    def get_favorite_artist_keys(self, listenerId, max=10):
+        """Gets the favorite artists' keys for a listener"""
+        keys = self._bridge.getMdb().getFavoriteArtistKeys(listenerId, max)
+        return _jit_to_set(keys)
+
+
+    def get_favorite_artists(self, listenerID, max=10):
+        """Gets the Favorite artists IDs for a listener"""
+        a = self._bridge.getMdb().getFavoriteArtists(listenerID, max)
+        return _jarraylist_to_lst(a)
+
+
+    def artist_search(self, artistName, return_count=10):
+        """Searches for artists that match the given name"""
+        sA = self._bridge.getMdb().artistSearch(artistName, return_count)
+        return _jscored_arraylist_to_lst(sA)
+
+
+
+
+
+####################################
+#        Utility functions         #
+####################################
+def _jarraylist_to_lst(aL):
+    return [aL.get(x) for x in xrange(aL.size())]
+
+def _jscored_arraylist_to_lst(saL):
+    return [(saL.get(x).getItem(), saL.get(x).getScore()) for x in xrange(saL.size())]
+
+def _lst_to_jarraylist(l):
+    aL = J.java.util.ArrayList()
+    for k in l:
+        aL.add(k)
+    return aL
+
+def _jit_to_set(hS):
+    rtnset = set()
+    for s in hS.iterator():
+        rtnset.add(s)
+    return rtnset
+
+
+def _iterator_loop(self, it_id):
         """Actual iterator loop used by all our iterators"""
         try:
             go = True
@@ -134,23 +189,6 @@ class AuraBridge():
                     go = False
         finally:
             self._bridge.iteratorClose(it_id)
-
-
-            
-
-####################################
-#        Utility functions         #
-####################################
-def _jarraylist_to_lst(aL):
-    return [aL.get(x) for x in xrange(aL.size())]            
-
-def _lst_to_jarraylist(l):
-    aL = J.java.util.ArrayList()
-    for k in l:
-        aL.add(k)
-    return aL
-
-
 
 
 
