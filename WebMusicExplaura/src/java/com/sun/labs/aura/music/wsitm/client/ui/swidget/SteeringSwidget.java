@@ -354,9 +354,9 @@ public class SteeringSwidget extends Swidget {
 
             //
             // Add a little help text to the north
-            dP.add(new Label("Drag the tags to change their importance.  Use " +
+            /*dP.add(new Label("Drag the tags to change their importance.  Use " +
                     "the search box to the right to find tags to add.  Right-" +
-                    "click a tag for more options."), DockPanel.NORTH);
+                    "click a tag for more options."), DockPanel.NORTH);*/
 
             //
             // North 2
@@ -508,6 +508,9 @@ public class SteeringSwidget extends Swidget {
                     new ArtistCloudArtistListWidget(musicServer, cdm, aCList, tagLand));
             
             hideLoader();
+            showTopMessage(new Label("Drag the tags to change their importance.  Use " +
+                    "the search box to the right to find tags to add.  Right-" +
+                    "click a tag for more options."));
 
             if (aCList != null && aCList.size() > 0) {
                 currRecommendations = aCList;

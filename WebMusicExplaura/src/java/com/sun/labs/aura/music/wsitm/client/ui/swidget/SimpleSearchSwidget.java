@@ -409,6 +409,12 @@ public class SimpleSearchSwidget extends Swidget implements HasListeners {
                         setResults("artist:" + artistDetails.getId(), artistPanel);
                         hideLoader();
 
+                        showTopMessage(new Label(
+                        "Artist bio is displayed below.  Click any tag for details. " +
+                        "Similar artists are shown on the left.  See where they overlap " +
+                        "with \"why?\".  The big steering wheel on the right lets you "+
+                        "customize the recommended artists."));
+
                         // If we embeded a search result, a serch was made and although aura returned
                         // multiple results, one of them matched exacly. Offer to display the full list
                         if (data!=null) {
