@@ -112,7 +112,7 @@ class AuraBridge():
         """Gets an iterator over all items of specified type"""
         itemType = _assert_type_itemtype(itemType)
         it_id = self._bridge.allItemsIteratorInit(itemType)
-        return _iterator_loop(it_id)
+        return self._iterator_loop(it_id)
 
 
     def get_items_added_since_iterator(self, itemType, timestamp):
@@ -120,9 +120,21 @@ class AuraBridge():
         itemType = _assert_type_itemtype(itemType)
         timestamp = J.java.util.Date(timestamp)
         it_id = self._bridge.initGetItemsAddedSinceIterator(itemType, timestamp)
-        return _iterator_loop(it_id)
+        return self._iterator_loop(it_id)
 
 
+    def _iterator_loop(self, it_id):
+        """Actual iterator loop used by all our iterators"""
+        try:
+            go = True
+            while go:
+                nextVal = self._bridge.iteratorNext(it_id)
+                if not nextVal is None:
+                    yield nextVal
+                else:
+                    go = False
+        finally:
+            self._bridge.iteratorClose(it_id)
 
 
 #####################################
@@ -176,19 +188,6 @@ def _jit_to_set(hS):
         rtnset.add(s)
     return rtnset
 
-
-def _iterator_loop(self, it_id):
-        """Actual iterator loop used by all our iterators"""
-        try:
-            go = True
-            while go:
-                nextVal = self._bridge.iteratorNext(it_id)
-                if not nextVal is None:
-                    yield nextVal
-                else:
-                    go = False
-        finally:
-            self._bridge.iteratorClose(it_id)
 
 
 
