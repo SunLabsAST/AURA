@@ -25,6 +25,8 @@
 package com.sun.labs.aura.music.web;
 
 import com.sun.labs.aura.music.util.ExpiringLRUCache;
+import com.sun.labs.aura.music.web.lastfm.LastFM2Impl;
+import com.sun.labs.aura.util.AuraException;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -217,7 +220,6 @@ public class Commander {
         try {
             String fullCommand = prefix + command + fixSuffix(command, suffix);
 
-            // URL url = new URL(fullCommand);
             URI uri = new URI(fullCommand);
             URL url = uri.toURL();
 
@@ -230,8 +232,9 @@ public class Commander {
 
             InputStream is = null;
             for (int i = 0; i < tryCount; i++) {
+                URLConnection urc = null;
                 try {
-                    URLConnection urc = url.openConnection();
+                    urc = url.openConnection();
 
                     if (getTimeout() != -1) {
                         urc.setReadTimeout(getTimeout());
@@ -242,7 +245,18 @@ public class Commander {
                 } catch (FileNotFoundException e) {
                     throw e;
                 } catch (IOException e) {
-                    System.out.println(name + " Error: " + e + " cmd: " + command);
+                    // If we're getting a 400 response code, we want to capture more information
+                    // in case it's the lastfm api telling us it can't find what we're looking for
+                    if (fullCommand.startsWith("http") && ((HttpURLConnection)urc).getResponseCode()==400) {
+                        try {
+                            Document doc = builder.get().parse(new BufferedInputStream(((HttpURLConnection) urc).getErrorStream()));
+                            throw new HttpBadRequestException(e.getMessage(), 400, doc);
+                        } catch (SAXException ex) {
+                            throw e;
+                        }
+                    } else {
+                        System.out.println(name + " Error: " + e + " cmd: " + command);
+                    }
                 }
             }
 
@@ -344,4 +358,19 @@ public class Commander {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
+
+
+    public static void main(String[] args) throws IOException, AuraException {
+
+        Commander commander = new Commander("last.fm2", "http://ws.audioscrobbler.com/2.0/", "&api_key="+new LastFM2Impl().getAPIKey(), true);
+
+        try {
+            commander.sendCommand("?method=track.gettoptags&artist=Jethro+Tull&track=One+for+John+Gee+%28B+side+of+%27Song+for+Jeffrey%27+single%29");
+        } catch (IOException io) {
+            if (io instanceof HttpBadRequestException) {
+                System.out.println(((HttpBadRequestException)io).getLastFmErrorMessage());
+            }
+        }
+    }
+
 }

@@ -24,6 +24,8 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
+import com.sun.labs.aura.music.Track.Streamable;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,13 +33,12 @@ import java.util.List;
  *
  * @author plamere
  */
-public class LastTrack {
+public class LastTrack implements Serializable {
     private String name = "";
     private String mbid = "";
     private String lfmid = "";
     private String url = "";
     private int duration;
-    private boolean streamble;
     private int listeners;
     private int playcount;
     private String artistName = "";
@@ -54,6 +55,7 @@ public class LastTrack {
     private List<String> topTags;
     private String wikiSummary = "";
     private String wikiContent = "";
+    private Streamable streamable;
 
     public LastTrack() {
         topTags = new ArrayList<String>();
@@ -187,14 +189,6 @@ public class LastTrack {
         this.smallImage = smallImage;
     }
 
-    public boolean isStreamble() {
-        return streamble;
-    }
-
-    public void setStreamble(boolean streamble) {
-        this.streamble = streamble;
-    }
-
     public List<String> getTopTags() {
         return topTags;
     }
@@ -235,13 +229,21 @@ public class LastTrack {
         this.wikiSummary = wikiSummary;
     }
 
+    public void setStreamable(Streamable s) {
+        this.streamable = s;
+    }
+
+    public Streamable getStreamable() {
+        return streamable;
+    }
+
     public void dump() {
         System.out.println(" name:          " + name );
         System.out.println(" mbid:          " + mbid );
         System.out.println(" lfmid:         " + lfmid );
         System.out.println(" url:           " + url );
+        System.out.println(" streamable:    " + streamable);
         System.out.println(" duration:      " + duration );
-        System.out.println(" streamble:     " + streamble );
         System.out.println(" listeners:     " + listeners );
         System.out.println(" playcount:     " + playcount );
         System.out.println(" artistName:    " + artistName );

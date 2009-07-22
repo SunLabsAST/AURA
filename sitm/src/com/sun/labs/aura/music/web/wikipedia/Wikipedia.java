@@ -63,7 +63,6 @@ public class Wikipedia {
 
         // there can be circular references, so limit the number of
         // redirections
-
         if (redirectCount > 3) {
             return null;
         }
@@ -306,8 +305,13 @@ public class Wikipedia {
         Wikipedia wikipedia = new Wikipedia();
         // System.out.println("Nirvana: " +  wikipedia.getSummaryDescription("http://en.wikipedia.org/wiki/Special:Export/Nirvana_(band)"));
 
-        System.out.println(wikipedia.getArtistText("David_Bowie"));
-        System.out.println(wikipedia.getArtistText("weezer"));
+        //System.out.println(wikipedia.getArtistText("David_Bowie"));
+
+        WikiInfo wikiInfo = wikipedia.getWikiInfo("King_of_America");
+        System.out.println(wikiInfo.getSummary());
+
+        //System.out.println(wikipedia.getArtistText("weezer"));
+        //System.out.println(wikipedia.getArtistDescription("King_of_America"));
 
     /*
     System.out.println(info);

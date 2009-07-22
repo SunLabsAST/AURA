@@ -28,6 +28,7 @@ import com.sun.labs.aura.music.web.Commander;
 import com.sun.labs.aura.music.web.XmlUtil;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,7 +46,9 @@ import org.w3c.dom.NodeList;
 public class MusicBrainz {
     private final static int SCORE_THRESHOLD = 95;
     private Commander  mbCommander;
-    
+
+    public static final SimpleDateFormat mbDateFormater = new SimpleDateFormat("yyyy-MM-dd");
+
     /**
      * Creates a new instance of MusicBrainz
      */
@@ -59,20 +62,7 @@ public class MusicBrainz {
     public void setTrace(boolean trace) {
         mbCommander.setTraceSends(trace);
     }
-
-    public static void main(String[] args) throws IOException {
-        MusicBrainz mb = new MusicBrainz();
-        List<MusicBrainzArtistInfo> infos = mb.artistSearch("weezer");
-        for (MusicBrainzArtistInfo mbai : infos) {
-            mbai.dump();
-        }
-        
-        MusicBrainzArtistInfo best = infos.get(0);
-        String id = best.getID();
-        MusicBrainzArtistInfo weezer = mb.getArtistInfo(id);
-        weezer.dump();
-    }
-    
+  
     // http://musicbrainz.org/ws/1/artist/?type=xml&name=Tori+Amos
     public List<MusicBrainzArtistInfo> artistSearch(String artistName) throws IOException {
         List<MusicBrainzArtistInfo> infos = new ArrayList<MusicBrainzArtistInfo>();
@@ -116,8 +106,8 @@ public class MusicBrainz {
         return getArtistInfo(artistInfo.getID());
     }
     
-    public MusicBrainzArtistInfo getArtistInfo(String mbid) throws IOException {
-        String query =  "artist/" + mbid +"/?type=xml&inc=url-rels+sa-Official+artist-rels";
+    public MusicBrainzArtistInfo getArtistInfo(String artistMbid) throws IOException {
+        String query =  "artist/" + artistMbid +"/?type=xml&inc=url-rels+sa-Official+artist-rels";
         Document mbDoc = mbCommander.sendCommand(query);
         Element docElement = mbDoc.getDocumentElement();
         Element artistElement = XmlUtil.getFirstElement(docElement, "artist");
@@ -127,14 +117,14 @@ public class MusicBrainz {
         String name = XmlUtil.getElementContents(artistElement, "name");
         String sortName = XmlUtil.getElementContents(artistElement, "sort-name");
         
-        mbai.setID(mbid);
+        mbai.setID(artistMbid);
         mbai.setType(artistType);
         mbai.setScore(100);
         mbai.setName(name);
         mbai.setSortName(sortName);
         
         // add the MusicBrainz link
-        mbai.addURL("MusicBrainz", "http://musicbrainz.org/artist/" + mbid);
+        mbai.addURL("MusicBrainz", "http://musicbrainz.org/artist/" + artistMbid);
         
         Element lifespan = XmlUtil.getFirstElement(artistElement, "life-span");
         if (lifespan != null)  {
@@ -174,13 +164,35 @@ public class MusicBrainz {
             if (asin != null && !asinSet.contains(asin)) {
                 String id = release.getAttribute("id");
                 String type = release.getAttribute("type");
-                
+
+                // Only get official albums, ignoring live releases and singles
                 if (type.equalsIgnoreCase("Album Official")) {
                     String title = XmlUtil.getElementContents(release, "title");
                     MusicBrainzAlbumInfo album = new MusicBrainzAlbumInfo();
                     album.setId(id);
+                    album.addArtistId(artistMbid);
                     album.setTitle(title);
                     album.setAsin(asin);
+
+                    // Get the release's urls
+                    List<Node> releaseRelationNodes = XmlUtil.getDescendents(release, "relation-list");
+                    for (int k = 0; k < releaseRelationNodes.size(); k++) {
+                        Element relationlist = (Element) releaseRelationNodes.get(k);
+                        if (relationlist.getAttribute("target-type").equals("Url")) {
+                            NodeList urls = relationlist.getElementsByTagName("relation");
+                            for (int j = 0; j < urls.getLength(); j++) {
+                                Element url = (Element) urls.item(j);
+                                String releaseType = url.getAttribute("type");
+                                // skip the amazon asin url since we can reconstruct it
+                                if (releaseType.equals("AmazonAsin")) {
+                                    continue;
+                                }
+                                String target = url.getAttribute("target");
+                                album.addURL(type, target);
+                            }
+                        }
+                    }
+
                     mbai.addAlbum(album);
                     asinSet.add(asin);
                 }
@@ -189,6 +201,53 @@ public class MusicBrainz {
         
         // collect the list of artist relations
         return mbai;
+    }
+
+
+    public MusicBrainzAlbumInfo getAlbumInfo(String mbid) throws IOException {
+        String query =  "release/" + mbid +"/?type=xml&inc=url-rels+tracks+release-events";
+        Document mbDoc = mbCommander.sendCommand(query);
+        Element docElement = mbDoc.getDocumentElement();
+
+        Element albumElement = XmlUtil.getFirstElement(docElement, "release");
+
+        MusicBrainzAlbumInfo mba = new MusicBrainzAlbumInfo();
+        mba.setId(mbid);
+        mba.setAsin(XmlUtil.getElementContents(albumElement, "asin"));
+        mba.setTitle(XmlUtil.getElementContents(albumElement, "title"));
+
+        // add the MusicBrainz link
+        mba.addURL("MusicBrainz", "http://musicbrainz.org/release/" + mbid + ".html");
+
+        // Get release date
+        List<Node> releaseEvents = XmlUtil.getDescendents(albumElement, "release-event-list");
+        if (releaseEvents.size() >= 1) {
+            NodeList releases = ((Element) releaseEvents.get(0)).getElementsByTagName("event");
+            for (int i = 0; i < releases.getLength(); i++) {
+                Element event = (Element) releases.item(i);
+                try {
+                    mba.setReleaseDate(mbDateFormater.parse(event.getAttribute("date")).getTime());
+                    break;
+                } catch (ParseException ex) {}
+            }
+        }
+
+        // Get all tracks
+        List<Node> trackNodes = XmlUtil.getDescendents(albumElement, "track-list");
+        if (trackNodes.size() >= 1) {
+            NodeList trackList = ((Element) trackNodes.get(0)).getElementsByTagName("track");
+            for (int i = 0; i < trackList.getLength(); i++) {
+                Element track = (Element) trackList.item(i);
+                MusicBrainzTrackInfo trackInfo = new MusicBrainzTrackInfo();
+                trackInfo.setMbid(track.getAttribute("id"));
+                trackInfo.setTitle(XmlUtil.getElementContents(track, "title"));
+                try {
+                    trackInfo.setDuration(Integer.parseInt(XmlUtil.getElementContents(track, "duration")));
+                } catch (NumberFormatException e) {}
+                mba.addTrack(i+1, trackInfo);
+            }
+        }
+        return mba;
     }
     
     
@@ -208,4 +267,37 @@ public class MusicBrainz {
         }
         return URLEncoder.encode(s, "UTF-8");
     }
+
+
+    /**
+     * Test for artist
+     * @param args
+     * @throws IOException
+     */
+    public static void main2(String[] args) throws IOException {
+        MusicBrainz mb = new MusicBrainz();
+        List<MusicBrainzArtistInfo> infos = mb.artistSearch("weezer");
+        for (MusicBrainzArtistInfo mbai : infos) {
+            mbai.dump();
+        }
+
+        MusicBrainzArtistInfo best = infos.get(0);
+        String id = best.getID();
+        MusicBrainzArtistInfo weezer = mb.getArtistInfo(id);
+        weezer.dump();
+    }
+
+    /**
+     * Test for album
+     * @param args
+     * @throws IOException
+     */
+    public static void main(String[] args) throws IOException {
+
+        MusicBrainz mb = new MusicBrainz();
+        MusicBrainzAlbumInfo aI = mb.getAlbumInfo("60e2f500-b11c-4275-b9a8-81b9adca2ee7");
+        aI.dump();
+
+    }
+
 }

@@ -24,6 +24,13 @@
 
 package com.sun.labs.aura.music.web.musicbrainz;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 /**
  *
  * @author plamere
@@ -32,10 +39,17 @@ public class MusicBrainzAlbumInfo {
     private String id;
     private String title;
     private String asin;
+    private Long releaseDate;
+    private Set<String> artistIds;
+    private Map<String, String> urlMap;
+    private Map<Integer, MusicBrainzTrackInfo> trackMap;
            
     
     /** Creates a new instance of MusicBrainzAlbumInfo */
     public MusicBrainzAlbumInfo() {
+        artistIds = new HashSet<String>();
+        urlMap = new HashMap<String, String>();
+        trackMap = new HashMap<Integer, MusicBrainzTrackInfo>();
     }
 
     public String getId() {
@@ -61,5 +75,58 @@ public class MusicBrainzAlbumInfo {
     public void setAsin(String asin) {
         this.asin = asin;
     }
-    
+
+    public void addURL(String type, String url) {
+        urlMap.put(type, url);
+    }
+
+    public Map<String, String> getURLMap() {
+        return urlMap;
+    }
+
+    public String getUrl(String type) {
+        return urlMap.get(type);
+    }
+
+    public void addTrack(int num, MusicBrainzTrackInfo trackInfo) {
+        trackMap.put(num, trackInfo);
+    }
+
+    public Map<Integer, MusicBrainzTrackInfo> getTrackMap() {
+        return trackMap;
+    }
+
+    public long getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(long rd) {
+        this.releaseDate = rd;
+    }
+
+    public void addArtistId(String artistId) {
+        artistIds.add(artistId);
+    }
+
+    public Set<String> getArtistIds() {
+        return artistIds;
+    }
+
+
+    public void dump() {
+        System.out.println("======" + title + " =========");
+        System.out.println("id\t" + id);
+        System.out.println("asin\t" + asin);
+        System.out.println("release\t" + new SimpleDateFormat("yyyy-MM-dd").format(new Date(releaseDate)));
+        for (String type : urlMap.keySet()) {
+            System.out.println("url-" + type + "\t" + urlMap.get(type));
+        }
+        System.out.println("Tracks:");
+        int trackNo = 1;
+        for (MusicBrainzTrackInfo track : trackMap.values()) {
+            System.out.println(" "+trackNo+") "+track.getTitle()+" ("+track.getMbid()+") "+track.getDuration());
+            trackNo++;
+        }
+    }
+
 }

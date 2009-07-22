@@ -60,5 +60,9 @@ public abstract class WebServiceAccessor {
     protected String getProperty(String key) {
         return properties.getProperty(key);
     }
+
+    public String getAPIKey() {
+        return API_KEY;
+    }
     
 }
