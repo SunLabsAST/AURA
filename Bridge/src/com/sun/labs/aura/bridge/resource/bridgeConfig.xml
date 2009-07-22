@@ -8,7 +8,8 @@
             <item>${auraGroup}</item>
         </propertylist>
         <property name="securityPolicy" value="${auraPolicy}"/>
-        <property name="registryHost" value="172.16.136.2" />
+         <property name="registryHost" value="192.168.236.1" />
+        <!-- <property name="registryHost" value="172.16.136.2" /> -->
     </component>
 
     <component name="dataStoreHead" type="com.sun.labs.aura.datastore.DataStore" />

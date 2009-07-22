@@ -24,7 +24,7 @@
 
 
 import jpype as J
-import os
+import os, warnings
 
 class AuraBridge():
 
@@ -45,12 +45,12 @@ class AuraBridge():
     #############################################
     def get_item(self, key):
         """Gets an item from the store"""
-	return self._bridge.getItem(key)
+	return ClassFactory.itemimpl_to_item(self._bridge.getItem(key))
 
 
     def get_user(self, key):
         """Gets a user from the store"""
-	return self._bridge.getUser(key)
+	return ClassFactory.itemimpl_to_item(self._bridge.getUser(key))
 
 
     def get_items(self, keys):
@@ -130,7 +130,7 @@ class AuraBridge():
             while go:
                 nextVal = self._bridge.iteratorNext(it_id)
                 if not nextVal is None:
-                    yield nextVal
+                    yield ClassFactory.itemimpl_to_item(nextVal)
                 else:
                     go = False
         finally:
@@ -171,10 +171,10 @@ class MusicDatabase():
 #        Utility functions         #
 ####################################
 def _jarraylist_to_lst(aL):
-    return [aL.get(x) for x in xrange(aL.size())]
+    return [ClassFactory.itemimpl_to_item(aL.get(x)) for x in xrange(aL.size())]
 
 def _jscored_arraylist_to_lst(saL):
-    return [(saL.get(x).getItem(), saL.get(x).getScore()) for x in xrange(saL.size())]
+    return [(ClassFactory.itemimpl_to_item(saL.get(x).getItem()), saL.get(x).getScore()) for x in xrange(saL.size())]
 
 def _lst_to_jarraylist(l):
     aL = J.java.util.ArrayList()
@@ -185,7 +185,7 @@ def _lst_to_jarraylist(l):
 def _jit_to_set(hS):
     rtnset = set()
     for s in hS.iterator():
-        rtnset.add(s)
+        rtnset.add(ClassFactory.itemimpl_to_item(s))
     return rtnset
 
 
@@ -226,3 +226,26 @@ class ClassFactory():
     def new_attention_config():
         """Returns a new AttentionConfig object"""
         return J.JClass("com.sun.labs.aura.datastore.AttentionConfig")()
+
+
+    @staticmethod
+    def itemimpl_to_item(item):
+
+        if not isinstance(item, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
+            raise WrongTypeException("Must pass an ItemImpl instance")
+
+        item_type = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
+
+        if item.getType()==item_type.ALBUM:
+            return J.JClass("com.sun.labs.aura.music.Album")(item)
+        elif item.getType()==item_type.ARTIST:
+            return J.JClass("com.sun.labs.aura.music.Artist")(item)
+        elif item.getType()==item_type.TRACK:
+            return J.JClass("com.sun.labs.aura.music.Track")(item)
+        elif item.getType()==item_type.USER:
+            return J.JClass("com.sun.labs.aura.music.Listener")(item)
+
+        else:
+            warnings.warn("Conversion of ItemType "+item.getType().toString()+" to it's native type is not yet implemented")
+            return item
+
