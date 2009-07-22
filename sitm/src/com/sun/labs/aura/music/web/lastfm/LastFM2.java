@@ -24,6 +24,7 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
+import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
 import java.io.IOException;
 import java.util.List;
 
@@ -45,9 +46,15 @@ public interface LastFM2 {
 
     public LastAlbum2 getAlbumInfoByMBID(String mbid) throws IOException;
 
+    public LastTrack getTrackInfo(String trackMbid, String artistName, String trackName)
+            throws IOException, CannotResolveException;
+
     public LastTrack getTrackInfoByName(String artistName, String trackName) throws IOException;
 
     public LastTrack getTrackInfoByMBID(String mbid) throws IOException;
+
+    public SocialTag[] getTrackTopTags(String trackMbid, String artistName, String trackName)
+            throws IOException, CannotResolveException;
 
     public SocialTag[] getTrackTopTagsByName(String artistName, String trackName) throws IOException;
 

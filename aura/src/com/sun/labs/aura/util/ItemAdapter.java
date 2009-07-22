@@ -26,6 +26,7 @@ package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -93,6 +94,14 @@ public abstract class ItemAdapter implements Serializable {
      * @see DataStore#defineField
      */
     public abstract void defineFields(DataStore ds) throws AuraException;
+
+    /**
+     * Gets the type of the item
+     * @return the item type
+     */
+    public ItemType getType() {
+        return item.getType();
+    }
 
     /**
      * Gets the name of the item

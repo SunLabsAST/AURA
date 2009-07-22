@@ -137,8 +137,8 @@ public class MusicBrainzArtistInfo {
         System.out.println("score\t" + score);
         System.out.println("sortName\t" + sortName);
         System.out.println("Year\t" + dateString(beginYear) + " to " + dateString(endYear));
-        for (String type : urlMap.keySet()) {
-            System.out.println("url-" + type + "\t" + urlMap.get(type));
+        for (String t : urlMap.keySet()) {
+            System.out.println("url-" + t + "\t" + urlMap.get(t));
         }
         for (String collab : collaborators) {
             System.out.println(" collab: " + collab);

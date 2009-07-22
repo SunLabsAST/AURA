@@ -28,18 +28,38 @@ package com.sun.labs.aura.music.web.musicbrainz;
  *
  * @author plamere
  */
-public interface MusicBrainzTrackInfo {
-    String getAlbumID();
+public class MusicBrainzTrackInfo {
 
-    String getAlbumName();
+    private String mbid;
+    private String title;
+    private int duration;
 
-    String getArtistID();
+    public MusicBrainzTrackInfo() {
 
-    String getArtistName();
+    }
 
+    public void setMbid(String mbid) {
+        this.mbid = mbid;
+    }
 
-    String getTrackID();
+    public String getMbid() {
+        return mbid;
+    }
 
-    String getTrackName();
+    public void setTitle(String name) {
+        this.title = name;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
     
 }

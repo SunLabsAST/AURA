@@ -55,6 +55,18 @@ public class XmlUtil {
         return results;
     }
 
+    public static int getElementAttributeAsInteger(Element element, String elementName, String attributeName) throws IOException {
+        int results = 0;
+        Element first = getFirstElement(element, elementName);
+        if (first != null) {
+            try {
+                results = Integer.parseInt(first.getAttribute(attributeName));
+            } catch (NumberFormatException ex) {
+            }
+        }
+        return results;
+    }
+
     public static Element getFirstElement(Element element, String elementName) throws IOException {
         NodeList list = element.getElementsByTagName(elementName);
         if (list.getLength() >= 1) {

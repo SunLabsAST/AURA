@@ -296,6 +296,12 @@ public class HomeSwidget extends Swidget {
                 popArtists.setVisible(true);
                 popArtists.setContent(g);
                 hideLoader();
+                //
+                // add a little help text
+                showTopMessage(new Label(
+                "Choose an artist, or search using the box at the top-right.  " +
+                "Hit the red play button to listen, or the gray steering wheel " +
+                "for custom recommendations based on an artist."));
             }
 
             public void onFailure(Throwable caught) {

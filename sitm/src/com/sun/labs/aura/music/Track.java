@@ -25,26 +25,31 @@
 package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import java.rmi.RemoteException;
-import java.util.EnumSet;
 import java.util.Set;
 
 /**
  *
  * @author fm223201
  */
-public class Track extends ItemAdapter {
+public class Track extends TaggableItem {
 
     public final static String FIELD_ARTISTS_ID = "artistId";
+    public final static String FIELD_ALBUMS_ID = "albumId";
     public final static String FIELD_SECS = "secs";
     public final static String FIELD_MD5 = "md5";
     public final static String FIELD_LYRICS = "lyrics";
-    
-    
+    public final static String FIELD_STREAMABLE_LASTFM = "streamableLastfm";
+
+    public enum Streamable {
+        NO,
+        CLIP,
+        FULLTRACK
+    }
+
     /**
      * Wraps an Item as a track
      * @param item the item to be turned into a track
@@ -68,34 +73,60 @@ public class Track extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.TRACK, key, name));
     }
    
-  public void defineFields(DataStore ds) throws AuraException {
+    @Override
+    public void defineFields(DataStore ds) throws AuraException {
         try {
+            super.defineFields(ds);
             ds.defineField(FIELD_ARTISTS_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_ALBUMS_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_LYRICS, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
             ds.defineField(FIELD_MD5, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SECS, Item.FieldType.INTEGER, StoreFactory.INDEXED);
+            ds.defineField(FIELD_STREAMABLE_LASTFM, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(Artist.FIELD_AUDIO);
+            ds.defineField(Album.FIELD_SUMMARY);
+
+            ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
+
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for Track", rx);
         }
     }
 
-  /**
-     * Get the videos associated with an artist
-     * @return videos id set
+    /**
+     * Get the artist ids associated with this track
+     * @return artist ids
      */
     public Set<String> getArtistId() {
-        return (Set<String>) getFieldAsStringSet(FIELD_ARTISTS_ID);
+        return getFieldAsStringSet(FIELD_ARTISTS_ID);
     }
-    
-   /**
+
+    /**
      * Adds an artist to this track
      * @param artistId id of the artist
      */
     public void addArtistId(String artistId) {
         appendToField(FIELD_ARTISTS_ID, artistId);
     }
-    
-     /**
+
+    /**
+     * Gets the album ids associated to this track
+     * @return album ids
+     */
+    public Set<String> getAlbumId() {
+        return getFieldAsStringSet(FIELD_ALBUMS_ID);
+    }
+
+    /**
+     * Adds an album id to this track
+     * @param albumId album id to add
+     */
+    public void addAlbumId(String albumId) {
+        appendToField(FIELD_ALBUMS_ID, albumId);
+    }
+
+    /**
      * Gets the md5 of the track
      * @return the md5
      */
@@ -141,6 +172,28 @@ public class Track extends ItemAdapter {
      */
     public void setSecs(int secs) {
         setField(FIELD_SECS, secs);
+    }
+
+    /**
+     * Returns wether this track can be streamed from lastfm
+     */
+    public Streamable getStreamableLastfm() {
+        return Streamable.valueOf(getFieldAsString(FIELD_STREAMABLE_LASTFM));
+    }
+
+    /**
+     * Sets wether this track can be streamed from lastfm
+     */
+    public void setStreamableLastfm(Streamable streamable) {
+        this.setField(FIELD_STREAMABLE_LASTFM, streamable.toString());
+    }
+
+   public void setSummary(String summary) {
+        setField(Album.FIELD_SUMMARY, summary);
+    }
+
+    public String getSummary() {
+        return getFieldAsString(Album.FIELD_SUMMARY);
     }
     
 }

@@ -29,7 +29,6 @@ import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Counted;
-import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
 import java.util.Comparator;
@@ -42,10 +41,9 @@ import java.util.Set;
  *
  * @author fm223201
  */
-public class Artist extends ItemAdapter {
+public class Artist extends TaggableItem {
 
     public final static String FIELD_ALBUM = "album";
-    public final static String FIELD_AUTO_TAGS = "autoTags";
     public final static String FIELD_BEGIN_YEAR = "beginYear";
     public final static String FIELD_BIOGRAPHY_SUMMARY = "biographySummary";
     public final static String FIELD_COLLABORATIONS = "collaborations";
@@ -60,30 +58,12 @@ public class Artist extends ItemAdapter {
     public final static String FIELD_HOTTTNESSS = "hotttnesss";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
 
-    public final static String FIELD_SOCIAL_TAGS = "socialTags";
-    public final static String FIELD_SOCIAL_TAGS_RAW = "socialTagsRaw";
-    public final static String FIELD_BIO_TAGS = "bioTags";
-    public final static String FIELD_BLURB_TAGS = "blurbTags";
-    public final static String FIELD_REVIEW_TAGS_EN = "reviewTagsEn";
-    public final static String FIELD_BLOG_TAGS_EN = "blogTagsEn";
-
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
-    public final static String FIELD_LAST_CRAWL = "lastCrawl";
-    public final static String FIELD_UPDATE_COUNT = "updateCount";
     public final static String FIELD_AUDIO = "audio";
     public final static String FIELD_ECHONEST_ID = "echoNestId";
     public final static String FIELD_ECHONEST_CRAWLED_DOC_IDS = "echoNestCrawledDocIds";
     public final static String FIELD_LISTENER_PLAY_COUNTS = "listenersPlayCnts";
-
-    public static enum TagType {
-        SOCIAL,
-        SOCIAL_RAW,
-        BIO,
-        BLURB,
-        REVIEW_EN,
-        BLOG_EN
-    }
 
     public final static Comparator<Artist> POPULARITY = new Comparator<Artist>() {
         public int compare(Artist o1, Artist o2) {
@@ -123,6 +103,7 @@ public class Artist extends ItemAdapter {
     @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
+            super.defineFields(ds);
             ds.defineField(FIELD_ALBUM, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_AUTO_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BEGIN_YEAR, Item.FieldType.INTEGER, StoreFactory.INDEXED);
@@ -148,8 +129,6 @@ public class Artist extends ItemAdapter {
             ds.defineField(FIELD_URLS);
             ds.defineField(FIELD_VIDEOS);
             ds.defineField(FIELD_SPOTIFY);
-            ds.defineField(FIELD_LAST_CRAWL);
-            ds.defineField(FIELD_UPDATE_COUNT);
             ds.defineField(FIELD_AUDIO);
             ds.defineField(FIELD_ECHONEST_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_ECHONEST_CRAWLED_DOC_IDS);
@@ -157,66 +136,6 @@ public class Artist extends ItemAdapter {
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
-    }
-
-    private String tagTypeToField(TagType tt) {
-        switch (tt) {
-            case SOCIAL:        return FIELD_SOCIAL_TAGS;
-            case SOCIAL_RAW:    return FIELD_SOCIAL_TAGS_RAW;
-            case BIO:           return FIELD_BIO_TAGS;
-            case BLURB:         return FIELD_BLURB_TAGS;
-            case REVIEW_EN:     return FIELD_REVIEW_TAGS_EN;
-            case BLOG_EN:       return FIELD_BLOG_TAGS_EN;
-            default:            throw new RuntimeException("Invalid parameter '"+tt.toString()+"'");
-        }
-    }
-
-    /**
-     * Gets tags for the artist
-     * @param tt type of tags
-     * @return list of tags
-     */
-    public List<Tag> getTags(TagType tt) {
-        return getTagsAsList(tagTypeToField(tt));
-    }
-
-    /**
-     * Sets a tag to the artist
-     * @param tt type of tag
-     * @param tag name of the tag
-     * @param count tag count
-     */
-    public void setTag(TagType tt, String tag, int count) {
-        setTag(tagTypeToField(tt), tag, count);
-    }
-
-    /**
-     * Sets a map of tags to the artist
-     * @param tt type of tag
-     * @param tags tag names and associated counts
-     */
-    public void setTags(TagType tt, Map<String, Integer> tags) {
-        for (String tName : tags.keySet()) {
-            setTag(tt, tName, tags.get(tName));
-        }
-    }
-
-    public void incrementTag(TagType tt, String tag, int count) {
-        incrementTag(tagTypeToField(tt), tag, count);
-    }
-
-    public void incrementTags(TagType tt, Map<String, Integer> tags) {
-        for (String tName : tags.keySet()) {
-            incrementTag(tt, tName, tags.get(tName));
-        }
-    }
-
-    /**
-     * Clears all of the tags of the given type
-     * @param tt type of tag
-     */
-    public void clearTags(TagType tt) {
-        clearTags(tagTypeToField(tt));
     }
 
     /**
@@ -269,10 +188,18 @@ public class Artist extends ItemAdapter {
         setField(FIELD_FAMILIARITY, familiarity);
     }
 
+    /**
+     * Gets the echonest id for this artist
+     * @return
+     */
     public String getEchoNestId() {
         return getFieldAsString(FIELD_ECHONEST_ID);
     }
 
+    /**
+     * Sets the echonest id for this artist
+     * @param newId
+     */
     public void setEchoNestId(String newId) {
         setField(FIELD_ECHONEST_ID, newId);
     }
@@ -291,22 +218,6 @@ public class Artist extends ItemAdapter {
      */
     public void setPopularity(float popularity) {
         setField(FIELD_POPULARITY, popularity);
-    }
-
-
-    /**
-     * Gets the time that this item was last crawled
-     * @return the time this item was last crawled in ms since the epoch
-     */
-    public long getLastCrawl() {
-        return getFieldAsLong(FIELD_LAST_CRAWL);
-    }
-
-    /**
-     * Sets the time when this item was last crawled to now.
-     */
-    public void setLastCrawl() {
-        setField(FIELD_LAST_CRAWL, System.currentTimeMillis());
     }
 
     /**
@@ -340,22 +251,6 @@ public class Artist extends ItemAdapter {
     public void setEndYear(int endYear) {
         setField(FIELD_END_YEAR, endYear);
     }
-
-    /**
-     * Gets the number of times this artist has been updated
-     * @return the number of times this artist has been updated
-     */
-    public int getUpdateCount() {
-        return getFieldAsInt(FIELD_UPDATE_COUNT);
-    }
-
-    /**
-     * Sets the time when this item was last crawled to now.
-     */
-    public void incrementUpdateCount() {
-        setField(FIELD_UPDATE_COUNT, getUpdateCount() + 1);
-    }
-
 
     /**
      * Gets the biography summary of the artist

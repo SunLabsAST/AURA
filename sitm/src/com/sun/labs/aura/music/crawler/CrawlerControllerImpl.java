@@ -29,6 +29,7 @@ import com.sun.labs.aura.music.web.lastfm.LastAlbum2;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastArtist2;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
+import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
 import com.sun.labs.aura.music.web.lastfm.LastFMImpl;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.lastfm.LastFM2Impl;
@@ -235,5 +236,15 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
     @Override
     public List<LastItem> getWeeklyArtistChartByUser(String user, int from, int to) throws IOException {
         return lastfm2.getWeeklyArtistChartByUser(user, from, to);
+    }
+
+    @Override
+    public LastTrack getTrackInfo(String trackMbid, String artistName, String trackName) throws IOException, CannotResolveException {
+        return lastfm2.getTrackInfo(trackMbid, artistName, trackName);
+    }
+
+    @Override
+    public SocialTag[] getTrackTopTags(String trackMbid, String artistName, String trackName) throws IOException, CannotResolveException {
+        return lastfm2.getTrackTopTags(trackMbid, artistName, trackName);
     }
 }

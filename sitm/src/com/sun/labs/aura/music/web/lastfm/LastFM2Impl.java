@@ -24,16 +24,21 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
+import com.sun.labs.aura.music.Track.Streamable;
 import com.sun.labs.aura.music.web.Commander;
+import com.sun.labs.aura.music.web.HttpBadRequestException;
 import com.sun.labs.aura.music.web.WebServiceAccessor;
 import com.sun.labs.aura.music.web.XmlUtil;
 import com.sun.labs.aura.util.AuraException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,6 +50,15 @@ import org.w3c.dom.Node;
 public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
 
     private Commander commander;
+
+    public static final SimpleDateFormat lfm2DateFormater = new SimpleDateFormat("dd MMM yyyy, HH:mm");
+
+    public static final Set<String> MSG_TRACK_NOT_FOUND = new HashSet<String>() {
+        {
+            add("No track found");
+            add("No track matches found.");
+        }
+    };
 
     public LastFM2Impl() throws AuraException, IOException {
 
@@ -92,6 +106,30 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
     }
 
     @Override
+    public LastTrack getTrackInfo(String trackMbid, String artistName, String trackName)
+            throws IOException, CannotResolveException {
+
+        LastTrack lT = null;
+        try {
+            lT = getTrackInfoByName(artistName, trackName);
+            return lT;
+        } catch (IOException io1) {
+            try {
+                lT = getTrackInfoByMBID(trackMbid);
+                return lT;
+            } catch (HttpBadRequestException io2) {
+
+                if (((HttpBadRequestException) io1).isLastFmTrackNotFound() && io2.isLastFmTrackNotFound()) {
+                    // we can't resolve so bail out
+                    throw new CannotResolveException("Was unable to retrieve track info from lastfm for track " +
+                            trackMbid + " because the track could not be resolved.");
+                }
+            }
+        }
+        return lT;
+    }
+
+    @Override
     public LastTrack getTrackInfoByName(String artistName, String trackName) throws IOException {
         String url = getTrackInfoByNameURL(artistName, trackName);
         return getTrackInfoFromLastFM(url);
@@ -101,6 +139,29 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
     public LastTrack getTrackInfoByMBID(String mbid) throws IOException {
         String url = getTrackInfoByMbidURL(mbid);
         return getTrackInfoFromLastFM(url);
+    }
+
+    @Override
+    public SocialTag[] getTrackTopTags(String trackMbid, String artistName, String trackName)
+            throws IOException, CannotResolveException {
+
+        SocialTag[] sT = null;
+        try {
+            sT = getTrackTopTagsByName(artistName, trackName);
+            return sT;
+        } catch (IOException io1) {
+            try {
+                sT = getTrackTopTagsByMBID(trackMbid);
+                return sT;
+            } catch (HttpBadRequestException io2) {
+                if (((HttpBadRequestException) io1).isLastFmTrackNotFound() && io2.isLastFmTrackNotFound()) {
+                    // we can't resolve so bail out
+                    throw new CannotResolveException("Was unable to retrieve tags from lastfm for track " +
+                            trackMbid + " because the track could not be resolved.");
+                }
+            }
+        }
+        return sT;
     }
 
     @Override
@@ -423,12 +484,20 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
             track.setMbid(XmlUtil.getElementContents(trackNode, "mbid"));
             track.setUrl(XmlUtil.getElementContents(trackNode, "url"));
             track.setDuration(XmlUtil.getElementContentsAsInteger(trackNode, "duration"));
-            track.setStreamble(XmlUtil.getElementContentsAsInteger(trackNode, "streamable") == 1);
             track.setListeners(XmlUtil.getElementContentsAsInteger(trackNode, "listeners"));
             track.setPlaycount(XmlUtil.getElementContentsAsInteger(trackNode, "playcount"));
 
-            // the artist info
+            if (XmlUtil.getElementContentsAsInteger(trackNode, "streamable") == 1) {
+                if (XmlUtil.getElementAttributeAsInteger(trackNode, "streamable", "fulltrack")==1) {
+                    track.setStreamable(Streamable.FULLTRACK);
+                } else {
+                    track.setStreamable(Streamable.CLIP);
+                }
+            } else {
+                track.setStreamable(Streamable.NO);
+            }
 
+            // the artist info
             Element artistNode = (Element) XmlUtil.getDescendent(trackNode, "artist");
             if (artistNode != null) {
                 track.setArtistName(XmlUtil.getElementContents(artistNode, "name"));
@@ -437,7 +506,6 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
             }
 
             // the album info
-
             Element albumNode = (Element) XmlUtil.getDescendent(trackNode, "album");
             if (albumNode != null) {
                 track.setAlbumPosition(sint(albumNode.getAttribute("position")));
@@ -731,4 +799,13 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         }
     }
 
+
+    public class CannotResolveException extends Exception {
+
+        public CannotResolveException(String message) {
+            super(message);
+        }
+
+    }
+    
 }

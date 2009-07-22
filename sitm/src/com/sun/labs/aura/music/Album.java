@@ -25,25 +25,26 @@
 package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.DataStore;
-import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author fm223201
  */
-public class Album extends ItemAdapter {
+public class Album extends TaggableItem {
 
+    public final static String FIELD_ARTISTS_ID = "artistId";
     public final static String FIELD_ASIN = "asin";
     public final static String FIELD_PHOTOS = "photos";
     public final static String FIELD_TRACKS = "tracks";
+    public final static String FIELD_RELEASE_DATE = "releaseDate";
+    public final static String FIELD_SUMMARY = "summary";
 
     
     /**
@@ -69,14 +70,40 @@ public class Album extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.ALBUM, key, name));
     }
     
+    @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
+            super.defineFields(ds);
+            ds.defineField(FIELD_ARTISTS_ID, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_ASIN);
             ds.defineField(FIELD_PHOTOS);
             ds.defineField(FIELD_TRACKS);
+            ds.defineField(FIELD_RELEASE_DATE, Item.FieldType.DATE, StoreFactory.INDEXED);
+            ds.defineField(Artist.FIELD_URLS);
+            ds.defineField(FIELD_SUMMARY);
+
+            ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
+            
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
+    }
+
+    /**
+     * Get the artist ids associated with this track
+     * @return artist ids
+     */
+    public Set<String> getArtistId() {
+        return getFieldAsStringSet(FIELD_ARTISTS_ID);
+    }
+
+    /**
+     * Adds an artist to this track
+     * @param artistId id of the artist
+     */
+    public void addArtistId(String artistId) {
+        appendToField(FIELD_ARTISTS_ID, artistId);
     }
     
     /**
@@ -147,7 +174,7 @@ public class Album extends ItemAdapter {
      * Gets the album's tracks
      * @return associated urls
      */
-    public Map<Integer,String> getUrls() {
+    public Map<Integer,String> getTracks() {
         return (Map<Integer,String>) getFieldAsObject(FIELD_TRACKS);
     }
     
@@ -159,5 +186,53 @@ public class Album extends ItemAdapter {
     public void addTrack(int trackNumber, String trackId) {
         addObjectToMap(FIELD_TRACKS, Integer.valueOf(trackNumber), trackId);
     }
+
+    public void setReleaseDate(Long d) {
+        this.setField(FIELD_RELEASE_DATE, d);
+    }
+
+    public long getReleaseDate() {
+        return getFieldAsLong(FIELD_RELEASE_DATE);
+    }
+
+    /**
+     * Gets the albums's associated URLs
+     * @return associated urls
+     */
+    public Map<String, String> getUrls() {
+        Map<String,String> map = (Map<String, String>) getFieldAsObject(Artist.FIELD_URLS);
+        if (map == null) {
+            map = new HashMap<String, String>();
+        }
+        return map;
+    }
+
+    /**
+     * Adds an associated URL to album
+     * @param siteName name of the site
+     * @param newURL URL of the albums's page
+     */
+    public void addUrl(String siteName, String newURL) {
+        addObjectToMap(Artist.FIELD_URLS, siteName, newURL);
+    }
+
+    /**
+     * Clears the URLS
+     */
+    public void clearUrls() {
+        Map<String,String> map = (Map<String, String>) getFieldAsObject(Artist.FIELD_URLS);
+        if (map != null) {
+            map.clear();
+        }
+    }
+
+    public void setSummary(String summary) {
+        setField(FIELD_SUMMARY, summary);
+    }
+
+    public String getSummary() {
+        return getFieldAsString(FIELD_SUMMARY);
+    }
+
 }
  
