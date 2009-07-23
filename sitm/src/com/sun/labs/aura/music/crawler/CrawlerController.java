@@ -29,6 +29,7 @@ import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastArtist2;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastTrack;
 import com.sun.labs.aura.music.web.lastfm.LastUser;
@@ -69,6 +70,12 @@ public interface CrawlerController extends LastFM2, LastFM, Component, Remote {
 
     @Override
     public LastTrack getTrackInfoByMBID(String mbid) throws IOException, RemoteException;
+
+    @Override
+    public LastTrack getTrackInfo(String trackMbid, String artistName, String trackName) throws IOException, CannotResolveException;
+
+    @Override
+    public SocialTag[] getTrackTopTags(String trackMbid, String artistName, String trackName) throws IOException, CannotResolveException;
 
     @Override
     public SocialTag[] getTrackTopTagsByName(String artistName, String trackName) throws IOException, RemoteException;

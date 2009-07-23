@@ -29,7 +29,7 @@ import com.sun.labs.aura.music.web.lastfm.LastAlbum2;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastArtist2;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
-import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import com.sun.labs.aura.music.web.lastfm.LastFMImpl;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.lastfm.LastFM2Impl;

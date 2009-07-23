@@ -25,6 +25,7 @@
 package com.sun.labs.aura.music.web.lastfm;
 
 import com.sun.labs.aura.music.Track.Streamable;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import com.sun.labs.aura.music.web.Commander;
 import com.sun.labs.aura.music.web.HttpBadRequestException;
 import com.sun.labs.aura.music.web.WebServiceAccessor;
@@ -57,6 +58,7 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         {
             add("No track found");
             add("No track matches found.");
+            add("You must supply either an artist and track name OR a musicbrainz id.");
         }
     };
 
@@ -123,10 +125,11 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                     // we can't resolve so bail out
                     throw new CannotResolveException("Was unable to retrieve track info from lastfm for track " +
                             trackMbid + " because the track could not be resolved.");
+                } else {
+                    throw io1;
                 }
             }
         }
-        return lT;
     }
 
     @Override
@@ -158,10 +161,11 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                     // we can't resolve so bail out
                     throw new CannotResolveException("Was unable to retrieve tags from lastfm for track " +
                             trackMbid + " because the track could not be resolved.");
+                } else {
+                    throw io1;
                 }
             }
         }
-        return sT;
     }
 
     @Override
@@ -690,8 +694,12 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         return i;
     }
 
-    public static void main(String[] args) throws IOException, AuraException {
+    public static void main(String[] args) throws IOException, AuraException, CannotResolveException {
         LastFM2Impl lfm2 = new LastFM2Impl();
+
+        lfm2.setTrace(true);
+        LastTrack lt = lfm2.getTrackInfo("adaa9a38-bff9-4094-b1f9-640b0139040c", "Jethro Tull", "One for John Gee (B side of 'Song for Jeffrey' single)");
+        lt.dump();
 
         for (LastItem lI : lfm2.getTopArtistsForTag("rock")) {
             System.out.println(lI.toString());
@@ -797,15 +805,6 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                 track.dump();
             }
         }
-    }
-
-
-    public class CannotResolveException extends Exception {
-
-        public CannotResolveException(String message) {
-            super(message);
-        }
-
     }
     
 }

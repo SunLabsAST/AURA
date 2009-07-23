@@ -24,7 +24,7 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
-import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import java.io.IOException;
 import java.util.List;
 
