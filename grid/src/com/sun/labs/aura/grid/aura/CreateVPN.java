@@ -25,6 +25,11 @@
 package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.NetworkAddress;
+import com.sun.caroline.platform.ProcessConfiguration;
+import com.sun.caroline.platform.ProcessExitAction;
+import com.sun.caroline.platform.ProcessRegistration;
+import com.sun.labs.aura.grid.util.DNSForwarder;
+import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
@@ -70,6 +75,43 @@ public class CreateVPN extends Aura {
         //
         // Now create the VPN with those addresses
         gu.createVPN(intAddrs);
+
+        //
+        // We'll need a name server proxy to get things working properly.
+        ProcessConfiguration dnsConfig = getDNSProxyConfig();
+        ProcessRegistration dnsReg = gu.createProcess(getDNSProxyName(),
+                dnsConfig);
+        gu.startRegistration(dnsReg);
+
+        //
+        // Print out the address we got for reference
+        UUID addrID = (UUID)dnsConfig.getNetworkAddresses().toArray()[0];
+        NetworkAddress addr = (NetworkAddress)grid.getResource(addrID);
+        logger.info("Started DNS proxy with address " + addr.getAddress().getHostAddress());
+        logger.info("Remember to add <accnt>.caroline.local to your search domains");
+    }
+
+    /**
+     * Get a config for starting the name server proxy
+     * @return the config
+     */
+    protected ProcessConfiguration getDNSProxyConfig() throws Exception {
+        String[] cmdLine = new String[]{
+            "-classpath",
+            GridUtil.auraDistMntPnt + "/dist/grid.jar",
+            "com.sun.labs.aura.grid.util.DNSForwarder",
+            "fe80::1"
+        };
+
+        ProcessConfiguration pc = gu.getProcessConfig(
+                DNSForwarder.class.getName(),
+                cmdLine, getDNSProxyName());
+        pc.setProcessExitAction(ProcessExitAction.PARK);
+        return pc;
+    }
+
+    protected String getDNSProxyName() {
+        return "dns-proxy";
     }
 
     /**
