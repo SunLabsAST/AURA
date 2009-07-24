@@ -38,6 +38,9 @@ public interface LastFM2 {
 
     public void setMinimumCommandPeriod(long period) throws IOException;
 
+    public LastArtist2 getArtistInfo(String artistMbid, String artistName)
+            throws IOException, CannotResolveException;
+
     public LastArtist2 getArtistInfoByName(String artistName) throws IOException;
 
     public LastArtist2 getArtistInfoByMBID(String mbid) throws IOException;

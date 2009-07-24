@@ -141,11 +141,11 @@ public class LastTrack implements Serializable {
         this.lfmid = lfmid;
     }
 
-    public int getListeners() {
+    public int getListenerCount() {
         return listeners;
     }
 
-    public void setListeners(int listeners) {
+    public void setListenerCount(int listeners) {
         this.listeners = listeners;
     }
 

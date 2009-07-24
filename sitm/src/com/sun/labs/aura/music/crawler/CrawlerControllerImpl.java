@@ -247,4 +247,9 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
     public SocialTag[] getTrackTopTags(String trackMbid, String artistName, String trackName) throws IOException, CannotResolveException {
         return lastfm2.getTrackTopTags(trackMbid, artistName, trackName);
     }
+
+    @Override
+    public LastArtist2 getArtistInfo(String artistMbid, String artistName) throws IOException, CannotResolveException {
+        return lastfm2.getArtistInfo(artistMbid, artistName);
+    }
 }

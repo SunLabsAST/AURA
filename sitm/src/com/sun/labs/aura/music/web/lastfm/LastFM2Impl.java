@@ -84,6 +84,29 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
     }
 
     @Override
+    public LastArtist2 getArtistInfo(String artistId, String artistName) throws IOException, CannotResolveException {
+        LastArtist2 lA = null;
+        try {
+            lA = getArtistInfoByName(artistName);
+            return lA;
+        } catch (IOException io1) {
+            try {
+                lA = getArtistInfoByMBID(artistId);
+                return lA;
+            } catch (HttpBadRequestException io2) {
+
+                if (((HttpBadRequestException) io1).isLastFmTrackNotFound() && io2.isLastFmTrackNotFound()) {
+                    // we can't resolve so bail out
+                    throw new CannotResolveException("Was unable to retrieve artist info from lastfm for artist " +
+                            artistId + " because the artist could not be resolved.");
+                } else {
+                    throw io1;
+                }
+            }
+        }
+    }
+
+    @Override
     public LastArtist2 getArtistInfoByName(String artistName) throws IOException {
         String url = getArtistInfoByNameURL(artistName);
         return getArtistInfoFromLastFM(url);
@@ -350,7 +373,7 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
             Element statsNode = (Element) XmlUtil.getDescendent(artistNode, "stats");
             if (statsNode != null) {
                 artist.setPlaycount(XmlUtil.getElementContentsAsInteger(statsNode, "playcount"));
-                artist.setListeners(XmlUtil.getElementContentsAsInteger(statsNode, "listeners"));
+                artist.setListenerCount(XmlUtil.getElementContentsAsInteger(statsNode, "listeners"));
             }
 
             Element bioNode = (Element) XmlUtil.getDescendent(artistNode, "bio");
@@ -488,7 +511,7 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
             track.setMbid(XmlUtil.getElementContents(trackNode, "mbid"));
             track.setUrl(XmlUtil.getElementContents(trackNode, "url"));
             track.setDuration(XmlUtil.getElementContentsAsInteger(trackNode, "duration"));
-            track.setListeners(XmlUtil.getElementContentsAsInteger(trackNode, "listeners"));
+            track.setListenerCount(XmlUtil.getElementContentsAsInteger(trackNode, "listeners"));
             track.setPlaycount(XmlUtil.getElementContentsAsInteger(trackNode, "playcount"));
 
             if (XmlUtil.getElementContentsAsInteger(trackNode, "streamable") == 1) {

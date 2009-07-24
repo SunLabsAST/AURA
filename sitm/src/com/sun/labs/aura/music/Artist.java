@@ -58,6 +58,8 @@ public class Artist extends TaggableItem {
     public final static String FIELD_HOTTTNESSS = "hotttnesss";
     public final static String FIELD_RELATED_ARTISTS = "relatedArtists";
 
+    public final static String FIELD_LASTFM_LISTENER_COUNT = "lastfmListenerCount";
+    public final static String FIELD_LASTFM_PLAY_COUNT = "lastfmPlayCount";
     public final static String FIELD_URLS = "urls";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_AUDIO = "audio";
@@ -105,7 +107,6 @@ public class Artist extends TaggableItem {
         try {
             super.defineFields(ds);
             ds.defineField(FIELD_ALBUM, Item.FieldType.STRING, StoreFactory.INDEXED);
-            ds.defineField(FIELD_AUTO_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BEGIN_YEAR, Item.FieldType.INTEGER, StoreFactory.INDEXED);
             ds.defineField(FIELD_BIOGRAPHY_SUMMARY, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
             ds.defineField(FIELD_COLLABORATIONS, Item.FieldType.STRING, StoreFactory.INDEXED);
@@ -121,11 +122,14 @@ public class Artist extends TaggableItem {
 
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_AUTO_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BIO_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BLURB_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_REVIEW_TAGS_EN, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_BLOG_TAGS_EN, Item.FieldType.STRING, StoreFactory.INDEXED);
 
+            ds.defineField(FIELD_LASTFM_LISTENER_COUNT);
+            ds.defineField(FIELD_LASTFM_PLAY_COUNT);
             ds.defineField(FIELD_URLS);
             ds.defineField(FIELD_VIDEOS);
             ds.defineField(FIELD_SPOTIFY);
@@ -136,6 +140,30 @@ public class Artist extends TaggableItem {
         } catch(RemoteException ex) {
             throw new AuraException("Error defining fields for Album", ex);
         }
+    }
+
+    public void addLastfmListenerCount(long count) {
+        addObjectToMap(FIELD_LASTFM_LISTENER_COUNT, System.currentTimeMillis(), count);
+    }
+
+    public Map<Long, Long> getLastfmListenerCounts() {
+        return getLongMap(FIELD_LASTFM_LISTENER_COUNT);
+    }
+
+    public void addLastfmPlayCount(long count) {
+        addObjectToMap(FIELD_LASTFM_PLAY_COUNT, System.currentTimeMillis(), count);
+    }
+
+    public Map<Long, Long> getLastfmPlayCounts() {
+        return getLongMap(FIELD_LASTFM_PLAY_COUNT);
+    }
+
+    private Map<Long, Long> getLongMap(String field) {
+        Map<Long,Long> map = (Map<Long, Long>) getFieldAsObject(field);
+        if (map == null) {
+            map = new HashMap<Long, Long>();
+        }
+        return map;
     }
 
     /**

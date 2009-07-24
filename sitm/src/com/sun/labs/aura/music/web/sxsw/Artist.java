@@ -41,7 +41,7 @@ public class Artist implements Serializable {
     public final static Comparator<Artist> POPULARITY_SORT = new Comparator<Artist>() {
 
         public int compare(Artist a1, Artist a2) {
-            return a1.getArtistInfo().getListeners() - a2.getArtistInfo().getListeners();
+            return a1.getArtistInfo().getListenerCount() - a2.getArtistInfo().getListenerCount();
         }
     };
 
