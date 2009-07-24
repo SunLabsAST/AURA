@@ -86,6 +86,9 @@ public class Track extends TaggableItem {
             ds.defineField(Artist.FIELD_AUDIO);
             ds.defineField(Album.FIELD_SUMMARY);
 
+            ds.defineField(Artist.FIELD_LASTFM_LISTENER_COUNT);
+            ds.defineField(Artist.FIELD_LASTFM_PLAY_COUNT);
+
             ds.defineField(FIELD_SOCIAL_TAGS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_SOCIAL_TAGS_RAW, Item.FieldType.STRING, StoreFactory.INDEXED);
 
@@ -195,5 +198,13 @@ public class Track extends TaggableItem {
     public String getSummary() {
         return getFieldAsString(Album.FIELD_SUMMARY);
     }
-    
+
+    public void addLastfmListenerCount(long count) {
+        addObjectToMap(Artist.FIELD_LASTFM_LISTENER_COUNT, System.currentTimeMillis(), count);
+    }
+
+    public void addLastfmPlayCount(long count) {
+        addObjectToMap(Artist.FIELD_LASTFM_PLAY_COUNT, System.currentTimeMillis(), count);
+    }
+
 }

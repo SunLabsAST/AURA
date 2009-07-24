@@ -67,11 +67,11 @@ public class LastArtist2 implements Serializable {
         this.largeImage = largeImage;
     }
 
-    public int getListeners() {
+    public int getListenerCount() {
         return listeners;
     }
 
-    public void setListeners(int listeners) {
+    public void setListenerCount(int listeners) {
         this.listeners = listeners;
     }
 

@@ -29,7 +29,7 @@ import com.sun.labs.aura.music.web.lastfm.LastAlbum2;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastArtist2;
 import com.sun.labs.aura.music.web.lastfm.LastFM;
-import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import com.sun.labs.aura.music.web.lastfm.LastFMImpl;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.lastfm.LastFM2Impl;
@@ -246,5 +246,10 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
     @Override
     public SocialTag[] getTrackTopTags(String trackMbid, String artistName, String trackName) throws IOException, CannotResolveException {
         return lastfm2.getTrackTopTags(trackMbid, artistName, trackName);
+    }
+
+    @Override
+    public LastArtist2 getArtistInfo(String artistMbid, String artistName) throws IOException, CannotResolveException {
+        return lastfm2.getArtistInfo(artistMbid, artistName);
     }
 }

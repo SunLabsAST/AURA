@@ -60,7 +60,8 @@ import com.sun.labs.aura.music.web.lastfm.LastFM;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
 import com.sun.labs.aura.music.web.lastfm.LastArtist;
 import com.sun.labs.aura.music.web.lastfm.LastFM2Impl;
-import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
+import com.sun.labs.aura.music.web.CannotResolveException;
+import com.sun.labs.aura.music.web.lastfm.LastArtist2;
 import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastTrack;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
@@ -366,8 +367,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     }
 
     /**
-     * Given a collection of tag names, ensure that they are all added to
-     * the database
+     * Given a collection of tag names, ensure that they are all added  as
+     * ARTIST_TAG items to the datastore
      * @param tagNames the list of tag names
      */
     private void createTags(Collection<String> tagNames) throws AuraException, RemoteException {
@@ -437,7 +438,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
                     QueuedItem queuedArtist = (QueuedItem) crawlQueue.poll();
                     long curTime = System.currentTimeMillis();
-                    logger.info("Crawling " + queuedArtist + " remaining " + crawlQueue.size() + " time " + (curTime - lastTime) + " ms");
+                    logger.info("Crawling " + queuedArtist + " remaining " +
+                            crawlQueue.size() + " time " + (curTime - lastTime) + " ms");
                     lastTime = curTime;
 
                     Artist artist = collectArtistInfo(queuedArtist);
@@ -706,6 +708,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 ex.printStackTrace();
             } catch (RemoteException ex) {
                 logger.warning("RemoteException while crawling " + item.getName() + " retrying. " + ex.getMessage());
+                ex.printStackTrace();
             } catch (Throwable t) {
                 logger.warning("Unexpected exception  while crawling " + item.getName() + " retrying. " + t.getMessage());
                 t.printStackTrace();
@@ -725,12 +728,22 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         addMusicBrainzInfoIfNecessary(artist);
 
         CommandRunner runner = new CommandRunner(false, logger.isLoggable(Level.FINE));
-        runner.add(new Commander("last.fm") {
+
+        runner.add(new Commander("last.fm1") {
+
+            @Override
+            public void go() throws Exception {
+                updateLastFMPopularity(artist);
+            }
+        });
+
+        
+        runner.add(new Commander("last.fm2") {
 
             @Override
             public void go() throws Exception {
                 addLastFmTags(artist);
-                updateLastFMPopularity(artist);
+                addLastFMCounts(artist);
                 if (discoverMode) {
                     addSimilarArtistsToQueue(artist);
                 }
@@ -800,6 +813,10 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             @Override
             public void go() throws Exception {
                 artist.clearListenersPlayCounts();
+                /**
+                 * This updates the aggregated play count for the listeners present
+                 * in the datastore.
+                 */
                 artist.setListenersPlayCount(mdb.getListenersIdsForArtist(artist.getKey(), Integer.MAX_VALUE));
             }
         });
@@ -899,6 +916,23 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         } catch (Exception ioe) {
             // can't get popularity data from last.fm
             // so just skip the update for now
+        }
+    }
+
+    /**
+     * Adds the playcount and listener count for the given artist from the last.fm api
+     * @param artist artist for which to add counts
+     * @throws RemoteException
+     * @throws IOException
+     * @throws AuraException
+     */
+    private void addLastFMCounts(Artist artist) throws RemoteException, IOException, AuraException {
+        try {
+            LastArtist2 lA2 = getLastFM2().getArtistInfo(artist.getKey(), artist.getName());
+            artist.addLastfmPlayCount(lA2.getPlaycount());
+            artist.addLastfmListenerCount(lA2.getListenerCount());
+        } catch (CannotResolveException ex) {
+            logger.info(ex.getMessage());
         }
     }
 
@@ -1021,7 +1055,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                         Artist.FIELD_ALBUM, 10, new TypeFilter(ItemType.ARTIST));
                 for (Counted<String> cS : lcS) {
                     album.addArtistId(cS.getItem());
-                    logger.fine("Added artist:"+cS.getItem()+" to album:"+album.getKey());
+                    logger.info("  Added artist:"+cS.getItem()+" to album:"+album.getKey());
                 }
             }
 
@@ -1038,7 +1072,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 Track track;
                 if (trackItem == null) {
                     trackItem = StoreFactory.newItem(ItemType.TRACK, e.getValue().getMbid(), e.getValue().getTitle());
-                    logger.fine("    > Creating track '"+e.getValue().getTitle()+"' for album '"+album.getTitle()+"'");
+                    logger.info("    > Creating track '"+e.getValue().getTitle()+"' for album '"+album.getTitle()+"'");
                 }
                 track = new Track(trackItem);
                 track.addAlbumId(album.getKey());
@@ -1051,14 +1085,16 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 String artistName = getArtistName(track.getArtistId().iterator().next());
                 try {
                     LastTrack lt = getLastFM2().getTrackInfo(track.getKey(), artistName, track.getName());
-                    if (!lt.getWikiContent().isEmpty()) {
+                    track.addLastfmListenerCount(lt.getListenerCount());
+                    track.addLastfmPlayCount(lt.getPlaycount());
+                    if (lt.getWikiContent()!= null && !lt.getWikiContent().isEmpty()) {
                         track.setSummary(lt.getWikiContent());
                     }
                     track.setStreamableLastfm(lt.getStreamable());
 
                 } catch (CannotResolveException ex) {
                     // we can't resolve so bail out
-                    logger.warning(ex.getMessage());
+                    logger.info(ex.getMessage());
                 }
 
                 track.incrementUpdateCount();
@@ -1364,7 +1400,8 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 tags = getLastFM2().getTrackTopTags(item.getKey(), artistName, item.getName());
             } catch (CannotResolveException ex) {
                 // we can't resolve so bail out
-                logger.warning(ex.getMessage());
+                logger.info(ex.getMessage());
+                return;
             }
         } else {
             throw new AuraException("Adding last.fm tags to item of type " +

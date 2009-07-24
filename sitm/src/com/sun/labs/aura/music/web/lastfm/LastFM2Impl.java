@@ -25,6 +25,7 @@
 package com.sun.labs.aura.music.web.lastfm;
 
 import com.sun.labs.aura.music.Track.Streamable;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import com.sun.labs.aura.music.web.Commander;
 import com.sun.labs.aura.music.web.HttpBadRequestException;
 import com.sun.labs.aura.music.web.WebServiceAccessor;
@@ -57,6 +58,7 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         {
             add("No track found");
             add("No track matches found.");
+            add("You must supply either an artist and track name OR a musicbrainz id.");
         }
     };
 
@@ -79,6 +81,29 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
     @Override
     public void setMinimumCommandPeriod(long period) {
         commander.setMinimumCommandPeriod(period);
+    }
+
+    @Override
+    public LastArtist2 getArtistInfo(String artistId, String artistName) throws IOException, CannotResolveException {
+        LastArtist2 lA = null;
+        try {
+            lA = getArtistInfoByName(artistName);
+            return lA;
+        } catch (IOException io1) {
+            try {
+                lA = getArtistInfoByMBID(artistId);
+                return lA;
+            } catch (HttpBadRequestException io2) {
+
+                if (((HttpBadRequestException) io1).isLastFmTrackNotFound() && io2.isLastFmTrackNotFound()) {
+                    // we can't resolve so bail out
+                    throw new CannotResolveException("Was unable to retrieve artist info from lastfm for artist " +
+                            artistId + " because the artist could not be resolved.");
+                } else {
+                    throw io1;
+                }
+            }
+        }
     }
 
     @Override
@@ -123,10 +148,11 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                     // we can't resolve so bail out
                     throw new CannotResolveException("Was unable to retrieve track info from lastfm for track " +
                             trackMbid + " because the track could not be resolved.");
+                } else {
+                    throw io1;
                 }
             }
         }
-        return lT;
     }
 
     @Override
@@ -158,10 +184,11 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                     // we can't resolve so bail out
                     throw new CannotResolveException("Was unable to retrieve tags from lastfm for track " +
                             trackMbid + " because the track could not be resolved.");
+                } else {
+                    throw io1;
                 }
             }
         }
-        return sT;
     }
 
     @Override
@@ -346,7 +373,7 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
             Element statsNode = (Element) XmlUtil.getDescendent(artistNode, "stats");
             if (statsNode != null) {
                 artist.setPlaycount(XmlUtil.getElementContentsAsInteger(statsNode, "playcount"));
-                artist.setListeners(XmlUtil.getElementContentsAsInteger(statsNode, "listeners"));
+                artist.setListenerCount(XmlUtil.getElementContentsAsInteger(statsNode, "listeners"));
             }
 
             Element bioNode = (Element) XmlUtil.getDescendent(artistNode, "bio");
@@ -484,7 +511,7 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
             track.setMbid(XmlUtil.getElementContents(trackNode, "mbid"));
             track.setUrl(XmlUtil.getElementContents(trackNode, "url"));
             track.setDuration(XmlUtil.getElementContentsAsInteger(trackNode, "duration"));
-            track.setListeners(XmlUtil.getElementContentsAsInteger(trackNode, "listeners"));
+            track.setListenerCount(XmlUtil.getElementContentsAsInteger(trackNode, "listeners"));
             track.setPlaycount(XmlUtil.getElementContentsAsInteger(trackNode, "playcount"));
 
             if (XmlUtil.getElementContentsAsInteger(trackNode, "streamable") == 1) {
@@ -690,8 +717,12 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         return i;
     }
 
-    public static void main(String[] args) throws IOException, AuraException {
+    public static void main(String[] args) throws IOException, AuraException, CannotResolveException {
         LastFM2Impl lfm2 = new LastFM2Impl();
+
+        lfm2.setTrace(true);
+        LastTrack lt = lfm2.getTrackInfo("adaa9a38-bff9-4094-b1f9-640b0139040c", "Jethro Tull", "One for John Gee (B side of 'Song for Jeffrey' single)");
+        lt.dump();
 
         for (LastItem lI : lfm2.getTopArtistsForTag("rock")) {
             System.out.println(lI.toString());
@@ -797,15 +828,6 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                 track.dump();
             }
         }
-    }
-
-
-    public class CannotResolveException extends Exception {
-
-        public CannotResolveException(String message) {
-            super(message);
-        }
-
     }
     
 }

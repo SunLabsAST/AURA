@@ -24,7 +24,7 @@
 
 package com.sun.labs.aura.music.web.lastfm;
 
-import com.sun.labs.aura.music.web.lastfm.LastFM2Impl.CannotResolveException;
+import com.sun.labs.aura.music.web.CannotResolveException;
 import java.io.IOException;
 import java.util.List;
 
@@ -37,6 +37,9 @@ public interface LastFM2 {
     public void setTrace(boolean trace) throws IOException;
 
     public void setMinimumCommandPeriod(long period) throws IOException;
+
+    public LastArtist2 getArtistInfo(String artistMbid, String artistName)
+            throws IOException, CannotResolveException;
 
     public LastArtist2 getArtistInfoByName(String artistName) throws IOException;
 
