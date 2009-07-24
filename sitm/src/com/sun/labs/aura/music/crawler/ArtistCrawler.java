@@ -220,6 +220,25 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 };
                 threadPool.submit(updater);
             }
+
+            {
+                Runnable updater = new Runnable() {
+
+                    // this thread keep the play counts in artists for all
+                    // listeners up to date. the listener crawler periodically
+                    // updates the listener totals so we need to also update ours
+                    public void run() {
+                        try {
+                            // Give the system a while before we start this
+                            Thread.sleep(60 * 1000L);
+                        } catch (InterruptedException ex) {
+                        }
+                        periodicallyUpdateListenerPlayCounts();
+                    }
+                };
+                threadPool.submit(updater);
+            }
+
         }
     }
 
@@ -905,6 +924,29 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         incrementModCounter(cnt);
     }
 
+    private void periodicallyUpdateListenerPlayCounts() {
+        // Update every week
+        FixedPeriod fp = new FixedPeriod(6 * 60 * 60 * 1000L);
+        while (running) {
+            try {
+                fp.start();
+                updateListenerPlayCounts();
+                fp.end();
+            } catch (AuraException ex) {
+                logger.warning("Aura Exception while updating listener play cnts " + ex);
+                ex.printStackTrace();
+            } catch (RemoteException ex) {
+                logger.warning("Remote Exception while updating listener play cnts " + ex);
+            } catch (IOException ex) {
+                logger.warning("IO Exception while updating listener play cnts " + ex);
+                ex.printStackTrace();
+            } catch (Throwable t) {
+                logger.severe("Unexpected error during listener play cnts updating " + t);
+                t.printStackTrace();
+            }
+        }
+    }
+
     /**
      * For each artist, update the listener play count vector.
      * @throws AuraException
@@ -915,15 +957,34 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         // Go through all artists
         DBIterator<Item> iter = getDataStore().getAllIterator(ItemType.ARTIST);
         try {
+            long startTime = System.currentTimeMillis();
+            logger.info(("ArtistCrawler: Starting updating of listener play counts for all artists at "+startTime));
             while (iter.hasNext()) {
-                Artist a = (Artist) iter.next();
-                a.clearListenersPlayCounts();
+                Artist originalArtist = new Artist(iter.next());
 
-                for (Counted<String> cL : mdb.getListenersIdsForArtist(a.getKey(), Integer.MAX_VALUE)) {
-                    a.setListenersPlayCount(cL.getItem(), (int)cL.getCount());
+                // We need a lock on the item to do this update so wait until we can get one
+                while (!addToCrawlList(originalArtist.getKey())) {
+                    try {
+                        Thread.sleep(2 * 1000L);
+                    } catch (InterruptedException ex) {
+                    }
                 }
-                mdb.flush(a);
+                try {
+                    // Once we have a lock, refetch the item to make sure we won't be
+                    // overwriting some modifications
+                    Artist a = new Artist(getDataStore().getItem(originalArtist.getKey()));
+
+                    a.clearListenersPlayCounts();
+
+                    for (Counted<String> cL : mdb.getListenersIdsForArtist(a.getKey(), Integer.MAX_VALUE)) {
+                        a.setListenersPlayCount(cL.getItem(), (int)cL.getCount());
+                    }
+                    mdb.flush(a);
+                } finally {
+                    removeFromCrawlList(originalArtist.getKey());
+                }
             }
+            logger.info("ArtistCrawler: Finished updating listener play counts in "+(System.currentTimeMillis()-startTime));
         } finally {
             iter.close();
         }
