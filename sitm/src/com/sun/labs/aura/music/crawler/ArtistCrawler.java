@@ -263,7 +263,9 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             amazon = new Amazon();
             upcoming = new Upcoming();
             spotify = new Spotify();
+
             echoNest = new ArtistAPI(ECHONEST_API_KEY);
+            echoNest.setRetries(1);
 
             rcmStore = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);
             rcmCrawl = new RemoteComponentManager(ps.getConfigurationManager(), CrawlerController.class);
@@ -1390,28 +1392,48 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
 
             List<String> reviews = new ArrayList<String>();
-            for (int i=0; i<=maxI; i++) {
-                for (Review r : echoNest.getReviews(artist.getEchoNestId(), i*15, 15).getDocuments()) {
-                    if (!artist.crawledEchoNestDocId(r.getId())) {
-                        if (r.getReviewText() != null && !r.getReviewText().isEmpty()) {
-                            reviews.add(r.getReviewText());
-                            artist.addCrawledEchoNestDocId(r.getId());
-                        } else if (r.getSummary() != null && !r.getSummary().isEmpty()) {
-                            reviews.add(r.getSummary());
-                            artist.addCrawledEchoNestDocId(r.getId());
+            try {
+                for (int i = 0; i <= maxI; i++) {
+                    for (Review r : echoNest.getReviews(artist.getEchoNestId(), i * 15, 15).getDocuments()) {
+                        if (!artist.crawledEchoNestDocId(r.getId())) {
+                            if (r.getReviewText() != null && !r.getReviewText().isEmpty()) {
+                                reviews.add(r.getReviewText());
+                                artist.addCrawledEchoNestDocId(r.getId());
+                            } else if (r.getSummary() != null && !r.getSummary().isEmpty()) {
+                                reviews.add(r.getSummary());
+                                artist.addCrawledEchoNestDocId(r.getId());
+                            }
                         }
                     }
+                }
+            } catch (EchoNestException io) {
+                if (io.getCode() == -1) {
+                    // Service is probably unavailable. don't throw exception
+                    // to prevent retries
+                    logger.info("EchoNest exception trying to get reviews for artist " + artist.getKey());
+                } else {
+                    throw io;
                 }
             }
             artist.incrementTags(TagType.REVIEW_EN, strToBlurbs(reviews));
 
             List<String> blogs = new ArrayList<String>();
-            for (int i=0; i<=maxI; i++) {
-                for (Blog b : echoNest.getBlogs(artist.getEchoNestId(), i*15, 15).getDocuments()) {
-                    if (!artist.crawledEchoNestDocId(b.getId())) {
-                        blogs.add(b.getSummary());
-                        artist.addCrawledEchoNestDocId(b.getId());
+            try {
+                for (int i = 0; i <= maxI; i++) {
+                    for (Blog b : echoNest.getBlogs(artist.getEchoNestId(), i * 15, 15).getDocuments()) {
+                        if (!artist.crawledEchoNestDocId(b.getId())) {
+                            blogs.add(b.getSummary());
+                            artist.addCrawledEchoNestDocId(b.getId());
+                        }
                     }
+                }
+            } catch (EchoNestException io) {
+                if (io.getCode() == -1) {
+                    // Service is probably unavailable. don't throw exception
+                    // to prevent retries
+                    logger.info("EchoNest exception trying to get reviews for artist " + artist.getKey());
+                } else {
+                    throw io;
                 }
             }
             artist.incrementTags(TagType.BLOG_EN, strToBlurbs(blogs));

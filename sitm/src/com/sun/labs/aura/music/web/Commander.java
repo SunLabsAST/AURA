@@ -247,10 +247,10 @@ public class Commander {
                 } catch (IOException e) {
                     // If we're getting a 400 response code, we want to capture more information
                     // in case it's the lastfm api telling us it can't find what we're looking for
-                    if (fullCommand.startsWith("http") && ((HttpURLConnection)urc).getResponseCode()==400) {
+                    if (fullCommand.startsWith("http")) {
                         try {
                             Document doc = builder.get().parse(new BufferedInputStream(((HttpURLConnection) urc).getErrorStream()));
-                            throw new HttpBadRequestException(e.getMessage(), 400, doc);
+                            throw new HttpBadRequestException(e.getMessage(), ((HttpURLConnection)urc).getResponseCode(), doc);
                         } catch (SAXException ex) {
                             throw e;
                         }
