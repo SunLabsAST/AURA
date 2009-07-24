@@ -522,14 +522,23 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             } else {
                 throw new IllegalArgumentException("Unsupported item type.");
             }
-            
+
             if (force || needsUpdate(cI)) {
-                logger.info("  Updating " + itemsTypeStr + " " + cI.getName());
-                updateItemWithErrorRecovery(cI, false);
-                try {
-                    Thread.sleep(period);
-                } catch (InterruptedException e) {
-                    break;
+                if (addToCrawlList(cI.getKey())) {
+                    try {
+                        logger.info("  Updating " + itemsTypeStr + " " + cI.getName());
+                        updateItemWithErrorRecovery(cI, false);
+                        try {
+                            Thread.sleep(period);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    } finally {
+                        removeFromCrawlList(cI.getKey());
+                    }
+                } else {
+                    logger.fine("Skipping item " + cI.getKey() +
+                            " because another process is already crawling it");
                 }
             } else {
                 logger.fine("    " + cI.getName() + " is up to date");
@@ -622,18 +631,26 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             if (cI.getItem().getTimeAdded() > maxCrawl) {
                 maxCrawl = cI.getItem().getTimeAdded();
             }
-            logger.info("  Crawling new "+iT+" " + cI.getName());
-            if (iT == ItemType.ARTIST) {
-                updateArtist((Artist) cI, false);
-            } else if (iT == ItemType.ALBUM) {
+            if (addToCrawlList(cI.getKey())) {
                 try {
-                    updateAlbumAndTracks((Album) cI);
-                } catch (IOException ex) {
-                    // We should only be getting this error if the main music brainz call failed
-                    logger.info("IOException when trying to update new album "+cI.getKey());
+                    logger.info("  Crawling new "+iT+" " + cI.getName());
+                    if (iT == ItemType.ARTIST) {
+                        updateArtist((Artist) cI, false);
+                    } else if (iT == ItemType.ALBUM) {
+                        try {
+                            updateAlbumAndTracks((Album) cI);
+                        } catch (IOException ex) {
+                            // We should only be getting this error if the main music brainz call failed
+                            logger.info("IOException when trying to update new album "+cI.getKey());
+                        }
+                    }
+                } finally {
+                    removeFromCrawlList(cI.getKey());
                 }
+            } else {
+                logger.fine("Skipping item " + cI.getKey() +
+                        " because another process is already crawling it");
             }
-
         }
         return maxCrawl;
     }

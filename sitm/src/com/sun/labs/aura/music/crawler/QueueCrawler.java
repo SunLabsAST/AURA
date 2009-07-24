@@ -34,6 +34,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,6 +53,7 @@ public abstract class QueueCrawler implements QueueCrawlerInterface {
     private int MODIFS_COUNT = 0;
 
     protected BlockingQueue<QueuedItem> crawlQueue;
+    private final Set<String> crawlsInProgress = new HashSet<String>();
 
     public static final Comparator<QueuedItem> PRIORITY_ORDER = new Comparator<QueuedItem>() {
         @Override
@@ -147,6 +150,33 @@ public abstract class QueueCrawler implements QueueCrawlerInterface {
                     fos.close();
                 }
             } catch (IOException ex) {
+            }
+        }
+    }
+
+
+    /**
+     * Remove item from crawl set when we're done crawling it
+     * @param uid id of item
+     */
+    protected void removeFromCrawlList(String uid) {
+        synchronized (crawlsInProgress) {
+            crawlsInProgress.remove(uid);
+        }
+    }
+
+    /**
+     * Add item id to crawl set to make sure two crawler theads don't start crawling
+     * it at the same time.
+     * @param uid id of item
+     */
+    protected boolean addToCrawlList(String uid) {
+        synchronized (crawlsInProgress) {
+            if (crawlsInProgress.contains(uid)) {
+                return false;
+            } else {
+                crawlsInProgress.add(uid);
+                return true;
             }
         }
     }
