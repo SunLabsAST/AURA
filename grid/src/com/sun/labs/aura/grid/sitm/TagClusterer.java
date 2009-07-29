@@ -40,8 +40,11 @@ import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -118,7 +121,7 @@ public class TagClusterer implements AuraService, Configurable {
             logger.info("Populating list of tags done. Got " + totalNbrTags +
                     " tags. Took " + (System.currentTimeMillis() - startTime) + "ms");
 
-            logger.info("Starting "+nbrThreads+" find similar threads...");
+            logger.info("Starting "+nbrThreads+" find similar threads, fetching "+nbrSimTags+" similar items per item");
             ArrayList<SimilarityComputer> computerList = new ArrayList<SimilarityComputer>();
             for (int i=0; i<nbrThreads; i++) {
                 SimilarityComputer sC = new SimilarityComputer();
@@ -202,9 +205,11 @@ public class TagClusterer implements AuraService, Configurable {
                     }
 
                 } catch (AuraException ex) {
-                    logger.severe(ex+" for tag "+currentTag);
+                    logger.severe("AuraException for tag "+currentTag);
+                    ex.printStackTrace();
                 } catch (RemoteException ex) {
-                    logger.severe(ex+" for tag "+currentTag);
+                    logger.severe("RemoteException for tag "+currentTag);
+                    ex.printStackTrace();
                 }
 
             }
@@ -212,6 +217,36 @@ public class TagClusterer implements AuraService, Configurable {
         }
 
     }
+
+
+
+
+    public static void main(String[] args) throws FileNotFoundException, IOException {
+
+        // Load data
+        Map<String, List<Scored<String>>> s = getTagSim(args[0]);
+
+        System.out.println("Loaded map with "+s.size()+" elements");
+
+    }
+
+
+    public static Map<String, List<Scored<String>>> getTagSim(String prefix)
+            throws FileNotFoundException, IOException {
+
+        File theFile = new File(prefix+"/tagsim.objdump");
+        FileInputStream inStream = new FileInputStream(theFile);
+        ObjectInputStream objStream = new ObjectInputStream(inStream);
+
+        Map<String, List<Scored<String>>> s = null;
+        try {
+            s = (Map<String, List<Scored<String>>>) objStream.readObject();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return s;
+    }
+
 
 
     @ConfigComponent(type = DataStore.class)
