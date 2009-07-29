@@ -56,10 +56,8 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -90,8 +88,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     private boolean running = false;
     private boolean needMorenewListeners = false;
 
-    private Set<String> crawlsInProgress = new HashSet<String>();
-
     private Random r = new Random();
 
     public ListenerCrawler() {
@@ -105,28 +101,6 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
 
     private synchronized void setNeedMoreNewListeners(boolean newVal) {
         needMorenewListeners = newVal;
-    }
-
-    /**
-     * Remove listener from crawl set when we're done crawling it
-     * @param uid listener's id
-     */
-    private synchronized void removeFromCrawlList(String uid) {
-        crawlsInProgress.remove(uid);
-    }
-
-    /**
-     * Add listener id to set to make sure two crawler theads don't start crawling
-     * it at the same time.
-     * @param uid listener's id
-     */
-    private synchronized boolean addToCrawlList(String uid) {
-        if (crawlsInProgress.contains(uid)) {
-            return false;
-        } else {
-            crawlsInProgress.add(uid);
-            return true;
-        }
     }
 
     @Override
@@ -479,23 +453,25 @@ public class ListenerCrawler extends QueueCrawler implements AuraService, Config
     public void crawlListener(Listener listener, boolean force) throws AuraException, RemoteException {
         if (force || needsCrawl(listener)) {
             if (addToCrawlList(listener.getKey())) {
-                logger.info("Crawling listener " + listener.getName());
-                int updateCount = listener.getUpdateCount();
-                if (listener.getLastFmName() != null) {
-                    if (updateCount == 0) {
-                        fullCrawlLastFM(listener);
-                    } else {
-                        weeklyCrawlLastFM(listener);
+                try {
+                    logger.info("Crawling listener " + listener.getName());
+                    int updateCount = listener.getUpdateCount();
+                    if (listener.getLastFmName() != null) {
+                        if (updateCount == 0) {
+                            fullCrawlLastFM(listener);
+                        } else {
+                            weeklyCrawlLastFM(listener);
+                        }
                     }
+                    weeklyCrawlPandora(listener);
+                    updateListenerTags(listener);
+                    updateListenerAggregatedPlayCharts(listener);
+                    listener.setLastCrawl();
+                    listener.incrementUpdateCount();
+                    mdb.flush(listener);
+                } finally {
+                    removeFromCrawlList(listener.getKey());
                 }
-                weeklyCrawlPandora(listener);
-                updateListenerTags(listener);
-                updateListenerAggregatedPlayCharts(listener);
-                listener.setLastCrawl();
-                listener.incrementUpdateCount();
-                mdb.flush(listener);
-                
-                removeFromCrawlList(listener.getKey());
             } else {
                 logger.fine("Skipping listener " + listener.getName() +
                         " because another process is already crawling it");

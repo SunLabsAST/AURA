@@ -1,0 +1,9 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME \
+    com.sun.labs.aura.grid.ServiceDeployer \
+    /com/sun/labs/aura/grid/sitm/startTagClustererConfig.xml start
