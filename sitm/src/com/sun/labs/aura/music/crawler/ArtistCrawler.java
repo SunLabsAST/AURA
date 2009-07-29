@@ -960,7 +960,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
         DBIterator<Item> iter = getDataStore().getAllIterator(ItemType.ARTIST);
         try {
             long startTime = System.currentTimeMillis();
-            logger.info(("ArtistCrawler: Starting updating of listener play counts for all artists at "+startTime));
+            logger.info(("ArtistCrawler: Starting update of listener play counts for all artists at "+startTime));
             while (iter.hasNext()) {
                 Artist originalArtist = new Artist(iter.next());
 
@@ -986,7 +986,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                     removeFromCrawlList(originalArtist.getKey());
                 }
             }
-            logger.info("ArtistCrawler: Finished updating listener play counts in "+(System.currentTimeMillis()-startTime));
+            logger.info("ArtistCrawler: Finished update of listener play counts in "+(System.currentTimeMillis()-startTime));
         } finally {
             iter.close();
         }

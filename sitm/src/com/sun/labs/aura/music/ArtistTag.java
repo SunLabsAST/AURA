@@ -26,8 +26,10 @@ package com.sun.labs.aura.music;
 
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
+import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.Tag;
 import java.rmi.RemoteException;
@@ -39,14 +41,14 @@ import java.util.Set;
  *
  * Represents a social tag that has been applied to an artist
  */
-public class ArtistTag extends ItemAdapter {
+public class ArtistTag extends CrawlableItem {
 
     public final static String FIELD_POPULARITY = "popularity";
     public final static String FIELD_DESCRIPTION = "description";
     public final static String FIELD_TAGGED_ARTISTS = "taggedArtists";
+    public final static String FIELD_TAGGED_TRACKS = "taggedTracks";
     public final static String FIELD_VIDEOS = "videos";
     public final static String FIELD_PHOTOS = "photos";
-    public final static String FIELD_LAST_CRAWL = "lastCrawl";
 
     public final static Comparator<ArtistTag> POPULARITY = new Comparator<ArtistTag>() {
         public int compare(ArtistTag o1, ArtistTag o2) {
@@ -89,16 +91,29 @@ public class ArtistTag extends ItemAdapter {
         this(StoreFactory.newItem(Item.ItemType.ARTIST_TAG, nameToKey(name), name));
     }
 
+    /**
+     * Converts an item type enum value to the corresponding datastore field
+     * @param it item type to tag
+     * @return corresponding datastore field
+     */
+    protected static final String taggedItemToField(ItemType it) {
+        switch (it) {
+            case ARTIST:        return FIELD_TAGGED_ARTISTS;
+            case TRACK:         return FIELD_TAGGED_TRACKS;
+            default:            throw new RuntimeException("Invalid parameter '"+it.toString()+"'");
+        }
+    }
 
     @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
+            super.defineFields(ds);
             ds.defineField(FIELD_DESCRIPTION, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
             ds.defineField(FIELD_PHOTOS);
             ds.defineField(FIELD_POPULARITY, Item.FieldType.FLOAT, StoreFactory.INDEXED);
             ds.defineField(FIELD_TAGGED_ARTISTS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_TAGGED_TRACKS, Item.FieldType.STRING, StoreFactory.INDEXED);
             ds.defineField(FIELD_VIDEOS);
-            ds.defineField(FIELD_LAST_CRAWL);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for ArtistTag", rx);
         }
@@ -129,21 +144,6 @@ public class ArtistTag extends ItemAdapter {
     }
 
     /**
-     * Gets the time that this item was last crawled
-     * @return the time this item was last crawled in ms since the epoch
-     */
-    public long getLastCrawl() {
-        return getFieldAsLong(FIELD_LAST_CRAWL);
-    }
-
-    /**
-     * Sets the time when this item was last crawled to now.
-     */
-    public void setLastCrawl() {
-        setField(FIELD_LAST_CRAWL, System.currentTimeMillis());
-    }
-
-    /**
      * Sets the biography summary of the ArtistTag
      * @param biography summary the ArtistTag
      */
@@ -154,22 +154,56 @@ public class ArtistTag extends ItemAdapter {
     /**
      * Gets the artists that have been tagged with the social tag
      * @return tag map
+     * @deprecated 
      */
     public List<Tag> getTaggedArtist() {
-        return getTagsAsList(FIELD_TAGGED_ARTISTS);
+        return getTaggedItems(ItemType.ARTIST);
     }
 
     /**
      * Adds a an artist to the artisttag
      * @param mbaid the musicbrainzid of the artist
      * @param count tag count
+     * @deprecated
      */
     public void addTaggedArtist(String mbaid, int count) {
-        addTag(FIELD_TAGGED_ARTISTS, mbaid, count);
+        addTaggedItem(ItemType.ARTIST, mbaid, count);
     }
 
+    /**
+     * @deprecated
+     */
     public void clearTaggedArtists() {
-        clearTagMap(FIELD_TAGGED_ARTISTS);
+        clearTaggedItems(ItemType.ARTIST);
+    }
+
+    /**
+     * Adds an item to the tag
+     * @param it item type
+     * @param mbaid item's musicbrainzid
+     * @param count tag count
+     */
+    public void addTaggedItem(ItemType it, String mbaid, int count) {
+        addTag(taggedItemToField(it), mbaid, count);
+    }
+
+    public void addTaggedItems(ItemType it, List<Counted<String>> lcs) {
+        for (Counted<String> cS : lcs) {
+            addTaggedItem(it, cS.getItem(), cS.getCount());
+        }
+    }
+
+    public void clearTaggedItems(ItemType it) {
+        clearTagMap(taggedItemToField(it));
+    }
+
+    /**
+     * Gets the items that have been tagged with the tag
+     * @param it item type
+     * @return tag map
+     */
+    public List<Tag> getTaggedItems(ItemType it) {
+        return getTagsAsList(taggedItemToField(it));
     }
 
     /**

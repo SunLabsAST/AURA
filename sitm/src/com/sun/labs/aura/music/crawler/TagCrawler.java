@@ -25,22 +25,26 @@
 package com.sun.labs.aura.music.crawler;
 
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.music.ArtistTag;
+import com.sun.labs.aura.music.ArtistTagRaw;
 import com.sun.labs.aura.music.Photo;
+import com.sun.labs.aura.music.TaggableItem;
 import com.sun.labs.aura.music.Video;
 import com.sun.labs.aura.music.util.CommandRunner;
 import com.sun.labs.aura.music.util.Commander;
 import com.sun.labs.aura.music.web.flickr.FlickrManager;
 import com.sun.labs.aura.music.web.lastfm.LastFM2;
-import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.wikipedia.Wikipedia;
 import com.sun.labs.aura.music.web.yahoo.SearchResult;
 import com.sun.labs.aura.music.web.yahoo.Yahoo;
 import com.sun.labs.aura.music.web.youtube.Youtube2;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
@@ -50,8 +54,6 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,7 +64,7 @@ import java.util.logging.Logger;
  *
  * @author plamere
  */
-public class TagCrawler implements AuraService, Configurable {
+public class TagCrawler extends ConcurrentCrawler implements AuraService, Configurable {
     private Wikipedia wikipedia;
     private Youtube2 youtube;
     private FlickrManager flickr;
@@ -83,16 +85,41 @@ public class TagCrawler implements AuraService, Configurable {
     /**
      * Starts running the crawler
      */
+    @Override
     public void start() {
         if (!running) {
-            Thread t = new Thread() {
+            running = true;
+            {
+                Thread t = new Thread() {
 
-                @Override
-                public void run() {
-                    autoUpdater();
-                }
-            };
-            t.start();
+                    @Override
+                    public void run() {
+                        // Let the sotre take it's breath before we start
+                        try {
+                            Thread.sleep(1000L * 60 * 3);
+                        } catch (InterruptedException ex) {
+                        }
+                        periodicallyUpdateSocialTags();
+                    }
+                };
+                t.start();
+            }
+
+            {
+                Thread t = new Thread() {
+
+                    @Override
+                    public void run() {
+                        // Let the store take it's breath
+                        try {
+                            Thread.sleep(1000L * 60 * 5);
+                        } catch (InterruptedException ex) {
+                        }
+                        periodicallyUpdateTaggedItemsCount();
+                    }
+                };
+                t.start();
+            }
         }
     }
 
@@ -126,26 +153,23 @@ public class TagCrawler implements AuraService, Configurable {
         return (CrawlerController) rcmCrawl.getComponent();
     }
 
-    public void autoUpdater() {
+    public void periodicallyUpdateSocialTags() {
 
-        try {
-            Thread.sleep(1000 * 60 * 3);
-        } catch (InterruptedException ex) {
-        }
+        // BUG: make this configurable
+        // check for tag updates once a day
+        FixedPeriod fp = new FixedPeriod(24 * 60 * 60 * 1000L);
 
-        running = true;
         while (running) {
             try {
                 // start crawling after 3 minutes
-
                 if (forceCrawl) {
                     logger.info("Forced recrawl of artist tags");
                 }
 
+                fp.start();
                 updateArtistTags();
-                // BUG: make this configurable
-                // check for tag updates once a day
-                Thread.sleep(1000 * 60 * 60 * 24);
+                fp.end();
+
                 forceCrawl = false;
             } catch (InterruptedException ex) {
             } catch (AuraException ex) {
@@ -154,41 +178,40 @@ public class TagCrawler implements AuraService, Configurable {
                 logger.warning("Problem crawling tags - RemoteException " + ex);
             } catch (Throwable t) {
                 logger.warning("Problem crawling tags - unexpected exception " + t);
+                t.printStackTrace();
             }
         }
-        running = false;
     }
 
     public void updateArtistTags() throws AuraException, RemoteException {
-        List<Item> items = getDataStore().getAll(ItemType.ARTIST_TAG);
-        List<ArtistTag> tags = new ArrayList(items.size());
 
-        for (Item item : items) {
-            tags.add(new ArtistTag(item));
-        }
+        DBIterator<Item> it = getDataStore().getAllIterator(ItemType.ARTIST_TAG);
+        try {
+            while (it.hasNext()) {
+                // Update album and track counts for ArtistRawTag
+                boolean blocked = false;
+                ArtistTag at = new ArtistTag(it.next());
 
-        Collections.sort(tags, ArtistTag.POPULARITY);
-        Collections.reverse(tags);
-
-        for (ArtistTag tag : tags) {
-            updateSingleTag(tag);
-        }
-    }
-
-    private void addTaggedArtists(ArtistTag artistTag) throws AuraException, RemoteException, IOException {
-        // add the last.fm tags
-        float popularity = 0;
-        LastItem[] lartists = getLastFM2().getTopArtistsForTag(artistTag.getName());
-        if (lartists.length > 0) {
-            artistTag.clearTaggedArtists();
-            for (LastItem lartist : lartists) {
-                // Always add tags, no matter what. we can filter them on the way out
-                if (lartist.getMBID() != null && lartist.getMBID().length() > 0) {
-                    artistTag.addTaggedArtist(lartist.getMBID(), lartist.getFreq());
+                // Get a lock on the tag we want to update
+                while (!addToCrawlList(at.getKey())) {
+                    try {
+                        blocked = true;
+                        Thread.sleep(500L);
+                    } catch (InterruptedException ex) {
+                    }
                 }
-                popularity += lartist.getFreq();
+
+                try {
+                    if (blocked) {
+                        at = new ArtistTag(getDataStore().getItem(at.getKey()));
+                    }
+                    updateSingleTag(at);
+                } finally {
+                    removeFromCrawlList(at.getKey());
+                }
             }
-            artistTag.setPopularity(popularity);
+        } finally {
+            it.close();
         }
     }
 
@@ -206,9 +229,117 @@ public class TagCrawler implements AuraService, Configurable {
 
     private boolean needsUpdate(ArtistTag artistTag) {
         boolean stale = (System.currentTimeMillis() - artistTag.getLastCrawl() > (updateRateInSeconds * 1000L));
-        boolean empty = artistTag.getDescription().length() == 0 || artistTag.getTaggedArtist().size() == 0;
+        boolean empty = artistTag.getDescription().length() == 0 || artistTag.getTaggedItems(ItemType.ARTIST).size() == 0;
         return forceCrawl || stale || empty;
     }
+
+    private void periodicallyUpdateTaggedItemsCount() {
+        // Update every day
+        FixedPeriod fp = new FixedPeriod(2 * 24 * 60 * 60 * 1000L);
+        while (running) {
+            try {
+                fp.start();
+                updateTaggedItemsCount();
+                fp.end();
+            } catch (AuraException ex) {
+                logger.warning("Aura Exception while updating tagged items cnts " + ex);
+                ex.printStackTrace();
+            } catch (RemoteException ex) {
+                logger.warning("Remote Exception while updating tagged items cnts " + ex);
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                logger.warning("IO Exception while updating tagged items cnts " + ex);
+                ex.printStackTrace();
+            } catch (Throwable t) {
+                logger.severe("Unexpected error during tagged items cnts updating " + t);
+                t.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * For each social tag and raw social tag, update the taggedArtists and
+     * taggedTracks counts
+     * @throws RemoteException
+     * @throws AuraException
+     */
+    private void updateTaggedItemsCount() throws RemoteException, AuraException {
+        long startTime = System.currentTimeMillis();
+        logger.info("TagCrawler: Starting update of tagged items count for all tags at "+startTime);
+
+        DBIterator<Item> it = getDataStore().getAllIterator(ItemType.ARTIST_TAG_RAW);
+        try {
+            while (it.hasNext()) {
+                String currTag = "";
+                try {
+                    // Update album and track counts for ArtistRawTag
+                    boolean blocked = false;
+                    ArtistTagRaw atr = new ArtistTagRaw(it.next());
+
+                    // Get a lock on the tag we want to update
+                    currTag = atr.getKey();
+                    while (!addToCrawlList(currTag)) {
+                        try {
+                            blocked = true;
+                            Thread.sleep(500L);
+                        } catch (InterruptedException ex) {
+                        }
+                    }
+
+                    try {
+
+                        String normName = ArtistTag.normalizeName(atr.getName());
+                        
+                        // If we were blocked, fetch a new version of the item
+                        // because it probably has changed4
+                        if (blocked) {
+                            atr = new ArtistTagRaw(getDataStore().getItem(atr.getKey()));
+                        }
+
+                        List<Counted<String>> artistTL = getDataStore().getTermCounts(normName,
+                                TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE,
+                                new TypeFilter(ItemType.ARTIST));
+                        atr.clearTaggedItems(ItemType.ARTIST);
+                        atr.addTaggedItems(ItemType.ARTIST, artistTL);
+
+                        List<Counted<String>> trackTL = getDataStore().getTermCounts(normName,
+                                TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE,
+                                new TypeFilter(ItemType.TRACK));
+                        atr.clearTaggedItems(ItemType.TRACK);
+                        atr.addTaggedItems(ItemType.TRACK, trackTL);
+                        atr.flush(getDataStore());
+
+                        // Try to update the corresponding artist tag if it exists
+                        ArtistTag at = null;
+                        Item ati = getDataStore().getItem( ArtistTag.nameToKey(atr.getName()) );
+                        if (ati != null) {
+                            at = new ArtistTag(ati);
+                            at.clearTaggedItems(ItemType.ARTIST);
+                            at.addTaggedItems(ItemType.ARTIST, artistTL);
+                            at.clearTaggedItems(ItemType.TRACK);
+                            at.addTaggedItems(ItemType.TRACK, trackTL);
+                            at.flush(getDataStore());
+                        }
+                        
+                    } finally {
+                        removeFromCrawlList(currTag);
+                    }
+
+                } catch (AuraException aex) {
+                    logger.log(Level.WARNING, "AuraException while updating " +
+                            "tagged counts for tag "+currTag, aex);
+                } catch (RemoteException ex) {
+                    logger.log(Level.WARNING, "RemoteException while updating " +
+                            "tagged counts for tag "+currTag, ex);
+                }
+            }           
+        } finally {
+            it.close();
+        }
+        logger.info("TagCrawler: Finished update of tagged items count in " +
+                (System.currentTimeMillis() - startTime)+"ms");
+    }
+
 
     /**
      * Collects the information for an artist
@@ -234,27 +365,6 @@ public class TagCrawler implements AuraService, Configurable {
             }
         });
 
-        runner.add(new Commander("lastfm") {
-
-            @Override
-            public void go() throws Exception {
-                addTaggedArtists(artistTag);
-            }
-        });
-        /*
-        runner.add(new Commander("youtube") {
-
-            @Override
-            public void go() throws Exception {
-                List<Video> videos = util.collectYoutubeVideos(getDataStore(), artistTag.getName(), 24);
-                for (Video video : videos) {
-                    artistTag.addVideo(video.getKey());
-                }
-
-            }
-        });
-         * */
-
         runner.add(new Commander("wikipedia") {
 
             @Override
@@ -276,6 +386,8 @@ public class TagCrawler implements AuraService, Configurable {
             // but still return the artist so we can add it to the store
             logger.warning("Exception " + e);
         }
+        
+        artistTag.incrementUpdateCount();
         artistTag.setLastCrawl();
     }
 

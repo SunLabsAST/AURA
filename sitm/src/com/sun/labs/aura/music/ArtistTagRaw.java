@@ -54,6 +54,7 @@ public class ArtistTagRaw extends ArtistTag {
     public void defineFields(DataStore ds) throws AuraException {
         try {
             ds.defineField(FIELD_TAGGED_ARTISTS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_TAGGED_TRACKS, Item.FieldType.STRING, StoreFactory.INDEXED);
         } catch(RemoteException rx) {
             throw new AuraException("Error defining fields for ArtistTagRaw", rx);
         }
