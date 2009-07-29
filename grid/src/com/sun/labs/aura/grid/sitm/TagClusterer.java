@@ -150,7 +150,7 @@ public class TagClusterer implements AuraService, Configurable {
             }
 
             logger.info("Computation done in " + (System.currentTimeMillis() - startTime) +
-                    ". Writing out to file...");
+                    "ms. Writing out to file...");
 
             try {
                 File theFile = new File(fsPath+"/tagsim.objdump");
@@ -195,13 +195,11 @@ public class TagClusterer implements AuraService, Configurable {
 
                 try {
                     List<Scored<Item>> lsi = getDataStore().findSimilar(currentTag, sC);
-                    logger.info("got "+lsi.size()+" for "+currentTag);
 
                     ArrayList<Scored<String>> sS = new ArrayList<Scored<String>>();
                     for (Scored<Item> sI : lsi) {
                         sS.add(new Scored<String>(sI.getItem().getKey(), sI.getScore()));
                     }
-                    logger.info("added "+sS.size()+" for "+currentTag);
                     synchronized (sim) {
                         sim.put(currentTag, sS);
                     }
@@ -227,7 +225,17 @@ public class TagClusterer implements AuraService, Configurable {
         // Load data
         Map<String, List<Scored<String>>> s = getTagSim(args[0]);
 
-        System.out.println("Loaded map with "+s.size()+" elements");
+        System.out.println("Loaded map with " + s.size() + " elements");
+        int i = 0;
+        for (String key : s.keySet()) {
+            if (s.get(key).size() > 0) {
+                System.out.println(key + ":" + s.get(key).size());
+                if (i++ > 150) {
+                    break;
+                }
+            }
+
+        }
 
     }
 
