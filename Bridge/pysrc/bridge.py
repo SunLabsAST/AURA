@@ -105,6 +105,16 @@ class AuraBridge():
         return self._bridge.getItemCount(itemType)
 
 
+    ######
+
+    def find_similar(key, field):
+
+        simconfig = J.JClass("com.sun.labs.aura.datastore.SimilarityConfig")(field)
+        return j2py( self._bridge.findSimilar(key, simconfig) )
+
+
+
+
 
     ####################################
     #       Iterator functions         #
@@ -199,6 +209,12 @@ def j2py(elem):
     elif isinstance(elem, J.JClass("java.util.ArrayList")):
         return [ j2py(elem.get(x)) for x in xrange(elem.size())]
 
+    elif isinstance(elem, J.JClass("java.lang.Long")):
+        return elem.longValue()
+
+    elif isinstance(elem, J.JClass("java.lang.Integer")):
+        return elem.intValue()
+
     elif isinstance(elem, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
 
         item_type = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
@@ -212,7 +228,7 @@ def j2py(elem):
         elif elem.getType()==item_type.USER:
             return J.JClass("com.sun.labs.aura.music.Listener")(elem)
         else:
-            warnings.warn("Conversion of ItemType "+item.getType().toString()+" to it's native type is not yet implemented")
+            warnings.warn("Conversion of ItemType "+elem.getType().toString()+" to it's native type is not yet implemented")
             return elem
 
 
