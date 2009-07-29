@@ -113,7 +113,7 @@ public class TagClusterer implements AuraService, Configurable {
             long startTime = System.currentTimeMillis();
             logger.info("Populating list of tags...");
 
-            for (FieldFrequency fF : getDataStore().getTopValues(TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE, true)) {
+            for (FieldFrequency fF : getDataStore().getTopValues(TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE, false)) {
                 tags.add(ArtistTagRaw.nameToKey((String) fF.getVal()));
             }
             totalNbrTags = tags.size();
@@ -176,7 +176,7 @@ public class TagClusterer implements AuraService, Configurable {
 
     public class SimilarityComputer implements Runnable {
 
-        private SimilarityConfig sC = new SimilarityConfig(TaggableItem.FIELD_SOCIAL_TAGS_RAW, nbrSimTags, null);
+        private SimilarityConfig sC = new SimilarityConfig(ArtistTagRaw.FIELD_TAGGED_ARTISTS, nbrSimTags, null);
         public boolean isDone = false;
 
         @Override
@@ -195,21 +195,22 @@ public class TagClusterer implements AuraService, Configurable {
 
                 try {
                     List<Scored<Item>> lsi = getDataStore().findSimilar(currentTag, sC);
+                    logger.info("got "+lsi.size()+" for "+currentTag);
 
                     ArrayList<Scored<String>> sS = new ArrayList<Scored<String>>();
                     for (Scored<Item> sI : lsi) {
                         sS.add(new Scored<String>(sI.getItem().getKey(), sI.getScore()));
                     }
+                    logger.info("added "+sS.size()+" for "+currentTag);
                     synchronized (sim) {
                         sim.put(currentTag, sS);
                     }
 
                 } catch (AuraException ex) {
-                    logger.severe("AuraException for tag "+currentTag);
+                    logger.log(Level.SEVERE, "AuraException for tag "+currentTag, ex);
                     ex.printStackTrace();
                 } catch (RemoteException ex) {
-                    logger.severe("RemoteException for tag "+currentTag);
-                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "RemoteException for tag "+currentTag, ex);
                 }
 
             }

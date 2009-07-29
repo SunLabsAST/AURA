@@ -1541,6 +1541,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
         for (SocialTag tag : tags) {
 
+            // +1 because lastfm gives us tags with a normalised count of 0
             int normFreq = (tag.getFreq() + 1) * (tag.getFreq() + 1);
 
             // Add raw tag. We need to verify the existance of the tag item because

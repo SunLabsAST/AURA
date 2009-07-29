@@ -27,15 +27,25 @@ import jpype as J
 import os
 import warnings
 
+
+def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), max_heap="2G"):
+
+    cP = os.path.join(classpath_prefix, "Bridge.jar")
+    J.startJVM(jvm_path, "-Xmx"+max_heap, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
+                        "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
+
+
 class AuraBridge():
+    """
+    This class serves as a bridge between python code and the Aura datastore by 
+    implementing the datastore and musicdb api.
+    """
 
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
                     classpath_prefix=os.path.join("..", "dist")):
     
-	cP = os.path.join(classpath_prefix, "Bridge.jar")
-        J.startJVM(jvm_path, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
-                            "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
-
+        init_jvm(jvm_path, classpath_prefix)
+        
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
         self._bridge = AuraBridge()
         self.mdb = MusicDatabase(self._bridge)
@@ -107,11 +117,10 @@ class AuraBridge():
 
     ######
 
-    def find_similar(key, field):
+    def find_similar(self, key, field):
 
         simconfig = J.JClass("com.sun.labs.aura.datastore.SimilarityConfig")(field)
         return j2py( self._bridge.findSimilar(key, simconfig) )
-
 
 
 
@@ -238,6 +247,14 @@ def j2py(elem):
 
 
 
+
+def get_tag_sim(prefix=""):
+
+    tagClustClass = J.JClass("com.sun.labs.aura.grid.sitm.TagClusterer")
+    print "Loading java object..."
+    jobj = tagClustClass.getTagSim(prefix)
+    print "Converting to python native..."
+    return j2py( jobj )
 
 
 

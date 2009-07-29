@@ -90,6 +90,7 @@ public class ArtistTag extends ItemAdapter {
     }
 
 
+    @Override
     public void defineFields(DataStore ds) throws AuraException {
         try {
             ds.defineField(FIELD_DESCRIPTION, Item.FieldType.STRING, StoreFactory.INDEXED_TOKENIZED);
