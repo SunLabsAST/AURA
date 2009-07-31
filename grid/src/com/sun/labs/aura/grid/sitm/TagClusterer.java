@@ -69,10 +69,14 @@ public class TagClusterer implements AuraService, Configurable {
     private ExecutorService threadPool = Executors.newCachedThreadPool();
     private final Queue<String> tags = new LinkedList<String>();
     private final Map<String, List<Scored<String>> > sim = new HashMap<String, List<Scored<String>> >();
+
+    private final int NBR_TO_WRITE = 25000;
+    private int outputFileCnt = 0;
+
     private int totalNbrTags = -1;
     private boolean running = false;
 
-    private int nbrThreads = 4;
+    private int nbrThreads = 8;
     private int nbrSimTags = 1500;
 
 
@@ -116,6 +120,7 @@ public class TagClusterer implements AuraService, Configurable {
             for (FieldFrequency fF : getDataStore().getTopValues(TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE, false)) {
                 tags.add(ArtistTagRaw.nameToKey((String) fF.getVal()));
             }
+            writeToFile("/alltags.objdump", tags);
             totalNbrTags = tags.size();
             
             logger.info("Populating list of tags done. Got " + totalNbrTags +
@@ -140,7 +145,7 @@ public class TagClusterer implements AuraService, Configurable {
                 }
 
                 synchronized (sim) {
-                    logger.info("   progress...\t" + sim.size() + "/" + totalNbrTags);
+                    logger.info("   progress...\t" + (outputFileCnt*NBR_TO_WRITE + sim.size()) + "/" + totalNbrTags);
                 }
                 try {
                     Thread.sleep(30 * 1000L);
@@ -151,25 +156,35 @@ public class TagClusterer implements AuraService, Configurable {
 
             logger.info("Computation done in " + (System.currentTimeMillis() - startTime) +
                     "ms. Writing out to file...");
-
-            try {
-                File theFile = new File(fsPath+"/tagsim.objdump");
-                FileOutputStream outStream = new FileOutputStream(theFile);
-                ObjectOutputStream objStream = new ObjectOutputStream(outStream);
-
-                objStream.writeObject(sim);
-                objStream.close();
-                logger.info("Writing done");
-
-            } catch (IOException ex) {
-                Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            writeMapSplit();
 
             running = false;
 
             // this could probably be done in a more graceful way
             logger.info("TagClusterer exiting...");
             System.exit(0);
+        }
+    }
+
+    private void writeMapSplit() {
+        outputFileCnt++;
+        writeToFile("/keys-" + outputFileCnt + ".objdump", sim.keySet());
+        writeToFile("/tagsim-" + outputFileCnt + ".objdump", sim);
+        logger.info(">> Wrote map split #"+outputFileCnt);
+        sim.clear();
+    }
+
+
+    private void writeToFile(String fileName, Object obj) {
+        try {
+            File theFile = new File(fsPath + fileName);
+            FileOutputStream outStream = new FileOutputStream(theFile);
+            ObjectOutputStream objStream = new ObjectOutputStream(outStream);
+            objStream.writeObject(obj);
+            objStream.close();
+            logger.info("Writing done");
+        } catch (IOException ex) {
+            Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -202,6 +217,10 @@ public class TagClusterer implements AuraService, Configurable {
                     }
                     synchronized (sim) {
                         sim.put(currentTag, sS);
+
+                        if (sim.size() >= NBR_TO_WRITE) {
+                            writeMapSplit();
+                        }
                     }
 
                 } catch (AuraException ex) {
@@ -214,7 +233,6 @@ public class TagClusterer implements AuraService, Configurable {
             }
             isDone = true;
         }
-
     }
 
 

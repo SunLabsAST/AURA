@@ -89,7 +89,8 @@ public class StartTagClusterer extends ServiceAdapter {
 
     private ProcessConfiguration getClustererConfig(FileSystem fs) throws Exception {
         String[] cmdLine = new String[]{
-            "-Xmx2G",
+            "-d64",
+            "-Xmx8G",
             "-DauraGroup=" + instance + "-aura",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DfsPath=/files/tagclusterer/",
