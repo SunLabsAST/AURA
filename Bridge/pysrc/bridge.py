@@ -25,14 +25,8 @@
 
 import jpype as J
 import os
-import warnings
-
-
-def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), max_heap="2G"):
-
-    cP = os.path.join(classpath_prefix, "Bridge.jar")
-    J.startJVM(jvm_path, "-Xmx"+max_heap, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
-                        "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
+import lib as L
+import lib.j2py as j2py
 
 
 class AuraBridge():
@@ -44,7 +38,7 @@ class AuraBridge():
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
                     classpath_prefix=os.path.join("..", "dist")):
     
-        init_jvm(jvm_path, classpath_prefix)
+        L.init_jvm(jvm_path, classpath_prefix)
         
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
         self._bridge = AuraBridge()
@@ -157,6 +151,8 @@ class AuraBridge():
             self._bridge.iteratorClose(it_id)
 
 
+
+
 #####################################
 #     Implementation of MusicDb     #
 #####################################
@@ -183,116 +179,4 @@ class MusicDatabase():
         sA = self._bridge.getMdb().artistSearch(artistName, return_count)
         return j2py(sA)
 
-
-
-
-
-####################################
-#        Utility functions         #
-####################################
-
-def _lst_to_jarraylist(l):
-    aL = J.java.util.ArrayList()
-    for k in l:
-        aL.add(k)
-    return aL
-
-
-def j2py(elem):
-    """
-    Tries to convert java data types and data structures to native python. Also
-    tries to convert ItemImpl objects to their specific item types.
-    """
-    if isinstance(elem, J.JClass("java.util.HashMap")):
-        r = {}
-        for eS in elem.entrySet().iterator():
-            r[ j2py(eS.getKey()) ] = j2py(eS.getValue())
-        return r
-
-    elif isinstance(elem, J.JClass("java.util.HashSet")):
-        r = set()
-        for e in elem.iterator():
-            r.add( j2py(e) )
-        return r
-
-    elif isinstance(elem, J.JClass("java.util.ArrayList")):
-        return [ j2py(elem.get(x)) for x in xrange(elem.size())]
-
-    elif isinstance(elem, J.JClass("java.lang.Long")):
-        return elem.longValue()
-
-    elif isinstance(elem, J.JClass("java.lang.Integer")):
-        return elem.intValue()
-
-    elif isinstance(elem, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
-
-        item_type = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
-
-        if elem.getType()==item_type.ALBUM:
-            return J.JClass("com.sun.labs.aura.music.Album")(elem)
-        elif elem.getType()==item_type.ARTIST:
-            return J.JClass("com.sun.labs.aura.music.Artist")(elem)
-        elif elem.getType()==item_type.TRACK:
-            return J.JClass("com.sun.labs.aura.music.Track")(elem)
-        elif elem.getType()==item_type.USER:
-            return J.JClass("com.sun.labs.aura.music.Listener")(elem)
-        else:
-            warnings.warn("Conversion of ItemType "+elem.getType().toString()+" to it's native type is not yet implemented")
-            return elem
-
-
-    else:
-        return elem
-
-
-
-
-
-def get_tag_sim(prefix=""):
-
-    tagClustClass = J.JClass("com.sun.labs.aura.grid.sitm.TagClusterer")
-    print "Loading java object..."
-    jobj = tagClustClass.getTagSim(prefix)
-    print "Converting to python native..."
-    return j2py( jobj )
-
-
-
-
-
-####################################
-#     Type assertions functions    #
-####################################
-def _assert_type_attn_config(attn_config):
-    if not isinstance(attn_config, J.JClass("com.sun.labs.aura.datastore.AttentionConfig")):
-        raise WrongTypeException("Must use a valid attention config object. Use ClassFactory.new_attention_config()")
-
-def _assert_type_itemtype(itemType):
-    iT_class = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
-    if isinstance(itemType, str):
-        itemType = iT_class.valueOf(itemType)
-    elif not isinstance(itemType, iT_class):
-        raise WrongTypeException("Must use valid item type.")
-    return itemType
-
-
-
-
-class WrongTypeException(Exception):
-    def __init__(self, value):
-        self.value = value
-    
-    def __str__(self):
-        return repr(self.value)
-
-
-
-
-
-class ClassFactory():
-
-    @staticmethod
-    def new_attention_config():
-        """Returns a new AttentionConfig object"""
-        return J.JClass("com.sun.labs.aura.datastore.AttentionConfig")()
 
