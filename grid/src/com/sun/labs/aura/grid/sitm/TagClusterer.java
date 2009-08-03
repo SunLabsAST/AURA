@@ -53,6 +53,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -168,7 +169,8 @@ public class TagClusterer implements AuraService, Configurable {
 
     private void writeMapSplit() {
         outputFileCnt++;
-        writeToFile("/keys-" + outputFileCnt + ".objdump", sim.keySet());
+        Set<String> tagsPresent = sim.keySet();
+        writeToFile("/keys-" + outputFileCnt + ".objdump", tagsPresent);
         writeToFile("/tagsim-" + outputFileCnt + ".objdump", sim);
         logger.info(">> Wrote map split #"+outputFileCnt);
         sim.clear();
@@ -187,6 +189,46 @@ public class TagClusterer implements AuraService, Configurable {
             Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public static Set<String> readKeySplit(String prefix, int splitNbr) throws IOException {
+        return readKeySplit(prefix + "/keys-"+splitNbr+".objdump");
+    }
+
+    public static Set<String> readKeySplit(String path) throws IOException {
+        File theFile = new File(path);
+        FileInputStream inStream = new FileInputStream(theFile);
+        ObjectInputStream objStream = new ObjectInputStream(inStream);
+
+        Set<String> s = null;
+        try {
+            s = (Set<String>) objStream.readObject();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return s;
+    }
+
+
+    public static Map<String, List<Scored<String>> > readMapSplit(String prefix, int splitNbr) throws IOException {
+        return readMapSplit(prefix + "/tagsim-"+splitNbr+".objdump");
+    }
+
+    public static Map<String, List<Scored<String>> > readMapSplit(String path) throws IOException {
+
+        File theFile = new File(path);
+        FileInputStream inStream = new FileInputStream(theFile);
+        ObjectInputStream objStream = new ObjectInputStream(inStream);
+
+        Map<String, List<Scored<String>>> s = null;
+        try {
+            s = (Map<String, List<Scored<String>>>) objStream.readObject();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return s;
+
+    }
+
 
 
     public class SimilarityComputer implements Runnable {
@@ -241,7 +283,7 @@ public class TagClusterer implements AuraService, Configurable {
     public static void main(String[] args) throws FileNotFoundException, IOException {
 
         // Load data
-        Map<String, List<Scored<String>>> s = getTagSim(args[0]);
+        Map<String, List<Scored<String>>> s = readMapSplit(args[0]);
 
         System.out.println("Loaded map with " + s.size() + " elements");
         int i = 0;
@@ -256,24 +298,6 @@ public class TagClusterer implements AuraService, Configurable {
         }
 
     }
-
-
-    public static Map<String, List<Scored<String>>> getTagSim(String prefix)
-            throws FileNotFoundException, IOException {
-
-        File theFile = new File(prefix+"/tagsim.objdump");
-        FileInputStream inStream = new FileInputStream(theFile);
-        ObjectInputStream objStream = new ObjectInputStream(inStream);
-
-        Map<String, List<Scored<String>>> s = null;
-        try {
-            s = (Map<String, List<Scored<String>>>) objStream.readObject();
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return s;
-    }
-
 
 
     @ConfigComponent(type = DataStore.class)

@@ -26,7 +26,7 @@
 import jpype as J
 import os
 import lib as L
-import lib.j2py as j2py
+from lib import j2py
 
 
 class AuraBridge():

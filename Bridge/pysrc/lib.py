@@ -150,7 +150,7 @@ class PyScored():
         name = None
         if isinstance(self.item, str):
             name = self.item
-        elif type(self.item).startswith("com.sun.labs.aura.music") and
+        elif type(self.item).startswith("com.sun.labs.aura.music") and \
                 type(self.item)[24:] in ["Album", "Artist", "Track", "Listener"]:
             for f in [ lambda x: x.getName(), lambda x: x.getTitle() ]:
                 try:

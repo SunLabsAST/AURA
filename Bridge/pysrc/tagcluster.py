@@ -34,13 +34,19 @@ if J.isJVMStarted()==0:
 
 
 
+def get_keyset(splitNbr, prefix=""):
+    fnct = lambda x: x.readKeySplit(prefix, splitNbr)
+    return _get_simdata(fnct)
 
-def get_tag_sim(prefix=""):
 
+def get_tag_sim(splitNbr, prefix="",):
+    fnct = lambda x: x.readMapSplit(prefix, splitNbr)
+    return _get_simdata(fnct)
+
+
+def _get_simdata(fnct):
     tagClustClass = J.JClass("com.sun.labs.aura.grid.sitm.TagClusterer")
     print "Loading java object..."
-    jobj = tagClustClass.getTagSim(prefix)
+    jobj = fnct(tagClustClass)
     print "Converting to python native..."
     return j2py( jobj )
-
-
