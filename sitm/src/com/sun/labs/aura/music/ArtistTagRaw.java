@@ -24,9 +24,11 @@
 
 package com.sun.labs.aura.music;
 
+import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.StoreFactory;
 import com.sun.labs.aura.util.AuraException;
+import java.rmi.RemoteException;
 
 
 public class ArtistTagRaw extends ArtistTag {
@@ -47,6 +49,16 @@ public class ArtistTagRaw extends ArtistTag {
         this(StoreFactory.newItem(Item.ItemType.ARTIST_TAG_RAW, nameToKey(name), name));
     }
 
+
+    @Override
+    public void defineFields(DataStore ds) throws AuraException {
+        try {
+            ds.defineField(FIELD_TAGGED_ARTISTS, Item.FieldType.STRING, StoreFactory.INDEXED);
+            ds.defineField(FIELD_TAGGED_TRACKS, Item.FieldType.STRING, StoreFactory.INDEXED);
+        } catch(RemoteException rx) {
+            throw new AuraException("Error defining fields for ArtistTagRaw", rx);
+        }
+    }
 
     
     public static String nameToKey(String name) {

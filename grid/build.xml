@@ -217,18 +217,22 @@
             <fileset dir="dist">
                 <include name="grid.jar"/>
             </fileset>
-            <fileset dir="../aura/dist">
+<!--            
+<fileset dir="../aura/dist">
                 <include name="aura.jar"/>
             </fileset>
+-->
         </dav:put>
         <dav:put url="${dav.url}/${dist.col}/lib" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
             <fileset dir="dist">
                 <include name="grid.jar"/>
             </fileset>
-            <fileset dir="../SitmLoadGenerator/dist/">
+<!--  
+          <fileset dir="../SitmLoadGenerator/dist/">
                 <include name="SitmLoadGenerator.jar"/>
             </fileset>
+-->
         </dav:put>
         <!-- Redo the jar target so that the service deployer is the main program! -->
         <antcall target="do-service-deployer-jar-with-libraries"/>

@@ -24,17 +24,28 @@
 
 
 import jpype as J
-import os, warnings
+import os
+import warnings
+
+
+def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), max_heap="2G"):
+
+    cP = os.path.join(classpath_prefix, "Bridge.jar")
+    J.startJVM(jvm_path, "-Xmx"+max_heap, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
+                        "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
+
 
 class AuraBridge():
+    """
+    This class serves as a bridge between python code and the Aura datastore by 
+    implementing the datastore and musicdb api.
+    """
 
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
                     classpath_prefix=os.path.join("..", "dist")):
     
-	cP = os.path.join(classpath_prefix, "Bridge.jar")
-        J.startJVM(jvm_path, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
-                            "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
-
+        init_jvm(jvm_path, classpath_prefix)
+        
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
         self._bridge = AuraBridge()
         self.mdb = MusicDatabase(self._bridge)
@@ -45,12 +56,12 @@ class AuraBridge():
     #############################################
     def get_item(self, key):
         """Gets an item from the store"""
-	return ClassFactory.itemimpl_to_item(self._bridge.getItem(key))
+	return j2py(self._bridge.getItem(key))
 
 
     def get_user(self, key):
         """Gets a user from the store"""
-	return ClassFactory.itemimpl_to_item(self._bridge.getUser(key))
+	return j2py(self._bridge.getUser(key))
 
 
     def get_items(self, keys):
@@ -59,7 +70,7 @@ class AuraBridge():
             raise WrongTypeException("keys argument should be a list")
 
         aL = self._bridge.getItems(_lst_to_jArrayList(keys))
-        return _jarraylist_to_lst(aL)
+        return j2py(aL)
 
 
     def get_all(self, itemType):
@@ -69,7 +80,7 @@ class AuraBridge():
         """
         itemType = _assert_type_itemtype(itemType)
         jL = self._bridge.getAll(itemType)
-        return _jarraylist_to_lst(jL)
+        return j2py(jL)
 
 
     def get_attention_count(self, attn_config):
@@ -104,6 +115,15 @@ class AuraBridge():
         return self._bridge.getItemCount(itemType)
 
 
+    ######
+
+    def find_similar(self, key, field):
+
+        simconfig = J.JClass("com.sun.labs.aura.datastore.SimilarityConfig")(field)
+        return j2py( self._bridge.findSimilar(key, simconfig) )
+
+
+
 
     ####################################
     #       Iterator functions         #
@@ -130,7 +150,7 @@ class AuraBridge():
             while go:
                 nextVal = self._bridge.iteratorNext(it_id)
                 if not nextVal is None:
-                    yield ClassFactory.itemimpl_to_item(nextVal)
+                    yield j2py(nextVal)
                 else:
                     go = False
         finally:
@@ -149,19 +169,19 @@ class MusicDatabase():
     def get_favorite_artist_keys(self, listenerId, max=10):
         """Gets the favorite artists' keys for a listener"""
         keys = self._bridge.getMdb().getFavoriteArtistKeys(listenerId, max)
-        return _jit_to_set(keys)
+        return j2py(keys)
 
 
     def get_favorite_artists(self, listenerID, max=10):
         """Gets the Favorite artists IDs for a listener"""
         a = self._bridge.getMdb().getFavoriteArtists(listenerID, max)
-        return _jarraylist_to_lst(a)
+        return j2py(a)
 
 
     def artist_search(self, artistName, return_count=10):
         """Searches for artists that match the given name"""
         sA = self._bridge.getMdb().artistSearch(artistName, return_count)
-        return _jscored_arraylist_to_lst(sA)
+        return j2py(sA)
 
 
 
@@ -170,11 +190,6 @@ class MusicDatabase():
 ####################################
 #        Utility functions         #
 ####################################
-def _jarraylist_to_lst(aL):
-    return [ClassFactory.itemimpl_to_item(aL.get(x)) for x in xrange(aL.size())]
-
-def _jscored_arraylist_to_lst(saL):
-    return [(ClassFactory.itemimpl_to_item(saL.get(x).getItem()), saL.get(x).getScore()) for x in xrange(saL.size())]
 
 def _lst_to_jarraylist(l):
     aL = J.java.util.ArrayList()
@@ -182,11 +197,65 @@ def _lst_to_jarraylist(l):
         aL.add(k)
     return aL
 
-def _jit_to_set(hS):
-    rtnset = set()
-    for s in hS.iterator():
-        rtnset.add(ClassFactory.itemimpl_to_item(s))
-    return rtnset
+
+def j2py(elem):
+    """
+    Tries to convert java data types and data structures to native python. Also
+    tries to convert ItemImpl objects to their specific item types.
+    """
+    if isinstance(elem, J.JClass("java.util.HashMap")):
+        r = {}
+        for eS in elem.entrySet().iterator():
+            r[ j2py(eS.getKey()) ] = j2py(eS.getValue())
+        return r
+
+    elif isinstance(elem, J.JClass("java.util.HashSet")):
+        r = set()
+        for e in elem.iterator():
+            r.add( j2py(e) )
+        return r
+
+    elif isinstance(elem, J.JClass("java.util.ArrayList")):
+        return [ j2py(elem.get(x)) for x in xrange(elem.size())]
+
+    elif isinstance(elem, J.JClass("java.lang.Long")):
+        return elem.longValue()
+
+    elif isinstance(elem, J.JClass("java.lang.Integer")):
+        return elem.intValue()
+
+    elif isinstance(elem, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
+
+        item_type = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
+
+        if elem.getType()==item_type.ALBUM:
+            return J.JClass("com.sun.labs.aura.music.Album")(elem)
+        elif elem.getType()==item_type.ARTIST:
+            return J.JClass("com.sun.labs.aura.music.Artist")(elem)
+        elif elem.getType()==item_type.TRACK:
+            return J.JClass("com.sun.labs.aura.music.Track")(elem)
+        elif elem.getType()==item_type.USER:
+            return J.JClass("com.sun.labs.aura.music.Listener")(elem)
+        else:
+            warnings.warn("Conversion of ItemType "+elem.getType().toString()+" to it's native type is not yet implemented")
+            return elem
+
+
+    else:
+        return elem
+
+
+
+
+
+def get_tag_sim(prefix=""):
+
+    tagClustClass = J.JClass("com.sun.labs.aura.grid.sitm.TagClusterer")
+    print "Loading java object..."
+    jobj = tagClustClass.getTagSim(prefix)
+    print "Converting to python native..."
+    return j2py( jobj )
+
 
 
 
@@ -226,26 +295,4 @@ class ClassFactory():
     def new_attention_config():
         """Returns a new AttentionConfig object"""
         return J.JClass("com.sun.labs.aura.datastore.AttentionConfig")()
-
-
-    @staticmethod
-    def itemimpl_to_item(item):
-
-        if not isinstance(item, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
-            raise WrongTypeException("Must pass an ItemImpl instance")
-
-        item_type = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
-
-        if item.getType()==item_type.ALBUM:
-            return J.JClass("com.sun.labs.aura.music.Album")(item)
-        elif item.getType()==item_type.ARTIST:
-            return J.JClass("com.sun.labs.aura.music.Artist")(item)
-        elif item.getType()==item_type.TRACK:
-            return J.JClass("com.sun.labs.aura.music.Track")(item)
-        elif item.getType()==item_type.USER:
-            return J.JClass("com.sun.labs.aura.music.Listener")(item)
-
-        else:
-            warnings.warn("Conversion of ItemType "+item.getType().toString()+" to it's native type is not yet implemented")
-            return item
 

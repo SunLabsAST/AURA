@@ -19,7 +19,7 @@ is divided into following sections:
   - cleanup
 
         -->
-<project xmlns:j2seproject1="http://www.netbeans.org/ns/j2se-project/1" xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3" xmlns:jaxrpc="http://www.netbeans.org/ns/j2se-project/jax-rpc" basedir=".." default="default" name="grid-impl">
+<project xmlns:j2seproject1="http://www.netbeans.org/ns/j2se-project/1" xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3" xmlns:jaxrpc="http://www.netbeans.org/ns/j2se-project/jax-rpc" basedir=".." default="default" name="Bridge-impl">
     <fail message="Please build using Ant 1.7.1 or higher.">
         <condition>
             <not>
@@ -358,12 +358,8 @@ is divided into following sections:
                 ===================
             -->
     <target depends="init" name="deps-jar" unless="no.deps">
-        <ant antfile="${project.Reuters}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.SitmLoadGenerator}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.SitmWebServicesAPI}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="jar"/>
+        <ant antfile="${project.SITM}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.aura}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.sitm}/build.xml" inheritall="false" target="jar"/>
     </target>
     <target depends="init,-check-automatic-build,-clean-after-automatic-build" name="-verify-automatic-build"/>
     <target depends="init" name="-check-automatic-build">
@@ -716,12 +712,8 @@ is divided into following sections:
                 ===============
             -->
     <target depends="init" name="deps-clean" unless="no.deps">
-        <ant antfile="${project.Reuters}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.SitmLoadGenerator}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.SitmWebServicesAPI}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="clean"/>
+        <ant antfile="${project.SITM}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.aura}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.sitm}/build.xml" inheritall="false" target="clean"/>
     </target>
     <target depends="init" name="-do-clean">
         <delete dir="${build.dir}"/>

@@ -34,10 +34,12 @@ import com.sun.labs.aura.datastore.Item.FieldCapability;
 import com.sun.labs.aura.datastore.Item.FieldType;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.RemoteComponentManager;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -108,6 +110,10 @@ public class AuraBridge implements Configurable, ItemStore {
 
     public MusicDBBridge getMdb() {
         return mdb;
+    }
+
+    public List<Scored<Item>> findSimilar(String key, SimilarityConfig config) throws AuraException, RemoteException {
+        return getDataStore().findSimilar(key, config);
     }
 
     @Override
