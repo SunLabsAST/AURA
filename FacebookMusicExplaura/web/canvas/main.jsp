@@ -173,7 +173,8 @@ To explore bands and get customized recommendations, visit the full
     </td><td width="100%" style="text-align: center;">
     The Music Explaura is developed by <a href="http://research.sun.com/">Sun
     Labs</a> as part of <a href="http://www.tastekeeper.com/">The AURA Project</a>.<br/>
-    Data was used from <a href="http://musicbrainz.org">Musicbrainz</a> and <a href="http://last.fm">Last.fm</a><br/>
+    Data was used from <a href="http://musicbrainz.org">Musicbrainz</a>,
+    <a href="http://flickr.com/">flickr</a>, and <a href="http://last.fm">Last.fm</a><br/>
     </td></tr></table>
 </div>
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: deployWarGF -h [-n server name] -w [war file]'
+    echo 'Usage: deployWarGF -h [-n server name] -w [war file] -p [context path]'
     echo ' server name defaults to www and war file to WME'
 }
 
