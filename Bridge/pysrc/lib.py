@@ -27,12 +27,16 @@ import os
 import warnings
 
 
+DEFAULT_GRID_REGHOST="172.16.136.2"
 
-def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), max_heap="2G"):
+
+def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), 
+                max_heap="2G", regHost=DEFAULT_GRID_REGHOST):
 
     cP = os.path.join(classpath_prefix, "Bridge.jar")
     J.startJVM(jvm_path, "-Xmx"+max_heap, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
-                        "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", "-Djava.class.path="+cP)
+                        "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", \
+                        "-DregHost="+regHost, "-Djava.class.path="+cP)
 
 
 
