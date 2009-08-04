@@ -36,7 +36,8 @@ class AuraBridge():
     """
 
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
-                    classpath_prefix=os.path.join("..", "dist")):
+                    classpath_prefix=os.path.join("..", "dist"),
+                    regHost=L.DEFAULT_GRID_REGHOST):
     
         L.init_jvm(jvm_path, classpath_prefix)
         
@@ -72,33 +73,33 @@ class AuraBridge():
         Gets all items of a particular type from the store.
         This can be **VERY** long. Consider using get_all_iterator()
         """
-        itemType = _assert_type_itemtype(itemType)
+        itemType = L._assert_type_itemtype(itemType)
         jL = self._bridge.getAll(itemType)
         return j2py(jL)
 
 
     def get_attention_count(self, attn_config):
         """Gets the attention count for a particular attention configuration"""
-        _assert_type_attn_config(attn_config)
+        L._assert_type_attn_config(attn_config)
         return self._bridge.getAttentionCount(attn_config).longValue()
 
 
     def get_attention_since(self, attn_config, timestamp):
         """Gets attentions created since timestamp, given an attention configuration"""
-        _assert_type_attn_config(attn_config)
+        L._assert_type_attn_config(attn_config)
         aL = self._bridge.getAttentionSince(attn_config, J.java.util.Date(timestamp))
         return _jarraylist_to_lst(aL)
 
 
     def get_attention_since_count(self, attn_config, timestamp):
         """Gets the attention count created since timestamp for a particular attention configuration"""
-        _assert_type_attn_config(attn_config)
+        L._assert_type_attn_config(attn_config)
         return self._bridge.getAttentionSinceCount(attn_config, J.java.util.Date(timestamp)).longValue()
 
 
     def get_last_attention(self, attn_config, count=10):
         """Get the count last attentions given an attention configuration object"""
-        _assert_type_attn_config(attn_config)
+        L._assert_type_attn_config(attn_config)
         return self._bridge.getLastAttention(attn_config, count)
 
 
@@ -124,14 +125,14 @@ class AuraBridge():
     ####################################
     def get_all_iterator(self, itemType):
         """Gets an iterator over all items of specified type"""
-        itemType = _assert_type_itemtype(itemType)
+        itemType = L._assert_type_itemtype(itemType)
         it_id = self._bridge.allItemsIteratorInit(itemType)
         return self._iterator_loop(it_id)
 
 
     def get_items_added_since_iterator(self, itemType, timestamp):
         """Gets an iterator over all items of specified type added since the specified timestamp"""
-        itemType = _assert_type_itemtype(itemType)
+        itemType = L._assert_type_itemtype(itemType)
         timestamp = J.java.util.Date(timestamp)
         it_id = self._bridge.initGetItemsAddedSinceIterator(itemType, timestamp)
         return self._iterator_loop(it_id)

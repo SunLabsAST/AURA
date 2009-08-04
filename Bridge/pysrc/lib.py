@@ -93,6 +93,10 @@ def j2py(elem):
             return J.JClass("com.sun.labs.aura.music.Track")(elem)
         elif elem.getType()==item_type.USER:
             return J.JClass("com.sun.labs.aura.music.Listener")(elem)
+        elif elem.getType()==item_type.ARTIST_TAG:
+            return J.JClass("com.sun.labs.aura.music.ArtistTag")(elem)
+        elif elem.getType()==item_type.ARTIST_TAG_RAW:
+            return J.JClass("com.sun.labs.aura.music.ArtistTagRaw")(elem)
         else:
             warnings.warn("Conversion of ItemType "+elem.getType().toString()+" to it's native type is not yet implemented")
             return elem
