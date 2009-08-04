@@ -28,6 +28,7 @@ import sys
 import warnings
 import bridge as B
 import jpype as J
+from lib import j2py
 try:
     import cPickle as pickle
 except ImportError:
@@ -60,6 +61,26 @@ def get_tag_popularity(verbose=False):
             print " %s -> %d" % (tag.getName(), tags[tag.getName()])
 
     return tags
+
+
+
+def crawl_tag_info(tagnames):
+
+    lfm2 = J.JClass("com.sun.labs.aura.music.web.lastfm.LastFM2Impl")()
+
+    crawldata = {"track":{}, "album":{}}
+    for tag in tagnames:
+        print "  Crawling '%s'" % tag
+
+        toptracks = j2py( lfm2.getTagTopTracks(tag) , 1)
+        topalbums = j2py( lfm2.getTagTopAlbums(tag) , 1)
+        for name, toplist in [("track", toptracks), ("album", topalbums)]:
+            crawldata[name][tag] = []
+            for cT in toptracks:
+                t = cT.getItem()
+                crawldata[name][tag].append( (cT.getCount(), t.getMbid(), t.getName(), t.getArtistMbid(), t.getArtistName()) )
+
+    return crawldata
 
 
 

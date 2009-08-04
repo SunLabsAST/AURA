@@ -52,25 +52,36 @@ def _lst_to_jarraylist(l):
     return aL
 
 
-def j2py(elem):
+def j2py(elem, max_depth=None):
     """
     Tries to convert java data types and data structures to native python. Also
     tries to convert ItemImpl objects to their specific item types.
+
+    max_rec determines the maximum depth of the conversions. If called with an ArrayList
+    of Artists but with a max_depth of 1, only the ArrayList will be converted and not the
+    Artist objects.
     """
+
+    if not max_depth is None:
+        if max_depth == 0:
+            return elem
+        else:
+            max_depth -= 1
+
     if isinstance(elem, J.JClass("java.util.HashMap")):
         r = {}
         for eS in elem.entrySet().iterator():
-            r[ j2py(eS.getKey()) ] = j2py(eS.getValue())
+            r[ j2py(eS.getKey(), max_depth) ] = j2py(eS.getValue(), max_depth)
         return r
 
     elif isinstance(elem, J.JClass("java.util.HashSet")):
         r = set()
         for e in elem.iterator():
-            r.add( j2py(e) )
+            r.add( j2py(e, max_depth) )
         return r
 
     elif isinstance(elem, J.JClass("java.util.ArrayList")):
-        return [ j2py(elem.get(x)) for x in xrange(elem.size())]
+        return [ j2py(elem.get(x), max_depth) for x in xrange(elem.size())]
 
     elif isinstance(elem, J.JClass("java.lang.Long")):
         return elem.longValue()
@@ -79,7 +90,7 @@ def j2py(elem):
         return elem.intValue()
 
     elif isinstance(elem, J.JClass("com.sun.labs.aura.util.Scored")):
-        return PyScored( j2py(elem.getScore()), j2py(elem.getItem()) )
+        return PyScored( j2py(elem.getScore(), max_depth), j2py(elem.getItem(), max_depth) )
 
     elif isinstance(elem, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
 
