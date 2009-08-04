@@ -34,9 +34,10 @@ import java.io.Serializable;
  *
  * @author plamere
  */
-public class LastAlbum2 implements Serializable {
+public class LastAlbum2 implements Serializable, Comparable<LastAlbum2> {
     private String name = "";
     private String artistName = "";
+    private String artistMbid = "";
     private String lfmID = "";
     private String mbid = "";
     private String url = "";
@@ -62,6 +63,13 @@ public class LastAlbum2 implements Serializable {
         this.artistName = artistName;
     }
 
+    public String getArtistMbid() {
+        return artistMbid;
+    }
+
+    public void setArtistMbid(String mbid) {
+        this.artistMbid = mbid;
+    }
 
     public String getLfmID() {
         return lfmID;
@@ -204,6 +212,7 @@ public class LastAlbum2 implements Serializable {
         System.out.println("  Artist      : " + artistName);
         System.out.println("  lfmID       : " + lfmID);
         System.out.println("  mbid        : " + mbid);
+        System.out.println("  Artist mbid : " + artistMbid);
         System.out.println("  releaseDate : " + releaseDate);
         System.out.println("  small image : " + smallImage);
         System.out.println("  med image   : " + mediumImage);
@@ -215,4 +224,10 @@ public class LastAlbum2 implements Serializable {
         System.out.println("  wikiFull    : " + wikiFull.length());
         System.out.println();
     }
+
+    @Override
+    public int compareTo(LastAlbum2 arg0) {
+        return name.compareTo( arg0.name );
+    }
+
 }

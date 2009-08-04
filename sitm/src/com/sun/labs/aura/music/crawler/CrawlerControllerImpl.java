@@ -38,7 +38,9 @@ import com.sun.labs.aura.music.web.lastfm.LastTrack;
 import com.sun.labs.aura.music.web.lastfm.LastUser;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.List;
 
 /**
@@ -251,5 +253,15 @@ public class CrawlerControllerImpl implements AuraService, CrawlerController {
     @Override
     public LastArtist2 getArtistInfo(String artistMbid, String artistName) throws IOException, CannotResolveException {
         return lastfm2.getArtistInfo(artistMbid, artistName);
+    }
+
+    @Override
+    public List<Counted<LastAlbum2>> getTagTopAlbums(String tagName) throws IOException, RemoteException {
+        return lastfm2.getTagTopAlbums(tagName);
+    }
+
+    @Override
+    public List<Counted<LastTrack>> getTagTopTracks(String tagName) throws IOException {
+        return lastfm2.getTagTopTracks(tagName);
     }
 }

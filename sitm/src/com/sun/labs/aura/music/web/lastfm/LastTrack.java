@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author plamere
  */
-public class LastTrack implements Serializable {
+public class LastTrack implements Serializable, Comparable<LastTrack> {
     private String name = "";
     private String mbid = "";
     private String lfmid = "";
@@ -261,5 +261,10 @@ public class LastTrack implements Serializable {
         System.out.println(" wikiSummary:   " + wikiSummary.length() );
         System.out.println(" wikiContent:   " + wikiContent.length() );
         System.out.println("");
+    }
+
+    @Override
+    public int compareTo(LastTrack arg0) {
+        return getMbid().compareTo(arg0.getMbid());
     }
 }

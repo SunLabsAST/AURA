@@ -31,6 +31,7 @@ import com.sun.labs.aura.music.web.HttpBadRequestException;
 import com.sun.labs.aura.music.web.WebServiceAccessor;
 import com.sun.labs.aura.music.web.XmlUtil;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -104,6 +105,18 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
                 }
             }
         }
+    }
+
+    @Override
+    public List<Counted<LastAlbum2>> getTagTopAlbums(String tagName) throws IOException {
+        String url = getTagTopAlbumsURL(tagName);
+        return getTagTopAlbumsFromLastFM(url);
+    }
+
+    @Override
+    public List<Counted<LastTrack>> getTagTopTracks(String tagName) throws IOException {
+        String url = getTagTopTracksURL(tagName);
+        return getTagTopTracksFromLastFM(url);
     }
 
     @Override
@@ -496,6 +509,78 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         return artistChart;
     }
 
+    private List<Counted<LastTrack>> getTagTopTracksFromLastFM(String url) throws IOException {
+
+        List<Counted<LastTrack>> trackList = new ArrayList<Counted<LastTrack>>();
+        Document doc = commander.sendCommand(url);
+
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element ttNode = (Element) XmlUtil.getDescendent(docElement, "toptracks");
+
+        if (ttNode != null) {
+            List<Node> trackNodes = XmlUtil.getDescendents(ttNode, "track");
+            if (trackNodes != null) {
+                for (int i=0; i<trackNodes.size(); i++) {
+                    Element album = (Element) trackNodes.get(i);
+                    LastTrack lT = new LastTrack();
+
+                    int tagcount = Integer.parseInt(XmlUtil.getElementContents(album, "tagcount"));
+                    lT.setName(XmlUtil.getElementContents(album, "name"));
+                    lT.setMbid(XmlUtil.getElementContents(album, "mbid"));
+
+                    // the artist info
+                    Element artistNode = (Element) XmlUtil.getDescendent(album, "artist");
+                    if (artistNode != null) {
+                        lT.setArtistName(XmlUtil.getElementContents(artistNode, "name"));
+                        lT.setArtistMbid(XmlUtil.getElementContents(artistNode, "mbid"));
+                    }
+
+                    trackList.add( new Counted(lT, tagcount));
+                }
+            }
+        }
+
+        return trackList;
+
+    }
+
+    private List<Counted<LastAlbum2>> getTagTopAlbumsFromLastFM(String url) throws IOException {
+        List<Counted<LastAlbum2>> albumList = new ArrayList<Counted<LastAlbum2>>();
+        Document doc = commander.sendCommand(url);
+
+        checkStatus(doc);
+
+        Element docElement = doc.getDocumentElement();
+        Element taNode = (Element) XmlUtil.getDescendent(docElement, "topalbums");
+
+        if (taNode != null) {
+            List<Node> albumNodes = XmlUtil.getDescendents(taNode, "album");
+            if (albumNodes != null) {
+                for (int i=0; i<albumNodes.size(); i++) {
+                    Element album = (Element) albumNodes.get(i);
+                    LastAlbum2 lA = new LastAlbum2();
+
+                    int tagcount = Integer.parseInt(XmlUtil.getElementContents(album, "tagcount"));
+                    lA.setName(XmlUtil.getElementContents(album, "name"));
+                    lA.setMbid(XmlUtil.getElementContents(album, "mbid"));
+
+                    // the artist info
+                    Element artistNode = (Element) XmlUtil.getDescendent(album, "artist");
+                    if (artistNode != null) {
+                        lA.setArtistName(XmlUtil.getElementContents(artistNode, "name"));
+                        lA.setArtistMbid(XmlUtil.getElementContents(artistNode, "mbid"));
+                    }
+
+                    albumList.add( new Counted(lA, tagcount));
+                }
+            }
+        }
+
+        return albumList;
+    }
+
     private LastTrack getTrackInfoFromLastFM(String url) throws IOException {
         LastTrack track = new LastTrack();
         Document doc = commander.sendCommand(url);
@@ -624,6 +709,16 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         return userIds.toArray(new String[0]);
     }
 
+    private String getTagTopAlbumsURL(String tagName) {
+        String encodedTagName = encodeName(tagName);
+        return "?method=tag.gettopalbums&tag=" + encodedTagName;
+    }
+
+    private String getTagTopTracksURL(String tagName) {
+        String encodedTagName = encodeName(tagName);
+        return "?method=tag.gettoptracks&tag=" + encodedTagName;
+    }
+
     private String getArtistTagURL(String artistName) {
         String encodedArtistName = encodeName(artistName);
         return "?method=artist.gettoptags&artist=" + encodedArtistName;
@@ -717,7 +812,18 @@ public class LastFM2Impl extends WebServiceAccessor implements LastFM2 {
         return i;
     }
 
-    public static void main(String[] args) throws IOException, AuraException, CannotResolveException {
+    public static void main(String[] args) throws IOException, AuraException {
+
+        LastFM2Impl lfm2 = new LastFM2Impl();
+        for (Counted<LastTrack> cla : lfm2.getTagTopTracks("rock")) {
+            cla.getItem().dump();
+            System.out.println("count:"+cla.getCount());
+            System.out.println("----");
+        }
+
+    }
+
+    public static void main3(String[] args) throws IOException, AuraException, CannotResolveException {
         LastFM2Impl lfm2 = new LastFM2Impl();
 
         lfm2.setTrace(true);

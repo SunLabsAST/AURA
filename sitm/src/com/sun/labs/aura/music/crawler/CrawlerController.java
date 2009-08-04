@@ -34,6 +34,7 @@ import com.sun.labs.aura.music.web.lastfm.LastItem;
 import com.sun.labs.aura.music.web.lastfm.LastTrack;
 import com.sun.labs.aura.music.web.lastfm.LastUser;
 import com.sun.labs.aura.music.web.lastfm.SocialTag;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.util.props.Component;
 import java.io.IOException;
 import java.rmi.Remote;
@@ -136,5 +137,11 @@ public interface CrawlerController extends LastFM2, LastFM, Component, Remote {
 
     @Override
     public LastItem[] getTopArtistsForTag(String tag) throws IOException, RemoteException;
+
+    @Override
+    public List<Counted<LastAlbum2>> getTagTopAlbums(String tagName) throws IOException, RemoteException;
+
+    @Override
+    public List<Counted<LastTrack>> getTagTopTracks(String tagName) throws IOException, RemoteException;
 
 }

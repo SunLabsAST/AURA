@@ -25,6 +25,7 @@
 package com.sun.labs.aura.music.web.lastfm;
 
 import com.sun.labs.aura.music.web.CannotResolveException;
+import com.sun.labs.aura.util.Counted;
 import java.io.IOException;
 import java.util.List;
 
@@ -76,4 +77,8 @@ public interface LastFM2 {
     public SocialTag[] getArtistTags(String artistName) throws IOException;
 
     public LastArtist[] getSimilarArtists(String artist) throws IOException;
+
+    public List<Counted<LastAlbum2>> getTagTopAlbums(String tagName) throws IOException;
+
+    public List<Counted<LastTrack>> getTagTopTracks(String tagName) throws IOException;
 }
