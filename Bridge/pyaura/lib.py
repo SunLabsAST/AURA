@@ -22,23 +22,27 @@
  # information or have any questions.
  #####
 
-import jpype as J
 import os
+import sys
 import warnings
-
+import jpype as J
+import pyaura
 
 DEFAULT_GRID_REGHOST="172.16.136.2"
 
 
-def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), 
+def _get_default_prefix():
+    pyaura_folder = sys.__dict__["modules"]["pyaura"].__file__[:-20]
+    return os.path.join(pyaura_folder, "dist")
+
+
+def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=_get_default_prefix(),
                 max_heap="2G", regHost=DEFAULT_GRID_REGHOST):
 
     cP = os.path.join(classpath_prefix, "Bridge.jar")
     J.startJVM(jvm_path, "-Xmx"+max_heap, "-DauraGroup=live-aura", "-DauraHome=/aura/sitm/db/", \
                         "-DauraPolicy=/aura/sitm/dist/jsk-all.policy", \
                         "-DregHost="+regHost, "-Djava.class.path="+cP)
-
-
 
 
 ####################################

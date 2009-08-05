@@ -36,7 +36,7 @@ class AuraBridge():
     """
 
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
-                    classpath_prefix=os.path.join("..", "dist"),
+                    classpath_prefix=L._get_default_prefix(),
                     regHost=L.DEFAULT_GRID_REGHOST):
     
         L.init_jvm(jvm_path, classpath_prefix)
