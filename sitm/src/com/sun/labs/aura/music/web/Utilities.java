@@ -91,6 +91,7 @@ public class Utilities {
     public static String printable(String in) {
         return unprintable.matcher(in).replaceAll("");
     }
+
     /*
      * 1. Names are all mapped to lower case
      * 2. Delete apostrophes ("'") and periods (".").
@@ -113,8 +114,8 @@ public class Utilities {
         
         s = in.trim();
         s = s.toLowerCase();
-        s =  deletedChars.matcher(s).replaceAll("");
-        s =  ampersand.matcher(s).replaceAll(" and ");
+        s = deletedChars.matcher(s).replaceAll("");
+        s = ampersand.matcher(s).replaceAll(" and ");
         s = leadingDash.matcher(s).replaceAll("");
         s = trailingDash.matcher(s).replaceAll("");
         s = leadingThe.matcher(s).replaceAll("");
@@ -122,7 +123,7 @@ public class Utilities {
         s = leadingA.matcher(s).replaceAll("");
         s = trailingA.matcher(s).replaceAll("");
         s = multiDash.matcher(s).replaceAll("_");
-        s =  everythingBut.matcher(s).replaceAll("");
+        s = everythingBut.matcher(s).replaceAll("_");
         
         // if we've reduced the input down to nothing
         // fall back on input (necessary for non western
@@ -135,7 +136,7 @@ public class Utilities {
         //System.out.println(in + " BECOMES " + s);
         return s;
     }
-    
+   
     
     //static Pattern specialChars = Pattern.compile("[ -/:-@\\[-`]");
     //static Pattern specialChars = Pattern.compile("[<>/\\!#\\$]");

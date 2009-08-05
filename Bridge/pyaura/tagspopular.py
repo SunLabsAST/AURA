@@ -76,7 +76,7 @@ def crawl_tag_info(tagnames):
         topalbums = j2py( lfm2.getTagTopAlbums(tag) , 1)
         for name, toplist in [("track", toptracks), ("album", topalbums)]:
             crawldata[name][tag] = []
-            for cT in toptracks:
+            for cT in toplist:
                 t = cT.getItem()
                 crawldata[name][tag].append( (cT.getCount(), t.getMbid(), t.getName(), t.getArtistMbid(), t.getArtistName()) )
 

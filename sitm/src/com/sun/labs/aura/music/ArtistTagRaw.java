@@ -62,7 +62,7 @@ public class ArtistTagRaw extends ArtistTag {
 
     
     public static String nameToKey(String name) {
-        return "artist-tag-raw:" + normalizeName(name);
+        return "artist-tag-raw:" + name;
     }
 
 }

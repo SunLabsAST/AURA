@@ -1546,14 +1546,13 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
 
             // Add raw tag. We need to verify the existance of the tag item because
             // unlike social tags, we do not know in advance if it's in the store
-            String normTagName = Utilities.normalize(tag.getName());
-            String id = ArtistTagRaw.nameToKey(normTagName);
+            String id = ArtistTagRaw.nameToKey(tag.getName());
             if (getDataStore().getItem(id) == null) {
-                Item newRawTag = StoreFactory.newItem(ItemType.ARTIST_TAG_RAW, id, normTagName);
+                Item newRawTag = StoreFactory.newItem(ItemType.ARTIST_TAG_RAW, id, tag.getName());
                 getDataStore().putItem(newRawTag);
-                logger.finer("Adding raw tag " + newRawTag.getKey());
+                logger.finer("Adding raw tag '" + newRawTag.getName() + "'");
             }
-            item.setTag(TagType.SOCIAL_RAW, normTagName, normFreq);
+            item.setTag(TagType.SOCIAL_RAW, tag.getName(), normFreq);
 
             
             // Add social tag
