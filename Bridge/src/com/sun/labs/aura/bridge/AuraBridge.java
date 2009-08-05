@@ -38,6 +38,7 @@ import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.util.props.ConfigComponent;
@@ -159,22 +160,26 @@ public class AuraBridge implements Configurable, ItemStore {
 
     @Override
     public void deleteUser(String key) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        getDataStore().deleteUser(key);
     }
 
     @Override
     public void deleteItem(String key) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        getDataStore().deleteItem(key);
+    }
+
+    public void flushItem(ItemAdapter item) throws AuraException, RemoteException {
+        item.flush(getDataStore());
     }
 
     @Override
     public Item putItem(Item item) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().putItem(item);
     }
 
     @Override
     public User putUser(User user) throws AuraException, RemoteException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return getDataStore().putUser(user);
     }
 
     @Override
@@ -312,8 +317,8 @@ public class AuraBridge implements Configurable, ItemStore {
     }
 
 
-
-     /**
+    
+    /**
      * the configurable property for the itemstore used by this manager
      */
     @ConfigComponent(type = DataStore.class)

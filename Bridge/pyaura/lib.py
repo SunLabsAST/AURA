@@ -128,13 +128,18 @@ def _assert_type_attn_config(attn_config):
 
 def _assert_type_itemtype(itemType):
     iT_class = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")
-    if isinstance(itemType, str):
-        itemType = iT_class.valueOf(itemType)
-    elif not isinstance(itemType, iT_class):
-        raise WrongTypeException("Must use valid item type.")
-    return itemType
+    return _assert_type_enum(itemType, iT_class, "item type")
 
+def _assert_type_tagtype(tagType):
+    tT_class = J.JClass("com.sun.labs.aura.music.TaggableItem$TagType")
+    return _assert_type_enum(tagType, tT_class, "tag type")
 
+def _assert_type_enum(val, enumClass, enumName):
+    if isinstance(val, str):
+        val = enumClass.valueOf(val)
+    elif not isinstance(val, enumClass):
+        raise WrongTypeException("Must use valid "+enumName)
+    return val
 
 
 
@@ -160,7 +165,7 @@ class ClassFactory():
 
 class PyScored():
 
-    def _init_(self, score, item):
+    def __init__(self, score, item):
         self.score = score
         self.item = item
 
@@ -169,8 +174,8 @@ class PyScored():
         name = None
         if isinstance(self.item, str):
             name = self.item
-        elif type(self.item).startswith("com.sun.labs.aura.music") and \
-                type(self.item)[24:] in ["Album", "Artist", "Track", "Listener"]:
+        elif str(type(self.item)).startswith("com.sun.labs.aura.music") and \
+                str(type(self.item))[24:] in ["Album", "Artist", "Track", "Listener"]:
             for f in [ lambda x: x.getName(), lambda x: x.getTitle() ]:
                 try:
                     name = type(self.item)[24:] + ":" + f(self.item)
@@ -180,5 +185,4 @@ class PyScored():
             name = type(self.item)
 
         return "<Scored[%0.3f](%s)>" % (self.score, name)
-
 

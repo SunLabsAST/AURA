@@ -49,6 +49,11 @@ class AuraBridge():
     #############################################
     #   Implementation of ItemStore interface   #
     #############################################
+    def flush_item(self, item):
+        """Save the item in the store"""
+        self._bridge.flushItem(item)
+
+
     def get_item(self, key):
         """Gets an item from the store"""
 	return j2py(self._bridge.getItem(key))
@@ -108,6 +113,11 @@ class AuraBridge():
         if isinstance(itemType, str):
             itemType = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf(itemType)
         return self._bridge.getItemCount(itemType)
+
+
+    def delete_item(self, key):
+        """Deletes an item from the store"""
+        self._bridge.deleteItem(key)
 
 
     ######
