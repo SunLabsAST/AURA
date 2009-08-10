@@ -653,12 +653,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             //
             // Finally, send out relevant events.
             if(existed) {
-                statInvocationCounts[StatName.UPDATE_ITEM.ordinal()]
-                        .getAndIncrement();
-                itemChanged(itemImpl, ItemEvent.ChangeType.AURA);
+                statInvocationCounts[StatName.UPDATE_ITEM.ordinal()].
+                        getAndIncrement();
+                itemChanged(itemImpl, ItemEvent.ChangeType.AURA, mustIndex);
             } else {
-                statInvocationCounts[StatName.NEW_ITEM.ordinal()]
-                        .getAndIncrement();
+                statInvocationCounts[StatName.NEW_ITEM.ordinal()].
+                        getAndIncrement();
                 itemCreated(itemImpl);
             }
             
@@ -1073,8 +1073,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             SimilarityConfig config = mconfig.get();
             StatState state = new StatState();
             enter(StatName.FIND_SIM, state);
-
-            List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
+            List<Scored<String>> fsr = findSimilar(dv, config);
             exit(state, ": " + dv.getKey());
             if(fsr.size() > 0) {
                 fsr.get(0).time = state.timer.getTimeMillis();
@@ -1085,6 +1084,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         } catch(ClassNotFoundException cnfe) {
             throw new AuraException("Error unmarshalling", cnfe);
         }
+    }
+
+    public List<Scored<String>> findSimilar(DocumentVector dv,
+                                            SimilarityConfig config) throws AuraException {
+        return searchEngine.findSimilar(dv, config);
     }
 
     @Override
@@ -1213,10 +1217,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     /**
      * Internal method to handle sending/queueing item changed events.
      */
-    private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype) {
+    private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype, boolean wasIndexed) {
         //
         // Queue the event for later delivery
-        changeEvents.offer(new ChangeEvent(item, ctype));
+        changeEvents.offer(new ChangeEvent(item, ctype, wasIndexed));
     }
 
     /**
@@ -1277,7 +1281,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
             //
             // If this item is in our set, then process it.
-            if(keys.contains(ce.item.getKey())) {
+            if(!ce.wasIndexed() || keys.contains(ce.item.getKey())) {
 
                 //
                 // Add the autotags.
