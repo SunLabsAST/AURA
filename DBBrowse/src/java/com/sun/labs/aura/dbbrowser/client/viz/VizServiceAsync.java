@@ -52,7 +52,11 @@ public interface VizServiceAsync {
     public void getRepSelectedLogNames(String prefix, AsyncCallback asyncCallback);
 
     public void setRepSelectedLogNames(String prefix, List<String> selected, AsyncCallback asyncCallback);
-    
+
+    public void getLogLevel(String prefix, AsyncCallback asyncCallback);
+
+    public void setLogLevel(String prefix, String level, AsyncCallback asyncCallback);
+
     public void haltPC(PCInfo pc, AsyncCallback asyncCallback);
     
     public void splitPC(PCInfo pc, AsyncCallback asyncCallback);
