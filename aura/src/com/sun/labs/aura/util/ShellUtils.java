@@ -1,22 +1,22 @@
 /*
  * Copyright 2007-2009 Sun Microsystems, Inc. All Rights Reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
- * 
+ *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2
  * only, as published by the Free Software Foundation.
- * 
+ *
  * This code is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License version 2 for more details (a copy is
  * included in the LICENSE file that accompanied this code).
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * version 2 along with this work; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
- * 
+ *
  * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
  * Park, CA 94025 or visit www.sun.com if you need additional
  * information or have any questions.
@@ -62,7 +62,7 @@ public class ShellUtils {
     private Logger logger = Logger.getLogger("");
 
     private int nHits = 10;
-    
+
     private double skimPercentage = 0.25;
 
     private String[] displayFields;
@@ -204,7 +204,7 @@ public class ShellUtils {
                 dataStore.attend(attns);
                 return "Added " + total + " attentions in " + numAttn + " objects";
             }
-            
+
             public String getHelp() {
                 return "<numUsers> <numItems> <type> <cntRange> <numAttn>";
             }
@@ -770,7 +770,7 @@ public class ShellUtils {
                         String field = args[1];
                         String key1 = args[2];
                         String key2 = args[3];
-                        
+
                         List<Scored<String>> expn = dataStore.explainSimilarity(
                                 key1, key2, new SimilarityConfig(field, nHits));
                         for(Scored<String> term : expn) {
@@ -815,7 +815,7 @@ public class ShellUtils {
                         return "Find similar with weighted fields";
                     }
                 });
-                
+
         shell.add("cfs",
                 new CommandInterface() {
 
@@ -830,7 +830,7 @@ public class ShellUtils {
                             shell.getOutput().printf("%.3f %s\n", term.getScore(),
                                     term.getItem());
                         }
-                        
+
                         SimilarityConfig config = new SimilarityConfig(field, nHits, null);
                         config.setSkimPercent(1);
                         List<Scored<Item>> items = dataStore.findSimilar(terms,
@@ -963,7 +963,7 @@ public class ShellUtils {
                     }
                 });
                         }
-                        
+
     public void dumpAllUsers() throws AuraException, RemoteException {
         for(Item item : dataStore.getAll(ItemType.USER)) {
             dumpUser((User) item);
@@ -1112,7 +1112,7 @@ public class ShellUtils {
     public int getHits() {
         return nHits;
     }
-    
+
     public double getSkimPercentage() {
         return skimPercentage;
     }

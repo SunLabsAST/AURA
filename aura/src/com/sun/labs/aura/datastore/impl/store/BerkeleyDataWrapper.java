@@ -224,7 +224,7 @@ public class BerkeleyDataWrapper {
         sconf.setAllowCreate(true);
         sconf.setTransactional(true);
 
-        //econf.setConfigParam("je.txn.dumpLocks", "true");
+        econf.setConfigParam(EnvironmentConfig.TXN_DUMP_LOCKS, "true");
         
         
         //

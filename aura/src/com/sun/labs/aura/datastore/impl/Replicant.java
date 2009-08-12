@@ -142,4 +142,14 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      * Sets the logged stat names
      */
     public void setLoggedStats(EnumSet<StatName> loggedStats) throws RemoteException;
+
+    /**
+     * Get a string representation of the log level
+     */
+    public String getLogLevel() throws RemoteException;
+ 
+    /**
+     * Sets the log level based on the provided string
+     */
+     public boolean setLogLevel(String logLevel) throws RemoteException;
 }
