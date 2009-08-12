@@ -45,7 +45,8 @@ public class RepPanel extends FlowPanel {
     
     protected NumberFormat statForm = NumberFormat.getFormat("#########0.###");
     protected Panel cpuLoad = null;
-    
+    protected String currLogLevel = "";
+
     public RepPanel(RepInfo rep) {
         super();
         this.rep = rep;
@@ -221,7 +222,22 @@ public class RepPanel extends FlowPanel {
         VizServiceAsync service = GWTMainEntryPoint.getVizService();
         final AsyncCallback callback = new AsyncCallback() {
             public void onSuccess(Object result) {
-                doLogDialog2((List<String>)result);
+                doLogDialog2((String)result);
+            }
+
+            public void onFailure(Throwable caught) {
+                VizUI.alert("Communication failed: " + caught.getMessage());
+            }
+        };
+        service.getLogLevel(rep.getPrefix(), callback);
+    }
+
+    public void doLogDialog2(final String logLevel) {
+        VizServiceAsync service = GWTMainEntryPoint.getVizService();
+        this.currLogLevel = logLevel;
+        final AsyncCallback callback = new AsyncCallback() {
+            public void onSuccess(Object result) {
+                doLogDialog3((List<String>)result);
             }
 
             public void onFailure(Throwable caught) {
@@ -230,12 +246,12 @@ public class RepPanel extends FlowPanel {
         };
         service.getRepLogNames(callback);
     }
-    
-    public void doLogDialog2(final List<String> allNames) {
+
+    public void doLogDialog3(final List<String> allNames) {
         VizServiceAsync service = GWTMainEntryPoint.getVizService();
         final AsyncCallback callback = new AsyncCallback() {
             public void onSuccess(Object result) {
-                new RepLogDialog(rep.getPrefix(), allNames, (List<String>)result).show();
+                new RepLogDialog(rep.getPrefix(), allNames, (List<String>)result, currLogLevel).show();
             }
 
             public void onFailure(Throwable caught) {

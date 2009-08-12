@@ -32,13 +32,16 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HTMLTable;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 import com.sun.labs.aura.dbbrowser.client.GWTMainEntryPoint;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * A class that shows a dialog for customizing the log settings
  */
 public class RepLogDialog extends DialogBox {
     protected List<String> logNames;
@@ -48,15 +51,23 @@ public class RepLogDialog extends DialogBox {
     protected String prefix;
     
     protected List<CheckBox> checks;
+
+    protected ListBox levelMenu;
     
-    public RepLogDialog(String prefix, List<String> logNames, List<String> selected) {
+    protected String initialLogLevel;
+    
+    public RepLogDialog(String prefix, List<String> logNames, List<String> selected, String logLevel) {
         super(false);
         this.prefix = prefix;
         this.logNames = logNames;
         this.selected = selected;
+        initialLogLevel = logLevel;
         setText("Change Log Settings");
         
         FlowPanel mainPanel = new FlowPanel();
+
+        //
+        // Put in a grid of check boxes for setting what methods are logged
         checks = new ArrayList<CheckBox>();
         int numColumns = logNames.size() / 15;
         if (logNames.size() % 15 > 0) {
@@ -85,7 +96,31 @@ public class RepLogDialog extends DialogBox {
             }
         }
         mainPanel.add(grid);
-        
+
+        //
+        // Add in the pop-up for setting the log level
+        levelMenu = new ListBox();
+        String[] levels = new String[] {"SEVERE",
+                                        "WARNING",
+                                        "INFO",
+                                        "CONFIG",
+                                        "FINE",
+                                        "FINER",
+                                        "FINEST"};
+        for (int i = 0; i < levels.length; i++) {
+            levelMenu.addItem(levels[i]);
+            if (levels[i].equals(initialLogLevel)) {
+                levelMenu.setSelectedIndex(i);
+            }
+        }
+        levelMenu.setVisibleItemCount(1);
+
+        HorizontalPanel selectLevelPanel = new HorizontalPanel();
+        selectLevelPanel.add(new Label("Set log level: "));
+        selectLevelPanel.add(levelMenu);
+        selectLevelPanel.setStylePrimaryName("viz-logLevelSelect");
+        mainPanel.add(selectLevelPanel);
+
         Button cancel = new Button("Cancel");
         cancel.addClickListener(new ClickListener() {
             public void onClick(Widget arg0) {
@@ -113,7 +148,7 @@ public class RepLogDialog extends DialogBox {
         setPopupPosition(30,30);
     }
     
-    public void doChange(boolean all) {
+    public void doChange(final boolean all) {
         selected = new ArrayList<String>();
         for (CheckBox cb : checks) {
             if (cb.isChecked()) {
@@ -124,7 +159,7 @@ public class RepLogDialog extends DialogBox {
         VizServiceAsync service = GWTMainEntryPoint.getVizService();
         final AsyncCallback callback = new AsyncCallback() {
             public void onSuccess(Object result) {
-                hide();
+                doChange2(all);
             }
 
             public void onFailure(Throwable caught) {
@@ -133,5 +168,26 @@ public class RepLogDialog extends DialogBox {
         };
         
         service.setRepSelectedLogNames(all ? null : prefix, selected, callback);
+    }
+
+    public void doChange2(boolean all) {
+        String logLevel = levelMenu.getItemText(levelMenu.getSelectedIndex());
+        if (logLevel.equals(initialLogLevel)) {
+            hide();
+        } else {
+            VizServiceAsync service = GWTMainEntryPoint.getVizService();
+            final AsyncCallback callback = new AsyncCallback() {
+                public void onSuccess(Object result) {
+                    hide();
+                }
+
+                public void onFailure(Throwable caught) {
+                    VizUI.alert("Communication failed: " + caught.getMessage());
+                }
+            };
+
+            service.setLogLevel(all ? null : prefix, logLevel, callback);
+
+        }
     }
 }

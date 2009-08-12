@@ -399,6 +399,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         return properties.clone();
     }
 
+    public String getLogLevel() throws RemoteException {
+        return getValue("logLevel");
+    }
+
     @Override
     public String getValue(String property) {
         if(property.equals("logLevel")) {
@@ -410,6 +414,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public String[] getValues(String arg0) {
         return null;
+    }
+
+    public boolean setLogLevel(String logLevel) throws RemoteException {
+        return setValue("logLevel", logLevel);
     }
 
     @Override
