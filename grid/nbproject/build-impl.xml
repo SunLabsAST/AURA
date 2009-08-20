@@ -361,7 +361,6 @@ is divided into following sections:
         <ant antfile="${project.Reuters}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.SitmLoadGenerator}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.SitmWebServicesAPI}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.aura}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.sitm}/build.xml" inheritall="false" target="jar"/>
     </target>
@@ -719,7 +718,6 @@ is divided into following sections:
         <ant antfile="${project.Reuters}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.SitmLoadGenerator}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.SitmWebServicesAPI}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.aardvark}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.aura}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.sitm}/build.xml" inheritall="false" target="clean"/>
     </target>

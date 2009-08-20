@@ -40,8 +40,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
- * @author jalex
+ * Utility methods for the viz panel.
+ * @author jhalex
  */
 public class Util {
     
@@ -72,12 +72,14 @@ public class Util {
         codeToDisplay.put("GET_SCORED_ITEMS","Get scored items");
         codeToDisplay.put("GET_TOP_AUTOTAG_TERMS","Get top autotag terms");
         codeToDisplay.put("GET_TOP_TERMS",   "Get top terms");
+        codeToDisplay.put("GET_TOP_TERM_COUNTS",   "Get top term counts");
         codeToDisplay.put("GET_TOP_VALUES",  "Get top values");
         codeToDisplay.put("GET_USER",        "Get user");
         codeToDisplay.put("NEW_ITEM",        "New item");
         codeToDisplay.put("PUT_ITEM",        "Put item");
         codeToDisplay.put("UPDATE_ITEM",     "Update item");
         codeToDisplay.put("QUERY",           "Query");
+        codeToDisplay.put("PROCESS_ATTN",    "Process Attention");
     }
     
     public static String logCodeToDisplay(String code) {

@@ -89,6 +89,22 @@ public interface VizService extends RemoteService{
      */
     public void setRepSelectedLogNames(String prefix, List<String> selected);
     
+    /**
+     * Gets the current log level as a string for a specific replicant
+     * 
+     * @param prefix which replicant to get the value from
+     * @return
+     */
+    public String getLogLevel(String prefix);
+
+    /**
+     * Sets the log level
+     * 
+     * @param prefix which replicant to set, or null to set all replicants
+     * @param logLevel
+     */
+    public boolean setLogLevel(String prefix, String logLevel);
+    
     public void haltPC(PCInfo pc);
     
     /**

@@ -26,8 +26,8 @@ package com.sun.labs.aura.grid.aardvark;
 
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
-import com.sun.labs.aura.aardvark.impl.crawler.FeedManager;
-import com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler;
+//import com.sun.labs.aura.aardvark.impl.crawler.FeedManager;
+//import com.sun.labs.aura.aardvark.impl.crawler.FeedScheduler;
 import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.recommender.RecommenderManager;
@@ -69,6 +69,8 @@ public abstract class Aardvark extends ServiceAdapter {
     }
 
     protected ProcessConfiguration getFeedSchedulerConfig() throws Exception {
+        throw new UnsupportedOperationException("Functionality has been disabled");
+        /*
         String[] cmdLine = new String[]{
             "-Xmx2g",
             "-DauraHome=" + GridUtil.auraDistMntPnt,
@@ -82,10 +84,13 @@ public abstract class Aardvark extends ServiceAdapter {
 
         // create a configuration and set relevant properties
         return gu.getProcessConfig(FeedScheduler.class.getName(), cmdLine, getSchedName());
+         */
     }
 
     protected ProcessConfiguration getFeedManagerConfig(int n)
             throws Exception {
+        throw new UnsupportedOperationException("Functionality has been disabled");
+        /*
         String[] cmdLine = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
@@ -105,6 +110,7 @@ public abstract class Aardvark extends ServiceAdapter {
                 Pattern.compile(instance + ".*-feedMgr-.*")));
 
         return pc;
+         */
     }
 
     protected ProcessConfiguration getRecommenderConfig() throws Exception {
