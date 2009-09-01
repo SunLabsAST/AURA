@@ -325,6 +325,44 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         }
     }
     
+
+    @Override
+    public String getLogLevel(String prefix) {
+        String ret = "";
+        try {
+            if (prefix != null && !prefix.isEmpty()) {
+                Replicant selected = prefixToRep.get(prefix);
+                ret = selected.getLogLevel();
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.INFO, "Failed to get log level", e);
+            throw new RuntimeException("Failed to get log level");
+        }
+        return ret;
+    }
+
+    @Override
+    public boolean setLogLevel(String prefix, String logLevel) {
+        boolean worked = true;
+        try {
+            if (prefix != null && !prefix.isEmpty()) {
+                Replicant selected = prefixToRep.get(prefix);
+                worked = selected.setLogLevel(logLevel);
+            } else {
+                for (Replicant selected : prefixToRep.values()) {
+                    if (!selected.setLogLevel(logLevel)) {
+                        worked = false;
+                    }
+                }
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.INFO, "Failed to set log level", e);
+            throw new RuntimeException("Failed to set log level");
+        }
+
+        return worked;
+    }
+
     public void haltPC(PCInfo pc) {
         logger.info("Halt PC " + pc.getPrefix());
     }
