@@ -1118,7 +1118,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             if (pages <= 1) {
                 pages = 1;
             }
-            String mbrid = mbalbum.getId();
+            String mbrid = mbalbum.getMbid();
             Item albumItem = getDataStore().getItem(mbrid);
             Album album = null;
             if (albumItem == null) {

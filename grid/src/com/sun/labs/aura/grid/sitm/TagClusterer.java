@@ -25,6 +25,7 @@
 package com.sun.labs.aura.grid.sitm;
 
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.SimilarityConfig;
@@ -86,7 +87,23 @@ public class TagClusterer implements AuraService, Configurable {
         if (!running) {
             running = true;
             try {
-                runjob();
+                //runjob();
+
+                int i = 0;
+                long total = getDataStore().getItemCount(Item.ItemType.ARTIST_TAG_RAW);
+                DBIterator<Item> it = getDataStore().getAllIterator(Item.ItemType.ARTIST_TAG_RAW);
+                try {
+                    while (it.hasNext()) {
+                        ArtistTagRaw atr = new ArtistTagRaw(it.next());
+                        getDataStore().deleteItem(atr.getKey());
+                        if (i++%100==0) {
+                            logger.info(i+"/"+total);
+                        }
+                    }
+                } finally {
+                    it.close();
+                }
+
             } catch (AuraException ex) {
                 Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (RemoteException ex) {
@@ -208,6 +225,12 @@ public class TagClusterer implements AuraService, Configurable {
         return s;
     }
 
+    public static LinkedList<String> readAllTags(String path) throws IOException, ClassNotFoundException {
+        File theFile = new File(path);
+        FileInputStream inStream = new FileInputStream(theFile);
+        ObjectInputStream objStream = new ObjectInputStream(inStream);
+        return (LinkedList<String>) objStream.readObject();
+    }
 
     public static Map<String, List<Scored<String>> > readMapSplit(String prefix, int splitNbr) throws IOException {
         return readMapSplit(prefix + "/tagsim-"+splitNbr+".objdump");

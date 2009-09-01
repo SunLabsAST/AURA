@@ -26,6 +26,7 @@ package com.sun.labs.aura.music.web.musicbrainz;
 
 import com.sun.labs.aura.music.web.Commander;
 import com.sun.labs.aura.music.web.XmlUtil;
+import com.sun.labs.aura.util.Scored;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.ParseException;
@@ -61,6 +62,101 @@ public class MusicBrainz {
     
     public void setTrace(boolean trace) {
         mbCommander.setTraceSends(trace);
+    }
+
+    private final String appendToQuery(String query, String field, String value) throws IOException {
+        if (value!=null && value.length()>0) {
+            query += "&" + field + "=" + normalize(value);
+        }
+        return query;
+    }
+
+    public List<Scored<MusicBrainzAlbumInfo>> albumSearch(String title, String artistName,
+            String artistMbid) throws IOException {
+
+        // Construct the query with the information that was provided
+        String query = "release/?type=xml";
+        query = appendToQuery(query, "title", title);
+        query = appendToQuery(query, "artist", artistName);
+        query = appendToQuery(query, "artistid", artistMbid);
+        query += "&inc=artist+release-events";
+
+        List<Scored<MusicBrainzAlbumInfo>> albumList = new ArrayList<Scored<MusicBrainzAlbumInfo>>();
+        Document mbDoc = mbCommander.sendCommand(query);
+        Element docElement = mbDoc.getDocumentElement();
+        NodeList albums = docElement.getElementsByTagName("release");
+        for (int i=0; i<albums.getLength(); i++) {
+
+            Element albumElement = (Element) albums.item(i);
+            int score = Integer.parseInt(albumElement.getAttribute("ext:score"));
+            MusicBrainzAlbumInfo albumInfo = extractAlbumInfo(albumElement);
+
+            // Get artist info
+            Element artistNode = (Element) XmlUtil.getDescendent(albumElement, "artist");
+            if (artistNode != null) {
+                albumInfo.addArtistId(artistNode.getAttribute("id"));
+            }
+
+            albumList.add(new Scored<MusicBrainzAlbumInfo>(albumInfo, score));
+        }
+        return albumList;
+    }
+
+    /**
+     * Returned a scored list of tracks by doing a search on the musicbrainz api.
+     * Each parameter can be null or a zero-length string. You can use any number
+     * of parameters.
+     */
+    public List<Scored<MusicBrainzTrackInfo>> trackSearch(String title, String artistName,
+            String artistMbid, String albumName, String albumMbid) throws IOException {
+
+        // Construct the query with the information that was provided
+        String query = "track/?type=xml";
+        query = appendToQuery(query, "title", title);
+        query = appendToQuery(query, "artist", artistName);
+        query = appendToQuery(query, "artistid", artistMbid);
+        query = appendToQuery(query, "release", albumName);
+        query = appendToQuery(query, "releaseid", albumMbid);
+        query += "&inc=artist+releases";
+
+        List<Scored<MusicBrainzTrackInfo>> trackList = new ArrayList<Scored<MusicBrainzTrackInfo>>();
+        Document mbDoc = mbCommander.sendCommand(query);
+        Element docElement = mbDoc.getDocumentElement();
+        NodeList tracks = docElement.getElementsByTagName("track");
+        for (int i=0; i<tracks.getLength(); i++) {
+            Element trackElement = (Element) tracks.item(i);
+
+            MusicBrainzTrackInfo trackInfo = new MusicBrainzTrackInfo();
+
+            int score = Integer.parseInt(trackElement.getAttribute("ext:score"));
+            
+            // Get track info
+            trackInfo.setMbid(trackElement.getAttribute("id"));
+            trackInfo.setTitle(XmlUtil.getElementContents(trackElement, "title"));
+            trackInfo.setDuration(XmlUtil.getElementContentsAsInteger(trackElement, "duration"));
+
+            // Get artist info
+            Element artistNode = (Element) XmlUtil.getDescendent(trackElement, "artist");
+            if (artistNode != null) {
+                trackInfo.setArtistMbid(artistNode.getAttribute("id"));
+                trackInfo.setArtistName(XmlUtil.getElementContents(artistNode, "name"));
+            }
+
+            // Get release info
+            List<Node> releaseList = XmlUtil.getDescendents(trackElement, "release-list");
+            for (int j=0; j<releaseList.size(); j++) {
+                Element relationlist = (Element) releaseList.get(j);
+                NodeList releasesList = relationlist.getElementsByTagName("release");
+                
+                Element release = (Element) releasesList.item(0);
+                trackInfo.setAlbumMbid(release.getAttribute("id"));
+                trackInfo.setAlbumName(XmlUtil.getElementContents(release, "title"));
+                break;
+            }
+            trackList.add(new Scored<MusicBrainzTrackInfo>(trackInfo, score));
+        }
+
+        return trackList;
     }
   
     // http://musicbrainz.org/ws/1/artist/?type=xml&name=Tori+Amos
@@ -169,7 +265,7 @@ public class MusicBrainz {
                 if (type.equalsIgnoreCase("Album Official")) {
                     String title = XmlUtil.getElementContents(release, "title");
                     MusicBrainzAlbumInfo album = new MusicBrainzAlbumInfo();
-                    album.setId(id);
+                    album.setMbid(id);
                     album.addArtistId(artistMbid);
                     album.setTitle(title);
                     album.setAsin(asin);
@@ -204,23 +300,18 @@ public class MusicBrainz {
     }
 
 
-    public MusicBrainzAlbumInfo getAlbumInfo(String mbid) throws IOException {
-        String query =  "release/" + mbid +"/?type=xml&inc=url-rels+tracks+release-events";
-        Document mbDoc = mbCommander.sendCommand(query);
-        Element docElement = mbDoc.getDocumentElement();
-
-        Element albumElement = XmlUtil.getFirstElement(docElement, "release");
+    private MusicBrainzAlbumInfo extractAlbumInfo(Element e) throws IOException {
 
         MusicBrainzAlbumInfo mba = new MusicBrainzAlbumInfo();
-        mba.setId(mbid);
-        mba.setAsin(XmlUtil.getElementContents(albumElement, "asin"));
-        mba.setTitle(XmlUtil.getElementContents(albumElement, "title"));
+        mba.setMbid(e.getAttribute("id"));
+        mba.setAsin(XmlUtil.getElementContents(e, "asin"));
+        mba.setTitle(XmlUtil.getElementContents(e, "title"));
 
         // add the MusicBrainz link
-        mba.addURL("MusicBrainz", "http://musicbrainz.org/release/" + mbid + ".html");
+        mba.addURL("MusicBrainz", "http://musicbrainz.org/release/" + mba.getMbid() + ".html");
 
         // Get release date
-        List<Node> releaseEvents = XmlUtil.getDescendents(albumElement, "release-event-list");
+        List<Node> releaseEvents = XmlUtil.getDescendents(e, "release-event-list");
         if (releaseEvents.size() >= 1) {
             NodeList releases = ((Element) releaseEvents.get(0)).getElementsByTagName("event");
             for (int i = 0; i < releases.getLength(); i++) {
@@ -231,6 +322,18 @@ public class MusicBrainz {
                 } catch (ParseException ex) {}
             }
         }
+
+        return mba;
+    }
+
+
+    public MusicBrainzAlbumInfo getAlbumInfo(String mbid) throws IOException {
+        String query =  "release/" + mbid +"/?type=xml&inc=url-rels+tracks+release-events";
+        Document mbDoc = mbCommander.sendCommand(query);
+        Element docElement = mbDoc.getDocumentElement();
+
+        Element albumElement = XmlUtil.getFirstElement(docElement, "release");
+        MusicBrainzAlbumInfo mba = extractAlbumInfo(albumElement);
 
         // Get all tracks
         List<Node> trackNodes = XmlUtil.getDescendents(albumElement, "track-list");
@@ -294,9 +397,27 @@ public class MusicBrainz {
      */
     public static void main(String[] args) throws IOException {
 
+        System.out.println("Run...");
         MusicBrainz mb = new MusicBrainz();
+        
+        /*
         MusicBrainzAlbumInfo aI = mb.getAlbumInfo("60e2f500-b11c-4275-b9a8-81b9adca2ee7");
         aI.dump();
+        */
+
+
+        /*
+         * TEST FOR TRACK SEARCH
+        for (Scored<MusicBrainzTrackInfo> sMI : mb.trackSearch("here Without You", null, "2386cd66-e923-4e8e-bf14-2eebe2e9b973", null, null)) {
+            System.out.println("score:"+sMI.getScore());
+            sMI.getItem().dump();
+        }
+         * */
+
+        for (Scored<MusicBrainzAlbumInfo> sMI : mb.albumSearch("Clumsy", "Our Lady Peace", null)) {
+            System.out.println("score:"+sMI.getScore());
+            sMI.getItem().dump();
+        }
 
     }
 

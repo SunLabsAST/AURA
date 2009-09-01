@@ -29,23 +29,35 @@
 #
 
 
+import pyaura.timestats as TS
 import pyaura.lib as L
 import pyaura.bridge as B
 
 aB = B.AuraBridge()
 
 
-def del_rawtags():
+def del_rawtags(tagNames=None):
     """
     Deletes all the raw tags items from the store
     """
     cnt = aB.get_item_count("ARTIST_TAG_RAW")
 
+    # If we have tag names from a list
+    if not tagNames is None:
+        print "Deleting from names in list..."
+        time = TS.TimeStats(cnt, 100)
+        for tN in tagNames:
+            aB.delete_item(tN)
+            time.next()
+
+    print "\nDeleting from names in store..."
+    time = TS.TimeStats(cnt, 100)
     for i, tag in enumerate(aB.get_all_iterator("ARTIST_TAG_RAW")):
         aB.delete_item(tag.getKey())
 
-        if i%100==0:
-            print "%d/%d" % (i, cnt)
+        #if i%100==0:
+        #    print "%d/%d" % (i, cnt)
+        time.next()
 
 
 
@@ -66,10 +78,13 @@ def clear_rawtags(itemtype):
     rawTagType = L._assert_type_tagtype("SOCIAL_RAW")
     cnt = aB.get_item_count(itemtype)
 
+    time = TS.TimeStats(cnt, 100)
+
     for i, item in enumerate(aB.get_all_iterator(itemtype)):
         item.clearTags(rawTagType)
         aB.flush_item(item)
 
-        if i%100==0:
-            print "  %d/%d" % (i, cnt)
+        time.next()
+        #if i%100==0:
+        #    print "  %d/%d" % (i, cnt)
 
