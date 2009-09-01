@@ -34,6 +34,11 @@ public class MusicBrainzTrackInfo {
     private String title;
     private int duration;
 
+    private String artistName;
+    private String artistMbid;
+    private String albumName;
+    private String albumMbid;
+
     public MusicBrainzTrackInfo() {
 
     }
@@ -61,5 +66,47 @@ public class MusicBrainzTrackInfo {
     public void setDuration(int duration) {
         this.duration = duration;
     }
-    
+
+    public void setArtistName(String artistName) {
+        this.artistName = artistName;
+    }
+
+    public String getArtistName() {
+        return artistName;
+    }
+
+    public void setArtistMbid(String artistMbid) {
+        this.artistMbid = artistMbid;
+    }
+
+    public String getArtistMbid() {
+        return artistMbid;
+    }
+
+    public void setAlbumName(String albumName) {
+        this.albumName = albumName;
+    }
+
+    public String getAlbumName() {
+        return albumName;
+    }
+
+    public void setAlbumMbid(String albumMbid) {
+        this.albumMbid = albumMbid;
+    }
+
+    public String getAlbumMbid() {
+        return albumMbid;
+    }
+
+    public void dump() {
+        System.out.println("======" + title + " =========");
+        System.out.println("id\t" + mbid);
+        System.out.println("duration\t" + duration);
+        System.out.println("artist\t" + artistName);
+        System.out.println("artist id\t" + artistMbid);
+        System.out.println("album\t" + albumName);
+        System.out.println("album id\t" + albumMbid);
+    }
+
 }

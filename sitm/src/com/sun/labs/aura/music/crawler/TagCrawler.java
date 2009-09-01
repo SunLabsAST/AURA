@@ -184,7 +184,9 @@ public class TagCrawler extends ConcurrentCrawler implements AuraService, Config
     }
 
     public void updateArtistTags() throws AuraException, RemoteException {
-
+        long startTime = System.currentTimeMillis();
+        logger.info("TagCrawler: Starting update of all tags at "+startTime);
+        
         DBIterator<Item> it = getDataStore().getAllIterator(ItemType.ARTIST_TAG);
         try {
             while (it.hasNext()) {
@@ -213,6 +215,9 @@ public class TagCrawler extends ConcurrentCrawler implements AuraService, Config
         } finally {
             it.close();
         }
+
+        logger.info("TagCrawler: Finished update of all tags in " +
+                (System.currentTimeMillis() - startTime)+"ms");
     }
 
     public void updateSingleTag(ArtistTag artistTag) throws AuraException, RemoteException {
