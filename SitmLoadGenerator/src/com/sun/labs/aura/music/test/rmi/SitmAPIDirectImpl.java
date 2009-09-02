@@ -111,6 +111,9 @@ public class SitmAPIDirectImpl extends SitmAPI {
             for (com.sun.labs.aura.util.Scored<String> scoredTag : vals) {
                 String tagName = scoredTag.getItem();
                 ArtistTag artistTag = mdb.artistTagLookup(ArtistTag.nameToKey(tagName));
+                if(artistTag == null) {
+                    continue;
+                }
                 result.add(new Scored<Item>(new Item(artistTag.getKey(), tagName), scoredTag.getScore()));
             }
             monitor.opFinish("artistSocialTags", start, 0);
