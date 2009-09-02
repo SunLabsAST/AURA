@@ -96,6 +96,10 @@ def j2py(elem, max_depth=None):
     elif isinstance(elem, J.JClass("com.sun.labs.aura.util.Scored")):
         return PyScored( j2py(elem.getScore(), max_depth), j2py(elem.getItem(), max_depth) )
 
+    elif isinstance(elem, J.JClass("com.sun.labs.minion.FieldFrequency")):
+        # Convert FieldFrequency into PyScored because they are essentially the same
+        return PyScored( elem.getFreq(), j2py(elem.getVal(), max_depth) )
+
     elif isinstance(elem, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
 
         item_type = J.JClass("com.sun.labs.aura.datastore.Item$ItemType")

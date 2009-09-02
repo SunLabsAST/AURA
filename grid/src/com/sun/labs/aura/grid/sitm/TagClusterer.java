@@ -87,22 +87,7 @@ public class TagClusterer implements AuraService, Configurable {
         if (!running) {
             running = true;
             try {
-                //runjob();
-
-                int i = 0;
-                long total = getDataStore().getItemCount(Item.ItemType.ARTIST_TAG_RAW);
-                DBIterator<Item> it = getDataStore().getAllIterator(Item.ItemType.ARTIST_TAG_RAW);
-                try {
-                    while (it.hasNext()) {
-                        ArtistTagRaw atr = new ArtistTagRaw(it.next());
-                        getDataStore().deleteItem(atr.getKey());
-                        if (i++%100==0) {
-                            logger.info(i+"/"+total);
-                        }
-                    }
-                } finally {
-                    it.close();
-                }
+                runFindSimilar();
 
             } catch (AuraException ex) {
                 Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
@@ -130,7 +115,26 @@ public class TagClusterer implements AuraService, Configurable {
     }
 
 
-    private void runjob() throws AuraException, RemoteException {
+    private void runDeleteAllRawTags() throws AuraException, RemoteException {
+
+        int i = 0;
+        long total = getDataStore().getItemCount(Item.ItemType.ARTIST_TAG_RAW);
+        DBIterator<Item> it = getDataStore().getAllIterator(Item.ItemType.ARTIST_TAG_RAW);
+        try {
+            while (it.hasNext()) {
+                ArtistTagRaw atr = new ArtistTagRaw(it.next());
+                getDataStore().deleteItem(atr.getKey());
+                if (i++ % 100 == 0) {
+                    logger.info(i + "/" + total);
+                }
+            }
+        } finally {
+            it.close();
+        }
+    }
+    
+
+    private void runFindSimilar() throws AuraException, RemoteException {
         if (running) {
             long startTime = System.currentTimeMillis();
             logger.info("Populating list of tags...");

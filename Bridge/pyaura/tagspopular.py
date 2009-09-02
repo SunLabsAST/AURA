@@ -25,6 +25,7 @@
  #####
 
 import sys
+import time
 import warnings
 import bridge as B
 import jpype as J
@@ -165,6 +166,10 @@ def extractResults(results, dbSet):
     If we can't find a match in the lab's mbids, store a list of
     all the possible matches from musizbrainz
     """
+
+    if results is None:
+        return ""
+
     found = []
     for r in results:
         if r.item.getMbid() in dbSet:
@@ -224,13 +229,19 @@ def resolve_with_sitm(tags_dump_path):
 
             # Query musizbrainz
             results = None
+            tries = 0
             while results==None:
                 try:
                     results = j2py( mb.albumSearch(data[2], noneIfEmpty(data[4]), noneIfEmpty(data[3])) )
                 except Exception as ex:
+                    tries += 1
                     print ex
-                    print ">>>>> Trying again"
-
+                    if tries < 5:
+                        print ">>>>> Trying again (%d)" % tries
+                        time.sleep(1)
+                    else:
+                        print ">>>>> Giving up (%d)" % tries
+                        break
 
             # Replace with new mbid
             data[1] = extractResults(results, sitm_albums)
@@ -269,12 +280,19 @@ def resolve_with_sitm(tags_dump_path):
 
             # String title, String artistName, String artistMbid, String albumName, String albumMbid
             results = None
+            tries = 0
             while results==None:
                 try:
                     results = j2py( mb.trackSearch( data[2], noneIfEmpty(data[4]), noneIfEmpty(data[3]), None, None) )
                 except Exception as ex:
+                    tries += 1
                     print ex
-                    print ">>>>> Trying again"
+                    if tries < 5:
+                        print ">>>>> Trying again (%d)" % tries
+                        time.sleep(1)
+                    else:
+                        print ">>>>> Giving up (%d)" % tries
+                        break
 
             data[1] = extractResults(results, sitm_tracks)
 

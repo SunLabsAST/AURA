@@ -24,7 +24,6 @@
 
 
 import jpype as J
-import os
 import lib as L
 from lib import j2py
 
@@ -32,14 +31,14 @@ from lib import j2py
 class AuraBridge():
     """
     This class serves as a bridge between python code and the Aura datastore by 
-    implementing the datastore and musicdb api.
+    implementing the datastore and musicdb APIs.
     """
 
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
                     classpath_prefix=L._get_default_prefix(),
                     regHost=L.DEFAULT_GRID_REGHOST):
     
-        L.init_jvm(jvm_path, classpath_prefix)
+        L.init_jvm(jvm_path=jvm_path, classpath_prefix=classpath_prefix, regHost=regHost)
         
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
         self._bridge = AuraBridge()
@@ -93,7 +92,7 @@ class AuraBridge():
         """Gets attentions created since timestamp, given an attention configuration"""
         L._assert_type_attn_config(attn_config)
         aL = self._bridge.getAttentionSince(attn_config, J.java.util.Date(timestamp))
-        return _jarraylist_to_lst(aL)
+        return j2py(aL)
 
 
     def get_attention_since_count(self, attn_config, timestamp):
@@ -118,6 +117,11 @@ class AuraBridge():
     def delete_item(self, key):
         """Deletes an item from the store"""
         self._bridge.deleteItem(key)
+
+
+    def get_top_values(self, field, n=100, ignore_case=False):
+        """Gets the most frequent values for the named field"""
+        return j2py(self._bridge.getTopValues(field, n, ignore_case))
 
 
     ######

@@ -41,6 +41,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -255,6 +256,11 @@ public class AuraBridge implements Configurable, ItemStore {
     @Override
     public long getItemCount(ItemType itemType) throws AuraException, RemoteException {
         return getDataStore().getItemCount(itemType);
+    }
+
+    public List<FieldFrequency> getTopValues(String field, int n,
+            boolean ignoreCase) throws AuraException, RemoteException {
+        return getDataStore().getTopValues(field, n, ignoreCase);
     }
 
     @Override
