@@ -181,7 +181,7 @@ def extractResults(results, dbSet):
     return found
 
 
-def resolve_with_sitm(tags_dump_path):
+def resolve_with_sitm(tags_dump_path, check_in_sitm_for_preresolved=True):
     """
     Resolves songs and albums contained in a pickled map for a series of tags
     to mbids. It tries to match the songs/albums to mbids of items we have in
@@ -189,6 +189,9 @@ def resolve_with_sitm(tags_dump_path):
     a list of all the mbids returned by musicbrainz
 
     tags_dump_path: path to file generated with crawl_tags_from_file()
+    check_in_sitm_for_preresolved : if an item is already resolved, set wether
+                    to assert it is in sitm db. If check is made and mbid not
+                    in sitmdb, a list of possible matches will be fetched
     """
 
     mb = J.JClass("com.sun.labs.aura.music.web.musicbrainz.MusicBrainz")()
@@ -224,8 +227,13 @@ def resolve_with_sitm(tags_dump_path):
 
             # If we don't already have this mbid resolved
             if isMbid(data[1]):
-                cnt_were_resolved+=1
+                if not check_in_sitm_for_preresolved or data[1] in sitm_albums:
+                    cnt_were_resolved+=1
+                    continue
+            elif isinstance(data[1], list):
+                cnt_multi_resolved+=1
                 continue
+
 
             # Query musizbrainz
             results = None
@@ -275,7 +283,11 @@ def resolve_with_sitm(tags_dump_path):
 
             # If we have a string that's the right length in the mbid field, pass
             if isMbid(data[1]):
-                cnt_were_resolved+=1
+                if not check_in_sitm_for_preresolved or data[1] in sitm_tracks:
+                    cnt_were_resolved+=1
+                    continue
+            elif isinstance(data[1], list):
+                cnt_multi_resolved+=1
                 continue
 
             # String title, String artistName, String artistMbid, String albumName, String albumMbid

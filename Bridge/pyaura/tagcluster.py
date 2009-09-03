@@ -50,3 +50,7 @@ def _get_simdata(fnct):
     jobj = fnct(tagClustClass)
     print "Converting to python native..."
     return j2py( jobj )
+
+
+
+

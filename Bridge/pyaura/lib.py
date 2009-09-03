@@ -180,7 +180,7 @@ class PyScored():
     def __repr__(self) :
 
         name = None
-        if isinstance(self.item, str):
+        if isinstance(self.item, str) or isinstance(self.item, unicode):
             name = self.item
         elif str(type(self.item)).startswith("com.sun.labs.aura.music") and \
                 str(type(self.item))[24:] in ["Album", "Artist", "Track", "Listener"]:
