@@ -47,6 +47,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,11 +88,16 @@ public class TagClusterer implements AuraService, Configurable {
         if (!running) {
             running = true;
             try {
-                runFindSimilar();
 
-            } catch (AuraException ex) {
-                Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+                    //runFindSimilar();
+                    runGetTagCounts();
+
+
             } catch (RemoteException ex) {
+                Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                    Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (AuraException ex) {
                 Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -112,6 +118,24 @@ public class TagClusterer implements AuraService, Configurable {
 
     private DataStore getDataStore() throws AuraException {
         return (DataStore) rcmStore.getComponent();
+    }
+
+
+    private void runGetTagCounts() throws AuraException, RemoteException, FileNotFoundException, IOException {
+
+        FileOutputStream fos = new FileOutputStream(fsPath + "/rawtags_count.txt");
+        OutputStreamWriter out = new OutputStreamWriter(fos);
+
+        int i=0;
+        for (FieldFrequency fF : getDataStore().getTopValues(TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE, false)) {
+            out.write((String)fF.getVal() + "\t" + fF.getFreq());
+            if (i++ % 1000 == 0) {
+                logger.info("  Done "+i);
+            }
+        }
+
+        out.close();
+
     }
 
 
