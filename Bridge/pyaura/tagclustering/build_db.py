@@ -27,6 +27,7 @@
 import os
 import threading
 import time
+import re
 import Queue
 import jpype as J
 import pyaura.lib as L
@@ -34,16 +35,22 @@ import pyaura.bridge as B
 import pyaura.timestats as TS
 import cPickle as P
 
-L.init_jvm("/home/mailletf/Desktop/jdk1.6.0_14/jre/lib/amd64/server/libjvm.so")
 
 all_tags = {}
 jobs = Queue.Queue()
 
-iT_artist = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("ARTIST")
-iT_track = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("TRACK")
-
 
 def do_download(output_folder):
+    """
+    Downloads tag data form the store. Splits up vectors with items that have 
+    been tagged in multiple files and stores an index in alltags.dump with
+    statistics
+    """
+
+    L.init_jvm("/home/mailletf/Desktop/jdk1.6.0_14/jre/lib/amd64/server/libjvm.so")
+
+    iT_artist = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("ARTIST")
+    iT_track = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("TRACK")
 
     aB = B.AuraBridge("/home/mailletf/Desktop/jdk1.6.0_14/jre/lib/amd64/server/libjvm.so")
 
@@ -76,9 +83,40 @@ def do_download(output_folder):
     P.dump(all_tags, open(save_path, "w"))
 
 
-class ProcessJobs(threading.Thread):
 
-    def __init__(self, output_folder, nbr_tags):
+def load_partial_download(folder):
+    """
+    This should only be used if a partial download is stopped and you need to
+    build the all_tags dict from the tagdata.dump files
+    """
+
+    for filename in os.listdir(folder):
+        match = re.search(r"tagcut-([\d]+)\.tagdata\.dump", filename, re.IGNORECASE)
+        if match:
+            print "  Processing %s" % filename
+            file_idx = match.group(1)
+
+            fdata = P.load(open(os.path.join(folder, filename)))
+            for name, val in fdata.iteritems():
+
+                # Compute tag statistics and save tag data in dict
+                all_tags[name] = TagInfo(name, file_idx, val)
+
+
+    print ">> Saving all_tags dict..."
+    save_path = os.path.join(folder, "alltags.dump")
+    P.dump(all_tags, open(save_path, "w"))
+
+
+
+
+class ProcessJobs(threading.Thread):
+    """
+    Thread that will be doing the local work that does not require access to
+    the JVM when we're downloading tagdata from the store
+    """
+
+    def __init__(self, output_folder, nbr_tags, save_tagdata=True):
         threading.Thread.__init__(self)
         self.output_folder = output_folder
         self.done = False
@@ -100,44 +138,39 @@ class ProcessJobs(threading.Thread):
             current_idx += 1
             tag_name, tag = jobs.get()
 
-            output_dict[tag_name] = tag
-
-
             # Compute tag statistics
-            tag_info = TagInfo(tag_name, file_idx)
-            for name in ("artist", "track"):
-                tag_info.item_count[name] = len(tag[name])
-                tag_info.totals[name] = sum(tag[name].values())
+            tag_info = TagInfo(tag_name, file_idx, tag)
 
 
             # Save tag data in dict
             all_tags[tag_name] = tag_info
 
-            if current_idx >= 2000:
-                #print ">>>> Saving file cut %d" % file_idx
-                save_path = os.path.join(self.output_folder, "tagcut-%d.tagdata.dump" % file_idx)
-                P.dump(output_dict, open(save_path, "w"))
+            if save_tagdata:
+                output_dict[tag_name] = tag
+                if current_idx >= 2000:
+                    #print ">>>> Saving file cut %d" % file_idx
+                    save_path = os.path.join(self.output_folder, "tagcut-%d.tagdata.dump" % file_idx)
+                    P.dump(output_dict, open(save_path, "w"))
 
-                output_dict = {}
-                current_idx = 0
-                file_idx+=1
+                    output_dict = {}
+                    current_idx = 0
+                    file_idx+=1
             
+                self.timeStats.next()
 
-            self.timeStats.next()
 
 
 
 class TagInfo():
 
-    def __init__(self, name, file_location=None):
+    def __init__(self, name, file_location=None, tagData=None):
         self.name = name
-        self.item_count = {}
         self.file_location = file_location
+        
+        self.item_count = {}
         self.totals = {}
+        if not tagData is None:
+            for name in ("artist", "track"):
+                self.item_count[name] = len(tagData[name])
+                self.totals[name] = sum(tagData[name].values())
 
-
-
-
-
-if __name__ == "__main__":
-    print "Hello World";
