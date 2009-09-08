@@ -225,6 +225,7 @@ public class BerkeleyDataWrapper {
         sconf.setTransactional(true);
 
         econf.setConfigParam(EnvironmentConfig.TXN_DUMP_LOCKS, "true");
+        econf.setConfigParam(EnvironmentConfig.TXN_DEADLOCK_STACK_TRACE, "true");
         
         
         //
@@ -336,6 +337,19 @@ public class BerkeleyDataWrapper {
             }
         }
 
+        //
+        // Same thing for users - make sure we have at least one user that
+        // has every field filled in before proceeding.
+        UserImpl badUser = UserImpl.INVALID_USER;
+        UserImpl storedUser = (UserImpl) getItem(badUser.getKey());
+        if (storedUser == null) {
+            try {
+                logger.fine("Storing the all-fields-filled user");
+                putItem(badUser);
+            } catch (AuraException e) {
+                logger.fine("Storing the all-fields-filled user failed!");
+            }
+        }
 
         //
         // Start evolving anything that needs evolving
@@ -461,7 +475,7 @@ public class BerkeleyDataWrapper {
         } catch(DatabaseException e) {
             handleCursorException(cur, txn, e);
         }
-        DBIterator<Item> dbIt = new EntityIterator<Item>(cur, txn);
+        DBIterator<Item> dbIt = new EntityIterator<Item>(cur, txn, log);
         return dbIt;
     }
     
