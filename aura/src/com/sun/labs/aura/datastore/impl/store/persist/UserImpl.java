@@ -247,4 +247,21 @@ public class UserImpl extends ItemImpl implements User {
         this.timezone = timezone;
         setField("timezone", timezone);
     }
+
+    public static final transient UserImpl INVALID_USER =
+            new UserImpl("a very unlikely user key to occur in the database",
+                         "steve green is the steviest greeniest steve green");
+
+    static {
+        INVALID_USER.country = "some country that does not exist";
+        INVALID_USER.dob = Long.MIN_VALUE;
+        INVALID_USER.email = "** invalid email address **";
+        INVALID_USER.fullname = "some name that isn't ever likely to exist";
+        INVALID_USER.gender = "a third gender not found in our humans";
+        INVALID_USER.language = "a language less likely than even esperanto";
+        INVALID_USER.nickname = "a nickname like steviest green";
+        INVALID_USER.postcode = "a code that doesn't exist in the known universe";
+        INVALID_USER.randStr = "a string that the random string function won't make";
+        INVALID_USER.timezone = "a timezone for GMT-24:00??";
+    }
 }
