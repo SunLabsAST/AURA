@@ -122,6 +122,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     private boolean parallelGet;
 
+    @ConfigInteger(defaultValue=40)
+    public static final String PROP_EXECUTOR_POOL_SIZE = "executorPoolSize";
+
+    private int executorPoolSize;
+
     /** A random number generator for picking partitions */
     protected Random random = new Random();
 
@@ -135,8 +140,6 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     private int parallelPause;
     
     public DataStoreHead() {
-        trie = new BinaryTrie<PartitionCluster>();
-        executor = Executors.newCachedThreadPool();
     }
 
     public void defineField(String fieldName)
@@ -1374,7 +1377,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         }
     }
 
-    private List<Scored<String>> explainSimilarity(DocumentVector dv1,
+    public static List<Scored<String>> explainSimilarity(DocumentVector dv1,
             DocumentVector dv2, int n)
             throws AuraException, RemoteException {
         if(dv1 == null || dv2 == null) {
@@ -1611,11 +1614,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         properties = new String[] {"logLevel"};
+        trie = new BinaryTrie<PartitionCluster>();
         cm = ps.getConfigurationManager();
         logger = ps.getLogger();
         stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
         parallelGet = ps.getBoolean(PROP_PARALLEL_GET);
         parallelPause = ps.getInt(PROP_PARALLEL_PAUSE);
+        executorPoolSize = ps.getInt(PROP_EXECUTOR_POOL_SIZE);
+        if(executorPoolSize <= 0) {
+            executor = Executors.newCachedThreadPool();
+        } else {
+            executor = Executors.newFixedThreadPool(executorPoolSize);
+        }
     }
 
     @Override

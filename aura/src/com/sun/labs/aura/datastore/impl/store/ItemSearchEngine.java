@@ -37,6 +37,7 @@ import com.sun.labs.minion.FieldInfo;
 import com.sun.labs.minion.FieldValue;
 import com.sun.labs.minion.IndexableString;
 import com.sun.labs.minion.Posting;
+import com.sun.labs.minion.QueryStats;
 import com.sun.labs.minion.Result;
 import com.sun.labs.minion.ResultSet;
 import com.sun.labs.minion.ResultsFilter;
@@ -62,7 +63,6 @@ import com.sun.labs.minion.retrieval.FieldEvaluator;
 import com.sun.labs.minion.retrieval.ResultAccessorImpl;
 import com.sun.labs.minion.retrieval.ResultImpl;
 import com.sun.labs.minion.retrieval.ResultSetImpl;
-import com.sun.labs.minion.util.DirCopier;
 import com.sun.labs.minion.util.FileLockException;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.minion.util.Util;
@@ -935,6 +935,7 @@ public class ItemSearchEngine implements Configurable {
             // Stop listening for things and shut down the engine.
             shuttingDown = true;
             logger.log(Level.INFO, "Shutting down search engine");
+            System.err.format("Query Stats:\n%s\n", engine.getQueryStats().dump());
             engine.close();
         } catch(SearchEngineException ex) {
             logger.log(Level.WARNING, "Error closing index data engine", ex);
