@@ -537,6 +537,50 @@ public class BerkeleyDataWrapper {
     }
 
     /**
+     * Puts a list of items into the entity store.  If an item already exists, it will
+     * be replaced.
+     *
+     * @param items the items to put in the store.
+     */
+    public void putItems(List<ItemImpl> items) throws AuraException {
+        int numRetries = 0;
+
+        while(numRetries < MAX_DEADLOCK_RETRIES) {
+            Transaction txn = null;
+            try {
+                txn = dbEnv.beginTransaction(null, null);
+                for(ItemImpl item : items) {
+                    itemByKey.putNoReturn(txn, item);
+                }
+                txn.commit();
+                return;
+            } catch(DeadlockException e) {
+                try {
+                    txn.abort();
+                    log.info(String.format(
+                            "Deadlock detected putting %d items: %s",
+                                              items.size(), e.getMessage()));
+                    numRetries++;
+                } catch(DatabaseException ex) {
+                    throw new AuraException("Txn abort failed", ex);
+                }
+            } catch(Exception e) {
+                try {
+                    if(txn != null) {
+                        txn.abort();
+                    }
+                } catch(DatabaseException ex) {
+                }
+                throw new AuraException("putItem transaction failed", e);
+            }
+        }
+
+        throw new AuraException(String.format(
+                "putItem failed for  %d items after %d retries",
+                                              items.size(), numRetries));
+    }
+
+    /**
      * Deletes an item from the database.
      * 
      * @param itemKey the key of the item to delete
