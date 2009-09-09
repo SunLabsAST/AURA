@@ -52,7 +52,7 @@
     <!-- A factory for our the main partitions.  This adds a largish term cache 
          and cached document vector lengths to the standard factory -->
     <component name="partition_factory" type="com.sun.labs.minion.indexer.partition.InvFilePartitionFactory">
-        <property name="term_cache_size" value="3000"/>
+        <property name="term_cache_size" value="8000"/>
         <property name="main_dict_factory" value="cased_dict_factory"/>
         <property name="document_dict_factory" value="dockey_dict_factory"/>
         <property name="cache_vector_lengths" value="true"/>

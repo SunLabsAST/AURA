@@ -21,7 +21,6 @@
  * Park, CA 94025 or visit www.sun.com if you need additional
  * information or have any questions.
  */
-
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sleepycat.je.DatabaseException;
@@ -106,19 +105,19 @@ import javax.script.ScriptException;
  */
 public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableMXBean, ComponentListener, AuraService,
         IndexListener {
-    
+
     /**
      * Whether we should copy the database into a temporary directory before
      * opening the item store.
      */
-    @ConfigBoolean(defaultValue=false)
+    @ConfigBoolean(defaultValue = false)
     public static final String PROP_COPY_DIR = "copyDir";
 
     /**
      * The directory into which we should copy the database, if we are
      * required to do so.
      */
-    @ConfigString(defaultValue="")
+    @ConfigString(defaultValue = "")
     public static final String PROP_COPY_LOCATION = "copyLocation";
 
     /**
@@ -136,7 +135,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public static final String PROP_PREFIX = "prefix";
 
     private DSBitSet prefixCode;
-    
+
     private String prefixString;
 
     /**
@@ -148,7 +147,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     protected ItemSearchEngine searchEngine;
 
     @ConfigInteger(defaultValue = 60)
-    public final static String PROP_CACHE_SIZE_MEM_PERCENTAGE = "cacheSizeMemPercentage";
+    public final static String PROP_CACHE_SIZE_MEM_PERCENTAGE =
+            "cacheSizeMemPercentage";
+
     private int cacheSizeMemPercentage;
 
     /**
@@ -160,14 +161,22 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     private PartitionCluster partitionCluster;
 
+    /**
+     * Whether we should try to register with a partition cluster or not.
+     */
+    @ConfigBoolean(defaultValue = true)
+    public static final String PROP_REGISTER = "register";
+
     @ConfigComponent(type = com.sun.labs.aura.service.StatService.class)
     public static final String PROP_STAT_SERVICE = "statService";
+
     protected StatService statService;
 
-    @ConfigStringList(mandatory = false, defaultList={})
+    @ConfigStringList(mandatory = false, defaultList = {})
     public static final String PROP_LOG_METHODS = "logMethods";
+
     protected EnumSet<StatName> toLog;
-    
+
     /**
      * ComponentRegistry will be non-null if we're running in a RMI environment
      */
@@ -182,7 +191,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * A map to store listeners for each type of item
      */
     protected Map<ItemType, Set<ItemListener>> listenerMap;
-    
+
     /**
      * A queue of change events that need to be sent
      */
@@ -198,9 +207,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * closed, no more operators are permitted.
      */
     protected boolean closed;
-    
+
     protected Timer timer;
-    
+
     /**
      * A logger for messages/debug info
      */
@@ -220,14 +229,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * An array of bounded linked lists of the time histories for each stat
      */
     protected LinkedList<Double>[] statTimeHistory;
-    
+
     /**
      * An array of the total times of the last N method time stats
      */
     protected double[] statTimeTotals;
-    
+
     protected static final int STAT_TIME_HISTORY = 20;
-    
+
     /**
      * Constructs an empty item store, ready to be configured.
      */
@@ -235,18 +244,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         listenerMap = new HashMap<ItemType, Set<ItemListener>>();
         changeEvents = new ConcurrentLinkedQueue<ChangeEvent>();
         createEvents = new ConcurrentLinkedQueue<ItemImpl>();
-        
+
         //
         // Set up all our stat tracking arrays
         statInvocationCounts = new AtomicInteger[StatName.values().length];
         statTimeHistory = new LinkedList[StatName.values().length];
         statTimeTotals = new double[StatName.values().length];
-        for (StatName name : StatName.values()) {
+        for(StatName name : StatName.values()) {
             statInvocationCounts[name.ordinal()] = new AtomicInteger(0);
             statTimeHistory[name.ordinal()] = new LinkedList<Double>();
             statTimeTotals[name.ordinal()] = 0;
         }
-        
+
         timer = new Timer("StatScheduler", true);
         timer.schedule(new StatSender(), 0, 10 * 1000);
     }
@@ -263,8 +272,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public void newProperties(PropertySheet ps) throws PropertyException {
         //
         // Set the MXBean properties - logLevel can be configured
-        properties = new String[] {"logLevel"};
-        
+        properties = new String[]{"logLevel"};
+
         logger = ps.getLogger();
         prefixString = ps.getString(PROP_PREFIX);
         prefixCode = DSBitSet.parse(prefixString);
@@ -274,24 +283,24 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // See if there are specific methods we need to log
         List<String> logs = ps.getStringList(PROP_LOG_METHODS);
-        if (logs != null && !logs.isEmpty()) {
+        if(logs != null && !logs.isEmpty()) {
             toLog = EnumSet.noneOf(StatName.class);
-            for (String val : logs) {
+            for(String val : logs) {
                 toLog.add(StatName.valueOf(val));
             }
         } else {
             toLog = EnumSet.allOf(StatName.class);
         }
-        
+
         //
         // Get the database environment, copying it if necessary.
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
-        
+
 
         if(!f.exists() && !f.mkdirs()) {
             throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
-                    "Unable to create new directory for db");
+                                        "Unable to create new directory for db");
         }
 
         //
@@ -301,15 +310,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 copyLocation = System.getProperty("java.io.tmpdir");
             }
             String tds = String.format("%s%sreplicant-%s%sdb",
-                    copyLocation,
-                    File.separator,
-                    ps.getString(PROP_PREFIX),
-                    File.separator);
+                                       copyLocation,
+                                       File.separator,
+                                       ps.getString(PROP_PREFIX),
+                                       File.separator);
             File td = new File(tds);
             if(!td.mkdirs() && !td.exists()) {
                 throw new PropertyException(ps.getInstanceName(),
-                        PROP_COPY_DIR,
-                        "Unable to make temporary directory for db");
+                                            PROP_COPY_DIR,
+                                            "Unable to make temporary directory for db");
             }
             try {
                 logger.info("Copying BDB to temp directory: " + tds);
@@ -319,8 +328,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 dbEnvDir = tds;
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(),
-                        PROP_COPY_DIR,
-                        "Unable to copy DBD to directory: " + tds);
+                                            PROP_COPY_DIR,
+                                            "Unable to copy DBD to directory: " +
+                        tds);
             }
         }
 
@@ -333,7 +343,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         try {
             logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir);
             bdb = new BerkeleyDataWrapper(dbEnvDir, logger,
-                    cacheSizeMemPercentage);
+                                          cacheSizeMemPercentage);
             logger.info("Finished opening BerkeleyDataWrapper");
         } catch(DatabaseException e) {
             logger.severe("Failed to load the database environment at " +
@@ -343,7 +353,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // Get the search engine from the config system
         searchEngine = (ItemSearchEngine) ps.getComponent(PROP_SEARCH_ENGINE);
-        
+
         //
         // Define the fields in the User items
         EnumSet<FieldCapability> saved = EnumSet.of(FieldCapability.MATCH);
@@ -361,7 +371,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         } catch(Exception e) {
             logger.log(Level.INFO, "Failed to define User fields", e);
             throw new PropertyException(ps.getInstanceName(), "userfields",
-                    "Failed to define User fields");
+                                        "Failed to define User fields");
         }
 
         //
@@ -371,7 +381,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             Reindexer reindexer = new Reindexer(searchEngine, false);
             try {
                 reindexer.reindex(dbEnvDir, bdb);
-            } catch (Exception ex) {
+            } catch(Exception ex) {
                 logger.log(Level.SEVERE, "Unable to re-index database", ex);
             }
         }
@@ -386,8 +396,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
         //
         // Fetch the partition cluster with this prefix.
-        partitionCluster = (PartitionCluster) ps.getComponent(PROP_PARTITION_CLUSTER, this);
-        register(partitionCluster);
+        if(ps.getBoolean(PROP_REGISTER)) {
+            partitionCluster = (PartitionCluster) ps.getComponent(
+                    PROP_PARTITION_CLUSTER, this);
+            register(partitionCluster);
+        }
 
         //
         // Get a handle to the stat service if we got one
@@ -424,9 +437,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public boolean setValue(String property, String value) {
         if(property.equals("logLevel")) {
             try {
-            Level l = Level.parse(value);
-            logger.setLevel(l);
-            } catch (IllegalArgumentException ex) {
+                Level l = Level.parse(value);
+                logger.setLevel(l);
+            } catch(IllegalArgumentException ex) {
                 return false;
             }
             return true;
@@ -436,7 +449,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     @Override
     public boolean setValues(String property, String[] values) {
-       return false;
+        return false;
     }
 
     public void componentAdded(Component c) {
@@ -451,12 +464,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         try {
             logger.info("Registering with partition: " + pc.getPrefix());
             pc.addReplicant((Replicant) cm.getRemote(this, pc));
-        } catch (RemoteException rx) {
+        } catch(RemoteException rx) {
             throw new PropertyException(null, PROP_PARTITION_CLUSTER, "Unable to add " +
                     "replicant to partition cluster.");
         }
     }
-    
+
     @Override
     public void componentRemoved(Component c) {
         logger.info("Removed: " + c);
@@ -480,7 +493,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     @Override
     public synchronized void close() throws AuraException {
-        if (!closed) {
+        if(!closed) {
             closed = true;
             logger.info("Closing BDB for prefix: " + prefixString);
             bdb.close();
@@ -498,10 +511,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public void defineField(String fieldName, 
-            Item .FieldType fieldType, EnumSet<Item.FieldCapability> caps) throws AuraException, RemoteException {
+    public void defineField(String fieldName,
+                            Item.FieldType fieldType,
+                            EnumSet<Item.FieldCapability> caps) throws
+            AuraException, RemoteException {
         bdb.defineField(fieldName, fieldType, caps);
-        
+
         //
         // If this field is going to be dealt with by the search engine, then
         // send it there.
@@ -511,11 +526,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public Map<String,FieldDescription> getFieldDescriptions()
+    public Map<String, FieldDescription> getFieldDescriptions()
             throws RemoteException {
         return bdb.getFieldDescriptions();
     }
-    
+
     /**
      * Get all the instances of a particular type of item from the store
      * 
@@ -526,9 +541,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public List<Item> getAll(ItemType itemType) throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ALL, state);
-        
+
         List<Item> ret = bdb.getAll(itemType);
-        
+
         exit(state);
         return ret;
     }
@@ -538,30 +553,31 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ALL_ITR, state);
-        
+
         DBIterator<Item> dbit = bdb.getAllIterator(itemType);
-        dbit = (DBIterator<Item>)cm.getRemote(dbit);
-        
+        dbit = (DBIterator<Item>) cm.getRemote(dbit);
+
         exit(state);
         return dbit;
     }
-    
+
     @Override
     public Item getItem(String key) throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ITEM, state);
-        
+
         Item ret = bdb.getItem(key);
-        
+
         exit(state, ": " + key);
         return ret;
     }
 
     @Override
-    public Collection<Item> getItems(Collection<String> keys) throws AuraException, RemoteException {
+    public Collection<Item> getItems(Collection<String> keys) throws
+            AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_ITEMS, state, "for " + keys.size());
-        
+
         List<Item> ret = new ArrayList();
         for(String key : keys) {
             Item i = getItem(key);
@@ -574,9 +590,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         exit(state, "for " + keys.size());
         return ret;
     }
-    
+
     @Override
-    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws AuraException {
+    public List<Scored<Item>> getScoredItems(List<Scored<String>> keys) throws
+            AuraException {
         StatState state = new StatState();
         enter(StatName.GET_SCORED_ITEMS, state, " for " + keys.size());
 
@@ -599,9 +616,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public User getUser(String key) throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_USER, state);
-        
+
         User ret = (User) bdb.getItem(key);
-        
+
         exit(state);
         return ret;
     }
@@ -610,38 +627,39 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public User getUserForRandomString(String randStr) throws AuraException {
         return bdb.getUserForRandomString(randStr);
     }
-    
+
     @Override
     public Item putItem(Item item) throws AuraException {
         StatState state = new StatState();
         enter(StatName.PUT_ITEM, state);
-        
+
         boolean existed = false;
         if(item instanceof ItemImpl) {
             ItemImpl itemImpl = (ItemImpl) item;
-            
+
             //
             // Walk the fields, make sure they're defined, and figure out whether
             // we need to re-index this item.
             boolean mustIndex = false;
             Set<String> setFields = itemImpl.getModifiedFields();
-            for(Map.Entry<String,Serializable> e : itemImpl) {
+            for(Map.Entry<String, Serializable> e : itemImpl) {
                 FieldDescription fd;
                 try {
                     fd = bdb.fieldByName.get(e.getKey());
                 } catch(DatabaseException ex) {
-                    throw new AuraException("Error getting field description ", ex);
+                    throw new AuraException("Error getting field description ",
+                                            ex);
                 }
                 if(fd == null) {
-                    throw new AuraException("Item " + item.getKey() + 
+                    throw new AuraException("Item " + item.getKey() +
                             " contains unknown field " + e.getKey());
                 }
                 if(fd.isIndexed() && setFields.contains(e.getKey())) {
                     mustIndex = true;
                 }
             }
-            
-            
+
+
             //
             // If this was a remote object, its transient map will be null
             // and storeMap will be a no-op.  If it was a local object then
@@ -661,15 +679,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             //
             // Finally, send out relevant events.
             if(existed) {
-                statInvocationCounts[StatName.UPDATE_ITEM.ordinal()]
-                        .getAndIncrement();
-                itemChanged(itemImpl, ItemEvent.ChangeType.AURA);
+                statInvocationCounts[StatName.UPDATE_ITEM.ordinal()].
+                        getAndIncrement();
+                itemChanged(itemImpl, ItemEvent.ChangeType.AURA, mustIndex);
             } else {
-                statInvocationCounts[StatName.NEW_ITEM.ordinal()]
-                        .getAndIncrement();
+                statInvocationCounts[StatName.NEW_ITEM.ordinal()].
+                        getAndIncrement();
                 itemCreated(itemImpl);
             }
-            
+
             exit(state);
             return itemImpl;
         } else {
@@ -690,7 +708,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public void deleteUser(String userKey) throws AuraException {
         deleteItem(userKey);
     }
-    
+
     /**
      * Deletes just an item from the item store, not touching the attention.
      */
@@ -704,26 +722,26 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public void deleteAttention(List<Long> ids) throws AuraException {
         bdb.deleteAttention(ids);
     }
-    
+
     @Deprecated
     @Override
     public List<Item> getItems(User user, Type attnType,
-            ItemType itemType)
+                               ItemType itemType)
             throws AuraException {
         return bdb.getItems(user.getKey(), attnType, itemType);
     }
 
     @Override
     public DBIterator<Item> getItemsAddedSince(ItemType type,
-            Date timeStamp)
+                                               Date timeStamp)
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ITEMS_SINCE, state);
-        
+
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
-        res = (DBIterator<Item>)cm.getRemote(res);
-        
+        res = (DBIterator<Item>) cm.getRemote(res);
+
         exit(state);
         return res;
     }
@@ -733,18 +751,18 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ATTN, state);
-        
+
         DBIterator<Attention> attn = bdb.getAttentionIterator(ac);
         List<Attention> res = new ArrayList<Attention>();
         try {
-            while (attn.hasNext()) {
+            while(attn.hasNext()) {
                 res.add(attn.next());
             }
             attn.close();
-        } catch (RemoteException e) {
+        } catch(RemoteException e) {
             throw new AuraException("Remote exception on local object!!", e);
         }
-        
+
         exit(state);
         return res;
     }
@@ -754,28 +772,28 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ALL_ITR, state);
-        
+
         DBIterator<Attention> res = bdb.getAttentionIterator(ac);
-        res = (DBIterator<Attention>)cm.getRemote(res);
-        
+        res = (DBIterator<Attention>) cm.getRemote(res);
+
         exit(state);
         return res;
     }
 
-    
     @Override
     public Long getAttentionCount(AttentionConfig ac) {
         StatState state = new StatState();
         enter(StatName.GET_ATTN_CNT, state);
-        
+
         Long ret = bdb.getAttentionCount(ac);
-        
+
         exit(state);
         return ret;
     }
 
     @Override
-    public Object processAttention(AttentionConfig ac, String script, String language)
+    public Object processAttention(AttentionConfig ac, String script,
+                                   String language)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.PROCESS_ATTN, state);
@@ -793,20 +811,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         try {
             try {
                 engine.eval(script);
-                Invocable invoker = (Invocable)engine;
+                Invocable invoker = (Invocable) engine;
                 result = invoker.invokeFunction("process", attention);
-            } catch (ScriptException e) {
+            } catch(ScriptException e) {
                 throw new AuraException("An error occurred while executing " +
                         "the provided script.", e);
-            } catch (NoSuchMethodException e) {
+            } catch(NoSuchMethodException e) {
                 throw new AuraException("The \"process\" method was not " +
                         "defined in the script.", e);
             }
-        } catch (ClassCastException e) {
+        } catch(ClassCastException e) {
             //
             // We couldn't cast the engine to an invocable
-            throw new AuraException("The script engine for the specified language ("
-                    + language + ") does not support function invocation.");
+            throw new AuraException("The script engine for the specified language (" +
+                    language + ") does not support function invocation.");
         }
         exit(state);
         return result;
@@ -818,19 +836,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ATTN_SINCE, state);
-        
+
         DBIterator<Attention> attn =
                 bdb.getAttentionSinceIterator(ac, timeStamp);
         List<Attention> res = new ArrayList<Attention>();
         try {
-            while (attn.hasNext()) {
+            while(attn.hasNext()) {
                 res.add(attn.next());
             }
             attn.close();
-        } catch (RemoteException e) {
+        } catch(RemoteException e) {
             throw new AuraException("Remote exception on local object!!", e);
         }
-        
+
         exit(state);
         return res;
     }
@@ -841,56 +859,55 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ATTN_SINCE_ITR, state);
-        
+
         DBIterator<Attention> res =
                 bdb.getAttentionSinceIterator(ac, timeStamp);
-        res = (DBIterator<Attention>)cm.getRemote(res);
-        
+        res = (DBIterator<Attention>) cm.getRemote(res);
+
         exit(state);
         return res;
     }
 
-    
     @Override
     public Long getAttentionSinceCount(AttentionConfig ac, Date timeStamp)
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ATTN_SINCE_CNT, state);
-        
+
         Long ret = bdb.getAttentionSinceCount(ac, timeStamp);
-        
+
         exit(state);
         return ret;
     }
-    
+
     @Override
     public List<Attention> getLastAttention(AttentionConfig ac, int count)
             throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_LAST_ATTN, state);
-        
+
         List<Attention> attn = getAttention(ac);
-        if (attn.isEmpty()) {
+        if(attn.isEmpty()) {
             return attn;
         }
-        
+
         int numReturned = Math.min(count, attn.size());
         Collections.sort(attn, new ReverseAttentionTimeComparator());
-        
+
         exit(state);
         return new ArrayList(attn.subList(0, numReturned));
     }
-    
+
     @Override
     public Attention attend(Attention att) throws AuraException {
         StatState state = new StatState();
         enter(StatName.ATTEND, state);
-        
+
         //
         // Make a persistent attention and give it to the BDB
         Attention ret = null;
-        if (att instanceof PersistentAttention) {
-            bdb.putAttention((PersistentAttention)att);
+        if(att instanceof PersistentAttention) {
+            bdb.putAttention((PersistentAttention) att);
             ret = att;
         } else {
             PersistentAttention pa = new PersistentAttention(att);
@@ -906,19 +923,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         StatState state = new StatState();
         enter(StatName.ATTEND, state, " with " + attns.size());
         state.count = attns.size();
-        
+
         //
         // Make persistent attentions and feed them to the BDB
-        List<PersistentAttention> pas = new ArrayList<PersistentAttention>(attns.size());
-        for (Attention a : attns) {
-            if (a instanceof PersistentAttention) {
-                pas.add((PersistentAttention)a);
+        List<PersistentAttention> pas = new ArrayList<PersistentAttention>(
+                attns.size());
+        for(Attention a : attns) {
+            if(a instanceof PersistentAttention) {
+                pas.add((PersistentAttention) a);
             } else {
                 pas.add(new PersistentAttention(a));
             }
         }
         bdb.putAttention(pas);
-        
+
         exit(state);
         return new ArrayList<Attention>(pas);
     }
@@ -943,7 +961,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public List<Scored<String>> query(String query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(String query, String sort, int n,
+                                      ResultsFilter rf)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.QUERY, state);
@@ -961,7 +980,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public List<Scored<String>> query(Element query, String sort, int n, ResultsFilter rf)
+    public List<Scored<String>> query(Element query, String sort, int n,
+                                      ResultsFilter rf)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.QUERY, state);
@@ -983,87 +1003,95 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         exit(state, ": " + autotag);
         return res;
     }
-    
+
     @Override
     public List<Scored<String>> getTopAutotagTerms(String autotag, int n)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_TOP_AUTOTAG_TERMS, state);
-        
+
         List<Scored<String>> ret = searchEngine.getTopFeatures(autotag, n);
-        
+
         exit(state);
         return ret;
     }
-    
+
     @Override
     public List<Scored<String>> findSimilarAutotags(String autotag, int n)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.FIND_SIM_AUTOTAGS, state);
-        
+
         List<Scored<String>> ret = searchEngine.findSimilarAutotags(autotag, n);
-        
+
         exit(state);
         return ret;
     }
- 
+
     @Override
     public List<Scored<String>> explainSimilarAutotags(String a1, String a2,
-            int n)
+                                                       int n)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.EXPLAIN_SIM, state);
-        
-        List<Scored<String>> ret = searchEngine.explainSimilarAutotags(a1, a2, n);
-        
+
+        List<Scored<String>> ret =
+                searchEngine.explainSimilarAutotags(a1, a2, n);
+
         exit(state);
         return ret;
     }
-    
+
     @Override
-    public MarshalledObject<DocumentVector> getDocumentVector(String key, SimilarityConfig config) throws AuraException, RemoteException {
+    public MarshalledObject<DocumentVector> getDocumentVector(String key,
+                                                              SimilarityConfig config)
+            throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_DV_KEY, state);
-        
+
         DocumentVector dv = searchEngine.getDocumentVector(key, config);
-        
+
         exit(state);
         try {
             return new MarshalledObject<DocumentVector>(dv);
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             throw new AuraException("Error marshalling dv for " + key, ex);
         }
     }
-    
+
     @Override
-    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud, SimilarityConfig config)  throws AuraException, RemoteException {
+    public MarshalledObject<DocumentVector> getDocumentVector(WordCloud cloud,
+                                                              SimilarityConfig config)
+            throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_DV_CLOUD, state);
-        
+
         DocumentVector dv = searchEngine.getDocumentVector(cloud, config);
-        
+
         exit(state);
         try {
             return new MarshalledObject<DocumentVector>(dv);
-        } catch (IOException ex) {
-            throw new AuraException("Error marshalling dv for " + cloud.toString(), ex);
+        } catch(IOException ex) {
+            throw new AuraException("Error marshalling dv for " +
+                    cloud.toString(), ex);
         }
     }
-    
+
     @Override
     public List<FieldFrequency> getTopValues(String field, int n,
-            boolean ignoreCase) throws AuraException, RemoteException {
+                                             boolean ignoreCase) throws
+            AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_TOP_VALUES, state);
-        
+
         List<FieldFrequency> ret =
-                searchEngine.getSearchEngine().getTopFieldValues(field, n, ignoreCase);
-        
+                searchEngine.getSearchEngine().getTopFieldValues(field, n,
+                                                                 ignoreCase);
+
         exit(state);
         return ret;
     }
-    
+
     /**
      * Finds a the n most similar items to the given item.
      * @param key the item that we want to find similar items for
@@ -1073,16 +1101,16 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * all of the indexed text associated with the item in the data store.
      */
     @Override
-    public MarshalledObject<List<Scored<String>>> findSimilar(MarshalledObject<DocumentVector> mdv, 
-            MarshalledObject<SimilarityConfig> mconfig)
+    public MarshalledObject<List<Scored<String>>> findSimilar(
+            MarshalledObject<DocumentVector> mdv,
+                                                              MarshalledObject<SimilarityConfig> mconfig)
             throws AuraException, RemoteException {
         try {
             DocumentVector dv = mdv.get();
             SimilarityConfig config = mconfig.get();
             StatState state = new StatState();
             enter(StatName.FIND_SIM, state);
-
-            List<Scored<String>> fsr = searchEngine.findSimilar(dv, config);
+            List<Scored<String>> fsr = findSimilar(dv, config);
             exit(state, ": " + dv.getKey());
             if(fsr.size() > 0) {
                 fsr.get(0).time = state.timer.getTimeMillis();
@@ -1095,14 +1123,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         }
     }
 
+    public List<Scored<String>> findSimilar(DocumentVector dv,
+                                            SimilarityConfig config) throws
+            AuraException {
+        return searchEngine.findSimilar(dv, config);
+    }
+
     @Override
     public WordCloud getTopTerms(String key, String field, int n)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_TOP_TERMS, state);
-        
+
         WordCloud ret = searchEngine.getTopTerms(key, field, n);
-        
+
         exit(state);
         return ret;
     }
@@ -1119,19 +1153,22 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         exit(state);
         return ret;
     }
-    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
+
+    public List<Counted<String>> getTermCounts(String term, String field, int n,
+                                               ResultsFilter rf)
             throws AuraException, RemoteException {
         return searchEngine.getTermCounts(term, field, n, rf);
     }
+
     @Override
     public List<Scored<String>> getExplanation(String key, String autoTag,
-            int n)
+                                               int n)
             throws AuraException, RemoteException {
         StatState state = new StatState();
         enter(StatName.GET_EXPLAIN, state);
-        
+
         List<Scored<String>> ret = searchEngine.getExplanation(key, autoTag, n);
-        
+
         exit(state);
         return ret;
     }
@@ -1201,7 +1238,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public long getDBSize() {
         return bdb.getSize();
     }
-    
+
     @Override
     public long getIndexSize() {
         return searchEngine.getSize();
@@ -1212,27 +1249,28 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         List<String> languages = new ArrayList<String>();
         ScriptEngineManager mgr = new ScriptEngineManager();
         List<ScriptEngineFactory> factories = mgr.getEngineFactories();
-        for (ScriptEngineFactory factory : factories) {
+        for(ScriptEngineFactory factory : factories) {
             languages.add(factory.getLanguageName());
         }
         return languages;
     }
-    
+
     /**
      * Internal method to handle sending/queueing item changed events.
      */
-    private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype) {
+    private void itemChanged(ItemImpl item, ItemEvent.ChangeType ctype,
+                             boolean wasIndexed) {
         //
         // Queue the event for later delivery
-        changeEvents.offer(new ChangeEvent(item, ctype));
+        changeEvents.offer(new ChangeEvent(item, ctype, wasIndexed));
     }
 
     /**
      * Adds an item to a itemType->changeType->item map of maps.
      */
     private void addItem(ChangeEvent ce,
-            Map<ItemType, Map<ItemEvent.ChangeType, List<ItemImpl>>> eventsByType,
-            ItemType type) {
+                         Map<ItemType, Map<ItemEvent.ChangeType, List<ItemImpl>>> eventsByType,
+                         ItemType type) {
 
         //
         // Our per-item type map.
@@ -1285,7 +1323,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
             //
             // If this item is in our set, then process it.
-            if(keys.contains(ce.item.getKey())) {
+            if(!ce.wasIndexed() || keys.contains(ce.item.getKey())) {
 
                 //
                 // Add the autotags.
@@ -1325,14 +1363,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
             //
             // Send the events of each change type to each of the listeners.
-            for(Map.Entry<ItemEvent.ChangeType, List<ItemImpl>> e : te.entrySet()) {
+            for(Map.Entry<ItemEvent.ChangeType, List<ItemImpl>> e :
+                    te.entrySet()) {
                 for(ItemListener il : listenerMap.get(itemType)) {
                     try {
                         il.itemChanged(new ItemEvent(e.getValue().
                                 toArray(new ItemImpl[0]), e.getKey()));
                     } catch(RemoteException ex) {
                         logger.log(Level.SEVERE, "Error sending change events",
-                                ex);
+                                   ex);
                     }
                 }
             }
@@ -1349,7 +1388,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     private void addItem(ItemImpl item, Map<ItemType, List<ItemImpl>> m,
-            ItemType type) {
+                         ItemType type) {
         List<ItemImpl> l = m.get(type);
         if(l == null) {
             l = new ArrayList<ItemImpl>();
@@ -1379,7 +1418,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             if(keys.contains(ie.getKey())) {
                 //
                 // Add the autotags.
-                List<Scored<String>> autotags = searchEngine.getAutoTags(ie.getKey());
+                List<Scored<String>> autotags = searchEngine.getAutoTags(ie.
+                        getKey());
                 if(autotags != null) {
                     ie.setField("autotag", (Serializable) autotags);
                     ie.storeMap();
@@ -1407,12 +1447,12 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 continue;
             }
 
-            for(Iterator it = listenerMap.get(itemType).iterator(); it.hasNext(); ) {
-                ItemListener il = (ItemListener)it.next();
+            for(Iterator it = listenerMap.get(itemType).iterator(); it.hasNext();) {
+                ItemListener il = (ItemListener) it.next();
                 try {
                     il.itemCreated(new ItemEvent(l.toArray(new ItemImpl[0])));
                 } catch(RemoteException ex) {
-                    logger.log(Level.SEVERE,"Error sending new item events " +
+                    logger.log(Level.SEVERE, "Error sending new item events " +
                             "from BIS. Removing listener.\n(" +
                             ex.getMessage() + ")");
                     it.remove();
@@ -1443,7 +1483,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         sendCreatedEvents(keys);
         sendChangedEvents(keys);
     }
-    
+
     /**
      * Track data upon entering a method
      * @param name the name of the stat associated with the method
@@ -1452,7 +1492,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     protected void enter(StatName name, StatState state) {
         enter(name, state, "");
     }
-    
+
     /**
      * Track data upon entering a method
      * @param name the name of the stat associated with the method
@@ -1465,14 +1505,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             state.name = name;
             if(logger.isLoggable(Level.FINER)) {
                 logger.finer(String.format("rep %s T%s enter %s %s",
-                        prefixString,
-                        Thread.currentThread().getId(),
-                        name,
-                        extra));
+                                           prefixString,
+                                           Thread.currentThread().getId(),
+                                           name,
+                                           extra));
             }
         }
     }
-    
+
     /**
      * Track data upon exiting from a method
      * @param state the state needed for tracking
@@ -1480,14 +1520,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     protected void exit(StatState state) {
         exit(state, "");
     }
-    
+
     /**
      * Track data upon exiting from a method
      * @param state the state needed for tracking
      * @param extra further string data to append to the log line
      */
     protected void exit(StatState state, String extra) {
-        if (logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
+        if(logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
             state.timer.stop();
             double time = state.timer.getTimeMillis();
             logger.fine(String.format(" rep %s T%s exit  %s after %.3f %s",
@@ -1507,13 +1547,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             }
         }
     }
-    
+
     protected class StatState {
+
         NanoWatch timer = new NanoWatch();
+
         int count = 1;
+
         StatName name;
+
     }
-    
+
     @Override
     public EnumSet<StatName> getLoggedStats() {
         return EnumSet.copyOf(toLog);
@@ -1523,14 +1567,14 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public void setLoggedStats(EnumSet<StatName> loggedStats) {
         toLog = EnumSet.copyOf(loggedStats);
     }
-    
-    
+
     class StatSender extends TimerTask {
+
         @Override
         public void run() {
             //
             // Send each stat
-            for (StatName name : StatName.values()) {
+            for(StatName name : StatName.values()) {
                 int idx = name.ordinal();
                 int num = statInvocationCounts[idx].getAndSet(0);
                 sendStat(name.toString(), num, num);
@@ -1541,42 +1585,41 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 sendTime(name.toString(), avg);
             }
         }
-        
+
         /**
          * Internal method to send an updated stat to the stat server.
          * Only sends if n > 0.
          */
         private void sendStat(String statName, int incr, int n) {
-            if (n <= 0) {
+            if(n <= 0) {
                 return;
             }
-            
-            if (statService != null) {
+
+            if(statService != null) {
                 try {
                     statService.incr("Rep-" + getPrefix() + "-" + statName,
                                      incr, n);
-                } catch (RemoteException e) {
-                    logger.finer("Failed to notify stat server for stat "
-                                 + statName);
+                } catch(RemoteException e) {
+                    logger.finer("Failed to notify stat server for stat " +
+                            statName);
                 }
             }
         }
-        
+
         private void sendTime(String statName, double averageTime) {
-            if (averageTime == 0 || averageTime == Double.NaN) {
+            if(averageTime == 0 || averageTime == Double.NaN) {
                 return;
             }
-            
-            if (statService != null) {
+
+            if(statService != null) {
                 try {
-                    statService.setDouble("Rep-" + getPrefix() + "-"
-                            + statName + "-time", averageTime);
-                } catch (RemoteException e) {
-                    logger.finer("Failed to notify stat server "
-                            + "for timing of stat " + statName);
+                    statService.setDouble("Rep-" + getPrefix() + "-" + statName +
+                            "-time", averageTime);
+                } catch(RemoteException e) {
+                    logger.finer("Failed to notify stat server " +
+                            "for timing of stat " + statName);
                 }
             }
         }
     }
-    
 }

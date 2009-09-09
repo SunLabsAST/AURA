@@ -195,6 +195,7 @@ public class Reindexer implements IndexListener {
         for(Handler h : logger.getHandlers()) {
             h.setFormatter(new SimpleLabsLogFormatter());
         }
+        logger.setLevel(Level.FINE);
 
         NanoWatch sw = new NanoWatch();
         sw.start();

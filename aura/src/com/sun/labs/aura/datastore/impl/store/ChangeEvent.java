@@ -35,10 +35,26 @@ public class ChangeEvent {
     ItemImpl item;
     
     ItemEvent.ChangeType type;
+
+    boolean wasIndexed;
     
     public ChangeEvent(ItemImpl item, ItemEvent.ChangeType type) {
+        this(item, type, false);
+    }
+
+    public ChangeEvent(ItemImpl item, ItemEvent.ChangeType type, boolean wasIndexed) {
+
         this.item = item;
         this.type = type;
+        this.wasIndexed = wasIndexed;
+    }
+
+    public boolean wasIndexed() {
+        return wasIndexed;
+    }
+
+    public String toString() {
+        return String.format("%s type: %s change type: %s", item.getKey(), item.getType(), type);
     }
 
 }
