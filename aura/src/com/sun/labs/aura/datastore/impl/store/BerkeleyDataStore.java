@@ -1,5 +1,6 @@
 package com.sun.labs.aura.datastore.impl.store;
 
+import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.cluster.Cluster;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.Attention.Type;
@@ -35,16 +36,34 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * An implementation of DataStore that just wraps the BerkeleyDB.
  */
-public class BerkeleyDataStore implements DataStore, Configurable {
+public class BerkeleyDataStore implements DataStore, Configurable, AuraService {
 
-    @ConfigComponent(type=com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore.class)
+    @ConfigComponent(type =
+    com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore.class)
     public static final String PROP_ITEM_STORE = "itemStore";
-    
+
     private BerkeleyItemStore itemStore;
+
+    private static Logger logger = Logger.getLogger(BerkeleyDataStore.class.getName());
+
+    @Override
+    public void start() {
+    }
+
+    @Override
+    public void stop() {
+        try {
+            itemStore.close();
+        } catch(Exception e) {
+            logger.log(Level.WARNING, "Failed to close item store cleanly", e);
+        }
+    }
 
     @Override
     public boolean ready() throws RemoteException {
@@ -57,7 +76,8 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public Replicant getReplicant(String prefix) throws RemoteException {
+    public Replicant getReplicant(
+            String prefix) throws RemoteException {
         return itemStore;
     }
 
@@ -99,7 +119,8 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public Item getItem(String key) throws AuraException, RemoteException {
+    public Item getItem(
+            String key) throws AuraException, RemoteException {
         return itemStore.getItem(key);
     }
 
@@ -111,12 +132,14 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public User getUser(String key) throws AuraException, RemoteException {
+    public User getUser(
+            String key) throws AuraException, RemoteException {
         return itemStore.getUser(key);
     }
 
     @Override
-    public User getUserForRandomString(String randStr) throws AuraException,
+    public User getUserForRandomString(
+            String randStr) throws AuraException,
             RemoteException {
         return itemStore.getUserForRandomString(randStr);
     }
@@ -132,12 +155,14 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public Item putItem(Item item) throws AuraException, RemoteException {
+    public Item putItem(
+            Item item) throws AuraException, RemoteException {
         return itemStore.putItem(item);
     }
 
     @Override
-    public User putUser(User user) throws AuraException, RemoteException {
+    public User putUser(
+            User user) throws AuraException, RemoteException {
         return itemStore.putUser(user);
     }
 
@@ -167,14 +192,16 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public Long getAttentionCount(AttentionConfig ac) throws AuraException,
+    public Long getAttentionCount(
+            AttentionConfig ac) throws AuraException,
             RemoteException {
         return itemStore.getAttentionCount(ac);
     }
 
     @Override
-    public Object processAttention(AttentionConfig ac, String script,
-                                   String language) throws AuraException,
+    public Object processAttention(
+            AttentionConfig ac, String script,
+            String language) throws AuraException,
             RemoteException {
         return itemStore.processAttention(ac, script, language);
     }
@@ -193,7 +220,8 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public Long getAttentionSinceCount(AttentionConfig ac, Date timeStamp)
+    public Long getAttentionSinceCount(
+            AttentionConfig ac, Date timeStamp)
             throws AuraException, RemoteException {
         return itemStore.getAttentionSinceCount(ac, timeStamp);
     }
@@ -205,7 +233,8 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public Attention attend(Attention att) throws AuraException, RemoteException {
+    public Attention attend(
+            Attention att) throws AuraException, RemoteException {
         return itemStore.attend(att);
     }
 
@@ -275,6 +304,7 @@ public class BerkeleyDataStore implements DataStore, Configurable {
         } catch(Exception ex) {
             throw new AuraException("Error getting document vector", ex);
         }
+
     }
 
     @Override
@@ -285,16 +315,19 @@ public class BerkeleyDataStore implements DataStore, Configurable {
         if(keys.size() == 1) {
             return findSimilar(keys.get(0), config);
         }
+
         List<DocumentVector> dvs = new ArrayList<DocumentVector>();
         try {
             for(String key : keys) {
                 dvs.add(itemStore.getDocumentVector(key, config).get());
             }
+
             MultiDocumentVectorImpl mdvi = new MultiDocumentVectorImpl(dvs);
             return itemStore.getScoredItems(itemStore.findSimilar(mdvi, config));
         } catch(Exception ex) {
             throw new AuraException("Error marshalling document vectors", ex);
         }
+
     }
 
     @Override
@@ -314,6 +347,7 @@ public class BerkeleyDataStore implements DataStore, Configurable {
         } catch(Exception ex) {
             throw new AuraException("Error finding similar", ex);
         }
+
     }
 
     @Override
@@ -343,7 +377,8 @@ public class BerkeleyDataStore implements DataStore, Configurable {
     }
 
     @Override
-    public WordCloud getTopTerms(String key, String field, int n) throws
+    public WordCloud getTopTerms(
+            String key, String field, int n) throws
             AuraException,
             RemoteException {
         return itemStore.getTopTerms(key, field, n);
@@ -381,6 +416,7 @@ public class BerkeleyDataStore implements DataStore, Configurable {
         } catch(Exception ex) {
             throw new AuraException("Error explaining", ex);
         }
+
     }
 
     @Override
@@ -388,12 +424,14 @@ public class BerkeleyDataStore implements DataStore, Configurable {
                                                   SimilarityConfig config)
             throws AuraException, RemoteException {
         try {
-            DocumentVector dv1 = itemStore.getDocumentVector(cloud, config).get();
+            DocumentVector dv1 =
+                    itemStore.getDocumentVector(cloud, config).get();
             DocumentVector dv2 = itemStore.getDocumentVector(key, config).get();
             return DataStoreHead.explainSimilarity(dv1, dv2, config.getN());
         } catch(Exception ex) {
             throw new AuraException("Error explaining", ex);
         }
+
     }
 
     @Override
@@ -402,12 +440,15 @@ public class BerkeleyDataStore implements DataStore, Configurable {
                                                   SimilarityConfig config)
             throws AuraException, RemoteException {
         try {
-            DocumentVector dv1 = itemStore.getDocumentVector(cloud1, config).get();
-            DocumentVector dv2 = itemStore.getDocumentVector(cloud2, config).get();
+            DocumentVector dv1 =
+                    itemStore.getDocumentVector(cloud1, config).get();
+            DocumentVector dv2 =
+                    itemStore.getDocumentVector(cloud2, config).get();
             return DataStoreHead.explainSimilarity(dv1, dv2, config.getN());
         } catch(Exception ex) {
             throw new AuraException("Error explaining", ex);
         }
+
     }
 
     @Override

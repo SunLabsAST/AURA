@@ -95,11 +95,7 @@
 
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>processManager</item>
             <item>dataStoreHead</item>
-            <item>partitionCluster</item>
-            <item>replicant</item>
-            <item>statService</item>
         </propertylist>
     </component>
     

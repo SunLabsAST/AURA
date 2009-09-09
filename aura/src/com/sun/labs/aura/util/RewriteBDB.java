@@ -53,6 +53,11 @@ public class RewriteBDB {
 
     protected BerkeleyDataWrapper destination;
 
+    public RewriteBDB(String source, String destination) throws DatabaseException {
+        this(new BerkeleyDataWrapper(source, logger),
+                new BerkeleyDataWrapper(destination, logger));
+    }
+
     public RewriteBDB(BerkeleyDataWrapper source,
                       BerkeleyDataWrapper destination) {
         this.source = source;
