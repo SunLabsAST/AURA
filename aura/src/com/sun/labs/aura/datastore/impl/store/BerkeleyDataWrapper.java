@@ -225,7 +225,7 @@ public class BerkeleyDataWrapper {
         sconf.setTransactional(true);
 
         econf.setConfigParam(EnvironmentConfig.TXN_DUMP_LOCKS, "true");
-        econf.setConfigParam(EnvironmentConfig.TXN_DEADLOCK_STACK_TRACE, "true");
+        //econf.setConfigParam(EnvironmentConfig.TXN_DEADLOCK_STACK_TRACE, "true");
         
         
         //
@@ -475,7 +475,7 @@ public class BerkeleyDataWrapper {
         } catch(DatabaseException e) {
             handleCursorException(cur, txn, e);
         }
-        DBIterator<Item> dbIt = new EntityIterator<Item>(cur, txn, log);
+        DBIterator<Item> dbIt = new EntityIterator<Item>(cur, txn);
         return dbIt;
     }
     
