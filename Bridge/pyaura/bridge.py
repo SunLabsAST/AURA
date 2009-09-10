@@ -125,15 +125,6 @@ class AuraBridge():
         return j2py(self._bridge.getTopValues(field, n, ignore_case))
 
 
-    ######
-
-    def find_similar(self, key, field):
-
-        simconfig = J.JClass("com.sun.labs.aura.datastore.SimilarityConfig")(field)
-        return j2py( self._bridge.findSimilar(key, simconfig) )
-
-
-
 
     ####################################
     #       Iterator functions         #
@@ -156,13 +147,18 @@ class AuraBridge():
     def _iterator_loop(self, it_id):
         """Actual iterator loop used by all our iterators"""
         try:
-            go = True
-            while go:
-                nextVal = self._bridge.iteratorNext(it_id)
-                if not nextVal is None:
-                    yield j2py(nextVal)
-                else:
-                    go = False
+            while True:
+                try:
+                    nextVal = self._bridge.iteratorNext(it_id)
+                    if not nextVal is None:
+                        yield j2py(nextVal)
+                    else:
+                        break
+                except:
+                    #todo fix this to catch only the right exception
+                    print "Iterator end"
+                    break
+
         finally:
             self._bridge.iteratorClose(it_id)
 
@@ -196,3 +192,18 @@ class MusicDatabase():
         return j2py(sA)
 
 
+    def get_tags(self, taggable_item, tag_type="SOCIAL"):
+        """
+        Given a taggable item and a tag_type, returns its tags
+
+        Possible tag_type values : SOCIAL, SOCIAL_RAW, BIO, BLURB, AUTO, REVIEW_EN, BLOG_EN
+        """
+        tt = J.JClass("com.sun.labs.aura.music.TaggableItem$TagType").valueOf(tag_type)
+        return j2py( taggable_item.getTags(tt) )
+
+
+    def find_similar_rawtags(self, tagname, count=25):
+        """
+        
+        """
+        return j2py( self._bridge.getMdb().findSimilar("artist-tag-raw:"+tagname, count) )

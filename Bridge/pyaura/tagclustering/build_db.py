@@ -40,21 +40,19 @@ all_tags = {}
 jobs = Queue.Queue()
 
 
-def do_download(output_folder):
+def do_download(output_folder, save_tagdata=True):
     """
     Downloads tag data form the store. Splits up vectors with items that have 
     been tagged in multiple files and stores an index in alltags.dump with
     statistics
     """
 
-    L.init_jvm("/home/mailletf/Desktop/jdk1.6.0_14/jre/lib/amd64/server/libjvm.so")
+    aB = B.AuraBridge(regHost="brannigan")
 
     iT_artist = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("ARTIST")
     iT_track = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("TRACK")
 
-    aB = B.AuraBridge("/home/mailletf/Desktop/jdk1.6.0_14/jre/lib/amd64/server/libjvm.so")
-
-    jobsProcessor = ProcessJobs(output_folder, aB.get_item_count("ARTIST_TAG_RAW"))
+    jobsProcessor = ProcessJobs(output_folder, aB.get_item_count("ARTIST_TAG_RAW"), save_tagdata=save_tagdata)
     jobsProcessor.start()
 
     # Iterate through all the raw tags
@@ -121,6 +119,7 @@ class ProcessJobs(threading.Thread):
         self.output_folder = output_folder
         self.done = False
         self.nbr_tags = nbr_tags
+        self.save_tagdata = save_tagdata
         self.timeStats = TS.TimeStats(total=nbr_tags, echo_each=100)
 
     def run(self):
@@ -145,7 +144,7 @@ class ProcessJobs(threading.Thread):
             # Save tag data in dict
             all_tags[tag_name] = tag_info
 
-            if save_tagdata:
+            if self.save_tagdata:
                 output_dict[tag_name] = tag
                 if current_idx >= 2000:
                     #print ">>>> Saving file cut %d" % file_idx
@@ -156,7 +155,7 @@ class ProcessJobs(threading.Thread):
                     current_idx = 0
                     file_idx+=1
             
-                self.timeStats.next()
+            self.timeStats.next()
 
 
 

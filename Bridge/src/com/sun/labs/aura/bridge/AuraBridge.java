@@ -114,10 +114,6 @@ public class AuraBridge implements Configurable, ItemStore {
         return mdb;
     }
 
-    public List<Scored<Item>> findSimilar(String key, SimilarityConfig config) throws AuraException, RemoteException {
-        return getDataStore().findSimilar(key, config);
-    }
-
     @Override
     public void newProperties(PropertySheet ps) throws PropertyException {
         rcmStore = new RemoteComponentManager(ps.getConfigurationManager(), DataStore.class);

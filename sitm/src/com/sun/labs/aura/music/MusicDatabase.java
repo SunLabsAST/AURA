@@ -1265,6 +1265,11 @@ public class MusicDatabase {
         return convertToScoredArtistTagList(simItems);
     }
 
+    public List<Scored<ArtistTagRaw>> artistTagRawFindSimilar(String id, int count) throws AuraException {
+        List<Scored<Item>> simItems = findSimilar(id, ArtistTagRaw.FIELD_TAGGED_ARTISTS, count, ItemType.ARTIST_TAG_RAW);
+        return convertToScoredArtistTagRawList(simItems);
+    }
+
     public List<Scored<ArtistTag>> artistGetDistinctiveTags(String id, int count) throws AuraException {
         return artistGetDistinctiveTags(id, Artist.FIELD_SOCIAL_TAGS, count);
     }
@@ -1509,6 +1514,15 @@ public class MusicDatabase {
         List<Scored<ArtistTag>> artistTagList = new ArrayList();
         for (Scored<Item> scoredItem : items) {
             artistTagList.add(new Scored<ArtistTag>(new ArtistTag(scoredItem.getItem()), scoredItem.getScore()));
+        }
+
+        return artistTagList;
+    }
+
+    private List<Scored<ArtistTagRaw>> convertToScoredArtistTagRawList(List<Scored<Item>> items) {
+        List<Scored<ArtistTagRaw>> artistTagList = new ArrayList();
+        for (Scored<Item> scoredItem : items) {
+            artistTagList.add(new Scored<ArtistTagRaw>(new ArtistTagRaw(scoredItem.getItem()), scoredItem.getScore()));
         }
 
         return artistTagList;

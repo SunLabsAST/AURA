@@ -24,19 +24,24 @@
  # information or have any questions.
  #####
 
-import os, sys
+import os
 import cPickle as C
+import jpype as J
+import pyaura.bridge as B
+from pyaura.lib import j2py
 
 DATA_PREFIX= "out"
 
 
 class SimpleStats():
 
-    def __init__(self, prefix=DATA_PREFIX):
+    def __init__(self, prefix=DATA_PREFIX, regHost="brannigan"):
 
         self.tags = C.load(open(os.path.join(prefix, "alltags.dump")))
-        self.dataFileCache = DataFileCache(prefix, self.tags)
+        self._dataFileCache = DataFileCache(prefix, self.tags)
 
+        self._aB = B.AuraBridge(regHost=regHost)
+        
 
     def plot_taglen_hist(self):
 
@@ -67,6 +72,11 @@ class SimpleStats():
         return sorted(vals.items(), key=lambda (k,v): (v,k), reverse=True)
             
 
+    def find_similar(self, tagname, n=10):
+
+        return j2py( self._aB.mdb.find_similar_rawtags(tagname, n) )
+
+
 
 
     def co_ocurr(self, tagname1, tagname2):
@@ -74,8 +84,8 @@ class SimpleStats():
         Get relative co-occurence (Jaccard coefficient)
         """
 
-        tagdata1 = self.dataFileCache.get(tagname1)
-        tagdata2 = self.dataFileCache.get(tagname2)
+        tagdata1 = self._dataFileCache.get(tagname1)
+        tagdata2 = self._dataFileCache.get(tagname2)
 
         kt1 = frozenset(tagdata1['artist'].keys())
         kt2 = frozenset(tagdata2['artist'].keys())
