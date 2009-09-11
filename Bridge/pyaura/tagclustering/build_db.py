@@ -30,7 +30,6 @@ import time
 import re
 import Queue
 import jpype as J
-import pyaura.lib as L
 import pyaura.bridge as B
 import pyaura.timestats as TS
 import cPickle as P
@@ -60,15 +59,11 @@ def do_download(output_folder, save_tagdata=True):
         #print "   Adding '%s' to queue" % tag.name
 
         vals = {}
-        for iT, name in [ (iT_artist, "artist"), (iT_track, "track") ]:
+        for iT, name in [ (iT_artist, "a"), (iT_track, "t") ]:
             vals[name] = {}
             for rel in tag.getTaggedItems(iT).iterator():
                 vals[name][rel.name] = rel.count
         jobs.put( (tag.name, vals) )
-
-        #if tag_nbr>=31:
-        #    print "Early stop"
-        #    break
 
     jobsProcessor.done = True
 
@@ -169,7 +164,19 @@ class TagInfo():
         self.item_count = {}
         self.totals = {}
         if not tagData is None:
-            for name in ("artist", "track"):
-                self.item_count[name] = len(tagData[name])
-                self.totals[name] = sum(tagData[name].values())
+            self.item_count = ( len(tagData["a"]), len(tagData["t"]))
+            self.totals = ( sum(tagData["a"].values()), sum(tagData["t"].values()) )
 
+    def _get_fnct(self, fnct, itemtype):
+        if itemtype in ["a", "artist"]:
+            return fnct[0]
+        elif itemtype in ["t", "track"]:
+            return fnct[1]
+        else:
+            raise KeyError("Invalid itemtype")
+
+    def get_itemcount(self, itemtype):
+        return self._get_fnct(self.item_count, itemtype)
+
+    def get_totals(self, itemtype):
+        return self._get_fnct(self.totals, itemtype)
