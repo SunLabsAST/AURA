@@ -406,6 +406,19 @@ public class BerkeleyDataStore implements DataStore, Configurable, AuraService {
     }
 
     @Override
+    public float getSimilarity(String key1, String key2, String field)
+            throws AuraException, RemoteException {
+        SimilarityConfig config = new SimilarityConfig(field, 1);
+        try {
+            DocumentVector dv1 = itemStore.getDocumentVector(key1, config).get();
+            DocumentVector dv2 = itemStore.getDocumentVector(key2, config).get();
+            return dv1.getSimilarity(dv2);
+        } catch(Exception ex) {
+            throw new AuraException("Error explaining", ex);
+        }
+    }
+
+    @Override
     public List<Scored<String>> explainSimilarity(String key1, String key2,
                                                   SimilarityConfig config)
             throws AuraException, RemoteException {

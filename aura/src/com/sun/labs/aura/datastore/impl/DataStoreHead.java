@@ -1336,6 +1336,20 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         return pc.getExplanation(key, autoTag, n);
     }
 
+    public float getSimilarity(String key1, String key2, String field)
+            throws AuraException, RemoteException {
+        SimilarityConfig config = new SimilarityConfig(field, 1);
+        PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
+        PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
+        try {
+            DocumentVector dv1 = pc1.getDocumentVector(key1, config).get();
+            DocumentVector dv2 = pc2.getDocumentVector(key2, config).get();
+            return dv1.getSimilarity(dv2);
+        } catch (Exception ex) {
+            throw new AuraException("Error unmarshalling vectors", ex);
+        }
+    }
+
     public List<Scored<String>> explainSimilarity(String key1, String key2,
             SimilarityConfig config)
             throws AuraException, RemoteException {

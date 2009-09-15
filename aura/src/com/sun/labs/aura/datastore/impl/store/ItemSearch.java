@@ -212,6 +212,16 @@ public interface ItemSearch {
             throws AuraException, RemoteException;
 
     /**
+     * Get the similarity between two items for a given field.
+     * @param key1 the key of the first item
+     * @param key2 the key of the second item
+     * @param field the field on which to compute the similarity
+     * @throws AuraException
+     */
+    public float getSimilarity(String key1, String key2, String field)
+            throws AuraException, RemoteException;
+
+    /**
      * Explains the similarity between two items.  The explaination consists of
      * the terms that the documents have in common, along with a score indicating
      * the importance of terms to the similarity.
