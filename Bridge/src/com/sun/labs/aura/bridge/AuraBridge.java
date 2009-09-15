@@ -34,13 +34,12 @@ import com.sun.labs.aura.datastore.Item.FieldCapability;
 import com.sun.labs.aura.datastore.Item.FieldType;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
-import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
+import com.sun.labs.aura.music.ArtistTagRaw;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
-import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
@@ -267,6 +266,15 @@ public class AuraBridge implements Configurable, ItemStore {
     @Override
     public void close() throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
+    public float getTagSimilarity(String key1, String key2) throws RemoteException, AuraException {
+        return getSimilarity(key1, key2, ArtistTagRaw.FIELD_TAGGED_ARTISTS);
+    }
+
+    public float getSimilarity(String key1, String key2, String field) throws RemoteException, AuraException {
+        return getDataStore().getSimilarity(key1, key2, field);
     }
 
 

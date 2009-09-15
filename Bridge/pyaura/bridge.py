@@ -125,6 +125,13 @@ class AuraBridge():
         return j2py(self._bridge.getTopValues(field, n, ignore_case))
 
 
+    def get_tag_similarity(self, key1, key2):
+        """
+        Get the similarity between two tags computed on their tagged artists field
+        """
+        return self._bridge.getTagSimilarity(key1, key2)
+
+
 
     ####################################
     #       Iterator functions         #

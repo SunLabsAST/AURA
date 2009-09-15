@@ -25,12 +25,19 @@
  #####
 
 import os
+import re
 import cPickle as C
 import jpype as J
 import pyaura.bridge as B
 from pyaura.lib import j2py
 
-DATA_PREFIX= "out"
+try:
+    import Levenshtein as Leven
+except ImportError:
+    print "Unable to import pylevenshtein. Get it from http://code.google.com/p/pylevenshtein"
+
+
+DATA_PREFIX= "out500k"
 
 
 class SimpleStats():
@@ -40,27 +47,71 @@ class SimpleStats():
         self.tags = C.load(open(os.path.join(prefix, "alltags.dump")))
         self._dataFileCache = DataFileCache(prefix, self.tags)
 
-        self._aB = B.AuraBridge(regHost=regHost)
+        self._is_plot_init = False
+
+        if regHost!=None:
+            self._aB = B.AuraBridge(regHost=regHost)
+        else:
+            self._aB = None
         
 
+
+
+
+
+
+    def _init_plotting(self, backend="MacOSX"):
+        if not self._is_plot_init:
+            self._is_plot_init = True
+            import matplotlib as M
+            M.use(backend)
+
+
     def plot_taglen_hist(self):
-
-        import matplotlib as M
-        M.use("MacOSX")
+        self._init_plotting()
         import pylab
-
         tag_len = [len(x) for x in self.tags.keys() ]
         pylab.hist(tag_len)
 
 
-    def get_weighted_average_len(self):
+    def plot_tagpop_itemcnt(self, itemtype="a"):
+        """
+        Tag the histogram of the number of tagged items for each tag
+        """
+        self._init_plotting()
+        import pylab
+        itemcnt = [x.get_itemcount(itemtype) for x in self.tags.values()]
+        pylab.hist(itemcnt, bins=1000)
 
+
+    def plot_tagpop_appcnt(self, itemtype="a"):
+        """
+        Tag the histogram of application counts for each tag
+        """
+        self._init_plotting()
+        import pylab
+        appcnt = [x.get_totals(itemtype) for x in self.tags.values()]
+        pylab.hist(appcnt, bins=1000)
+
+
+
+
+
+
+
+    def get_average_len(self):
+
+        w_running_tot=0
         running_tot=0
         tot_cnt=0
+        nbr_cnt=0
         for t in self.tags.values():
-            running_tot+= len(t.name)*t.totals['artist']
+            w_running_tot+=len(t.name)*t.totals['artist']
+            running_tot+=len(t.name)
             tot_cnt+=t.totals['artist']
-        return float(running_tot)/tot_cnt
+            nbr_cnt+=1
+        print "Weighted avg:\t%0.4f" % (float(w_running_tot)/tot_cnt)
+        print "Avg:\t\t%0.4f" % (float(running_tot)/nbr_cnt)
 
 
     def find_most_co_ocurr(self, tagname, n=10):
@@ -70,7 +121,7 @@ class SimpleStats():
             vals[t] = self.co_ocurr(tagname, t)
 
         return sorted(vals.items(), key=lambda (k,v): (v,k), reverse=True)
-            
+
 
     def find_similar(self, tagname, n=10):
 
@@ -93,6 +144,119 @@ class SimpleStats():
         return float(len(kt1.intersection(kt2))) / len(kt1.union(kt2))
 
 
+
+
+
+
+
+    def cluster(self):
+
+
+        print "Init with %d tags." % len(self.tags)
+
+        print "Cleaning tags..."
+        tags = self.lexical_sim_remove_stopwords(self.tags)
+        print "  %d remaining" % len(tags)
+
+        print "Combining whitespaces..."
+        wsf = self.lexical_sim_remove_ws(tags)
+        print "  %d remaining" % len(wsf)
+
+        print "Combining plural..."
+        wsf = self.lexical_sim_remove_plural(wsf)
+        print "  %d remaining" % len(wsf)
+
+        return wsf
+    
+
+    def lexical_sim_remove_stopwords(self, tagsDict):
+
+        # Length of the actual tag name
+        MIN_LENGTH=2
+        MAX_LENGTH=30
+
+        MIN_APPLIED_ITEM_CNT = 20
+        MIN_APPLICATIONS = 500
+
+        # Make sure tags were used enough and aren't too long and too short
+        clean_tags = [k for k, v in tagsDict.iteritems() if v.get_itemcount("a")>=MIN_APPLIED_ITEM_CNT and
+                            v.get_totals("a")>=MIN_APPLICATIONS and len(k)>=MIN_LENGTH and len(k)<=MAX_LENGTH]
+
+        # Make sure the tags aren't in the stop list
+        # regexbuddy : (?:fuck|shit|favorite|seen[\w]*live)
+        clean_tags = [x for x in clean_tags if not re.search(r"(?:f.ck|sh.t|wh.re|favorite|seen[\w]*live)", x, re.IGNORECASE)]
+        return clean_tags
+
+
+    def lexical_sim_remove_ws(self, tags):
+
+        # Build a whitespace free dict
+        wsf = {}
+        for tag in tags:
+            wsf_tag = tag.replace(" ", "").replace("_", "").replace("-", "").replace("'", "").lower()
+            if len(wsf_tag)==0:
+                continue
+            
+            if wsf_tag not in wsf:
+                wsf[wsf_tag] = [tag]
+            else:
+                wsf[wsf_tag].append( tag )
+
+        return wsf
+
+
+    def lexical_sim_remove_plural(self, wsf):
+
+        no_s = set()
+        with_s = set()
+        for tag in wsf.keys():
+            if tag[-1]=="s":
+                with_s.add(tag)
+            else:
+                no_s.add(tag)
+
+        for tag in with_s:
+            if tag[:-1] in no_s:
+                wsf[tag[:-1]] = wsf[tag[:-1]] + wsf.pop(tag)
+
+        return wsf
+
+
+    def lexical_sim_ratio(self, wsf):
+
+        if self._aB==None:
+            raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. You need to specify a regHost to the constructor.")
+
+        for tag in wsf.keys():
+            found = False
+            for sndtag in wsf.keys():
+
+                if tag==sndtag:
+                    continue
+
+                # If they have a small enough edit distance
+                if Leven.ratio(tag, sndtag)>0.8:
+                    # If they have a small enough similarity in the space of tagged artists
+                    sim = self._aB.get_tag_similarity("artist-tag-raw:"+tag, "artist-tag-raw:"+sndtag)
+                    if sim>0.80:
+                        found = True
+                        print "%s <-> %s   ed:%0.2f  sim:%0.2f" % (tag, sndtag, Leven.ratio(tag, sndtag), sim)
+                        
+            if found:
+                raw_input()
+
+
+
+
+
+class TagHistory():
+
+    def __init__(self, tagname):
+        self.name = tagname
+        self._history = []
+
+    def add_history(self, new_histo):
+        self._history.append(new_histo)
 
 
 class DataFileCache():
