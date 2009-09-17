@@ -94,7 +94,7 @@ public class TagCrawler extends ConcurrentCrawler implements AuraService, Config
 
                     @Override
                     public void run() {
-                        // Let the sotre take it's breath before we start
+                        // Let the store take it's breath before we start
                         try {
                             Thread.sleep(1000L * 60 * 3);
                         } catch (InterruptedException ex) {
@@ -272,14 +272,30 @@ public class TagCrawler extends ConcurrentCrawler implements AuraService, Config
         long startTime = System.currentTimeMillis();
         logger.info("TagCrawler: Starting update of tagged items count for all tags at "+startTime);
 
-        DBIterator<Item> it = getDataStore().getAllIterator(ItemType.ARTIST_TAG_RAW);
+        doUpdateTaggedItemsCount(ItemType.ARTIST_TAG, TaggableItem.FIELD_SOCIAL_TAGS);
+        doUpdateTaggedItemsCount(ItemType.ARTIST_TAG_RAW, TaggableItem.FIELD_SOCIAL_TAGS_RAW);
+        
+        logger.info("TagCrawler: Finished update of tagged items count in " +
+                (System.currentTimeMillis() - startTime)+"ms");
+    }
+
+    
+    private void doUpdateTaggedItemsCount(ItemType itemType, String field) 
+            throws RemoteException, AuraException {
+
+        DBIterator<Item> it = getDataStore().getAllIterator(itemType);
         try {
             while (it.hasNext()) {
                 String currTag = "";
                 try {
                     // Update album and track counts for ArtistRawTag
                     boolean blocked = false;
-                    ArtistTagRaw atr = new ArtistTagRaw(it.next());
+                    ArtistTag atr;
+                    if (itemType==ItemType.ARTIST_TAG) {
+                        atr = new ArtistTag(it.next());
+                    } else {
+                        atr = new ArtistTagRaw(it.next());
+                    }
 
                     // Get a lock on the tag we want to update
                     currTag = atr.getKey();
@@ -293,39 +309,28 @@ public class TagCrawler extends ConcurrentCrawler implements AuraService, Config
 
                     try {
 
-                        String normName = ArtistTag.normalizeName(atr.getName());
-                        
                         // If we were blocked, fetch a new version of the item
-                        // because it probably has changed4
+                        // because it probably has changed
                         if (blocked) {
-                            atr = new ArtistTagRaw(getDataStore().getItem(atr.getKey()));
+                            if (itemType==ItemType.ARTIST_TAG) {
+                                atr = new ArtistTag(getDataStore().getItem(atr.getKey()));
+                            } else {
+                                atr = new ArtistTagRaw(getDataStore().getItem(atr.getKey()));
+                            }
                         }
 
-                        List<Counted<String>> artistTL = getDataStore().getTermCounts(normName,
-                                TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE,
-                                new TypeFilter(ItemType.ARTIST));
+                        List<Counted<String>> artistTL = getDataStore().getTermCounts(atr.getName(),
+                                field, Integer.MAX_VALUE, new TypeFilter(ItemType.ARTIST));
                         atr.clearTaggedItems(ItemType.ARTIST);
                         atr.addTaggedItems(ItemType.ARTIST, artistTL);
 
-                        List<Counted<String>> trackTL = getDataStore().getTermCounts(normName,
-                                TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE,
-                                new TypeFilter(ItemType.TRACK));
+                        List<Counted<String>> trackTL = getDataStore().getTermCounts(atr.getName(),
+                                field, Integer.MAX_VALUE, new TypeFilter(ItemType.TRACK));
                         atr.clearTaggedItems(ItemType.TRACK);
                         atr.addTaggedItems(ItemType.TRACK, trackTL);
                         atr.flush(getDataStore());
 
-                        // Try to update the corresponding artist tag if it exists
-                        ArtistTag at = null;
-                        Item ati = getDataStore().getItem( ArtistTag.nameToKey(atr.getName()) );
-                        if (ati != null) {
-                            at = new ArtistTag(ati);
-                            at.clearTaggedItems(ItemType.ARTIST);
-                            at.addTaggedItems(ItemType.ARTIST, artistTL);
-                            at.clearTaggedItems(ItemType.TRACK);
-                            at.addTaggedItems(ItemType.TRACK, trackTL);
-                            at.flush(getDataStore());
-                        }
-                        
+
                     } finally {
                         removeFromCrawlList(currTag);
                     }
@@ -337,12 +342,10 @@ public class TagCrawler extends ConcurrentCrawler implements AuraService, Config
                     logger.log(Level.WARNING, "RemoteException while updating " +
                             "tagged counts for tag "+currTag, ex);
                 }
-            }           
+            }
         } finally {
             it.close();
         }
-        logger.info("TagCrawler: Finished update of tagged items count in " +
-                (System.currentTimeMillis() - startTime)+"ms");
     }
 
 
