@@ -29,6 +29,7 @@ import re
 import cPickle as C
 import jpype as J
 import pyaura.bridge as B
+import pyaura.timestats as TS
 from pyaura.lib import j2py
 
 try:
@@ -166,6 +167,16 @@ class SimpleStats():
         wsf = self.lexical_sim_remove_plural(wsf)
         print "  %d remaining" % len(wsf)
 
+        #print "Removing all Nones... FIX MEE"
+        #for k,v in wsf.items():
+        #    if k==None or v==None:
+        #        print "None!!"
+        #        wsf.pop(k)
+
+        print "Combining based on edit distance & artist space similarity..."
+        wsf = self.lexical_sim_ratio(wsf)
+        print "  %d remaining" % len(wsf)
+
         return wsf
     
 
@@ -179,28 +190,32 @@ class SimpleStats():
         MIN_APPLICATIONS = 500
 
         # Make sure tags were used enough and aren't too long and too short
-        clean_tags = [k for k, v in tagsDict.iteritems() if v.get_itemcount("a")>=MIN_APPLIED_ITEM_CNT and
+        clean_tags = [(k, v) for k, v in tagsDict.iteritems() if v.get_itemcount("a")>=MIN_APPLIED_ITEM_CNT and
                             v.get_totals("a")>=MIN_APPLICATIONS and len(k)>=MIN_LENGTH and len(k)<=MAX_LENGTH]
 
         # Make sure the tags aren't in the stop list
         # regexbuddy : (?:fuck|shit|favorite|seen[\w]*live)
-        clean_tags = [x for x in clean_tags if not re.search(r"(?:f.ck|sh.t|wh.re|favorite|seen[\w]*live)", x, re.IGNORECASE)]
-        return clean_tags
+        clean_tags = [(k, v) for k, v in clean_tags if not re.search(r"(?:f.ck|sh(?:i|1)t|wh(?:o|0)re|favorite|seen[\w]*live)", k, re.IGNORECASE)]
+
+        clean_dict = {}
+        clean_dict.update(clean_tags)
+        return clean_dict
 
 
     def lexical_sim_remove_ws(self, tags):
 
         # Build a whitespace free dict
         wsf = {}
-        for tag in tags:
-            wsf_tag = tag.replace(" ", "").replace("_", "").replace("-", "").replace("'", "").lower()
+        for tagkey in tags.iterkeys():
+            # music ?
+            wsf_tag = tagkey.replace(" ", "").replace("_", "").replace("-", "").replace("'", "").replace("/", "").replace(":", "").replace(".", "").replace(",", "").replace("~", "").replace("!", "").replace("*", "").replace("?", "").lower()
             if len(wsf_tag)==0:
                 continue
             
             if wsf_tag not in wsf:
-                wsf[wsf_tag] = [tag]
+                wsf[wsf_tag] = TermEquivalenceSet(wsf_tag, tags[tagkey])
             else:
-                wsf[wsf_tag].append( tag )
+                wsf[wsf_tag].add_tag( tags[tagkey] )
 
         return wsf
 
@@ -217,46 +232,117 @@ class SimpleStats():
 
         for tag in with_s:
             if tag[:-1] in no_s:
-                wsf[tag[:-1]] = wsf[tag[:-1]] + wsf.pop(tag)
+                wsf[tag[:-1]].merge_tes( wsf.pop(tag) )
 
         return wsf
 
 
     def lexical_sim_ratio(self, wsf):
 
+        timeStats = TS.TimeStats(total=len(wsf), echo_each=25)
+
+        outfile = open("tes_merge.txt", "w")
+
         if self._aB==None:
             raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. You need to specify a regHost to the constructor.")
 
-        for tag in wsf.keys():
-            found = False
+        import random
+
+        removed_keys = {}
+
+        skeys = wsf.keys()
+        random.shuffle(skeys)
+        for tag in skeys:
+
+            needs2break = False
+            timeStats.next()
+
+
+            # If this tag has been merged with anoter tes
+            if tag in removed_keys:
+                continue
+
             for sndtag in wsf.keys():
 
-                if tag==sndtag:
+                if tag==sndtag or sndtag in removed_keys:
                     continue
 
                 # If they have a small enough edit distance
-                if Leven.ratio(tag, sndtag)>0.8:
+                ratio = Leven.ratio(tag, sndtag)
+                if Leven.ratio(tag, sndtag)>0.75:
                     # If they have a small enough similarity in the space of tagged artists
-                    sim = self._aB.get_tag_similarity("artist-tag-raw:"+tag, "artist-tag-raw:"+sndtag)
-                    if sim>0.80:
-                        found = True
-                        print "%s <-> %s   ed:%0.2f  sim:%0.2f" % (tag, sndtag, Leven.ratio(tag, sndtag), sim)
-                        
-            if found:
-                raw_input()
+                    sim = self._aB.get_tag_similarity("artist-tag-raw:"+wsf[tag].representative_tag.name,
+                                                      "artist-tag-raw:"+wsf[sndtag].representative_tag.name)
+                    if sim>0.75:
+                        outfile.write("%s (%d) <-> %s (%d)   ed:%0.2f  sim:%0.2f\n" % (wsf[tag].get_name().encode("utf8"), len(wsf[tag]),
+                                                                             wsf[sndtag].get_name().encode("utf8"), len(wsf[sndtag]),
+                                                                             ratio, sim))
+                        outfile.write("   mult:%0.4f     avg:%0.4f\n" % ((ratio*sim), (ratio+sim)/2))
+
+                    merge_ratio = (ratio+sim)/2.
+                    if merge_ratio > 0.8:
+                        # determine the most popular
+                        if wsf[tag].get_totals()>wsf[sndtag].get_totals():
+                            alpha, beta = (tag, sndtag)
+                        else:
+                            needs2break = True
+                            alpha, beta = (sndtag, tag)
+                        removed_keys[beta] = wsf[beta]
+                        wsf[alpha].merge_tes( wsf.pop(beta) )
+
+                        if needs2break:
+                            break
+
+        return wsf
 
 
+class TermEquivalenceSet():
+
+    def __init__(self, wsf_name, tag):
+        self.wsf_name = wsf_name
+        self._tags = [tag]
+        self.representative_tag = tag
 
 
+    def get_name(self):
+        return self.representative_tag.name
 
-class TagHistory():
 
-    def __init__(self, tagname):
-        self.name = tagname
-        self._history = []
+    def add_tag(self, new_tag):
+        self._tags.append(new_tag)
 
-    def add_history(self, new_histo):
-        self._history.append(new_histo)
+        if new_tag.get_itemcount("a")>self.representative_tag.get_itemcount("a"):
+            self.representative_tag = new_tag
+
+
+    def merge_tes(self, snd_tes):
+
+        if snd_tes.representative_tag.get_itemcount("a")>self.representative_tag.get_itemcount("a"):
+            self.representative_tag = snd_tes.representative_tag
+
+        for t in snd_tes.get_tags():
+            self._tags.append(t)
+
+
+    def get_itemcounts(self, itemtype="a"):
+        return sum([t.get_itemcount(itemtype) for t in self._tags])
+
+
+    def get_totals(self, itemtype="a"):
+        return sum([t.get_totals(itemtype) for t in self._tags])
+
+
+    def get_tags(self):
+        return self._tags
+
+
+    def __len__(self):
+        return len(self._tags)
+
+
+    def __repr__(self):
+        return "TES<'%s' key:'%s' len:%d>" % (self.representative_tag.name, self.wsf_name, len(self._tags))
+
 
 
 class DataFileCache():
