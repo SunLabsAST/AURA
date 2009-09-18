@@ -31,7 +31,6 @@ import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.util.AuraException;
-import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.util.NanoWatch;
@@ -45,7 +44,6 @@ import java.io.ObjectOutputStream;
 import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +101,10 @@ public class RMIParallelTest extends ServiceAdapter {
     protected DocumentVector dv;
 
     protected String name;
+
+    int good;
+
+    protected boolean done;
 
     //
     // Set up the data.
@@ -246,8 +248,24 @@ public class RMIParallelTest extends ServiceAdapter {
                 }
             }
             logger.info(sb.toString());
-            logger.info(String.format(" max: %.3f maxRep: %.3f maxOH: %.3f %.3f",
-                    max, maxRep, maxOH, getTime.getLastTimeMillis() - maxRep));
+            String ding = "";
+            if(maxOH < 100) {
+                good++;
+            }
+            if(maxOH > 100) {
+                ding = "ding";
+            }
+            if(maxOH > 200) {
+                ding = "bong";
+            }
+            if(maxOH > 400) {
+                ding = "clang";
+                done = true;
+            }
+            logger.info(String.format(" max: %.3f maxRep: %.3f maxOH: %.3f %.3f %s",
+                    max, maxRep, maxOH, 
+                    getTime.getLastTimeMillis() - maxRep,
+                    ding));
             return ret;
         } catch(InterruptedException ie) {
             logger.log(Level.SEVERE, "Interrupted exception", ie);
@@ -266,13 +284,17 @@ public class RMIParallelTest extends ServiceAdapter {
             for(int i = 0; i < runs; i++) {
                 logger.info("Get Run " + (i + 1));
                 List<Scored<Item>> items = runGet();
+                if(done) {
+                    logger.info(String.format("%d good runs before a bad one!", good));
+                    return;
+                }
             }
-            for(int i = 0; i < runs; i++) {
-                logger.info("FindSimilar Run " + (i + 1));
-                List<Scored<String>> keys = runFindSimilar();
-            }
-            logger.info(String.format("Average fs time: %.3fms",
-                    fsTime.getAvgTimeMillis()));
+//            for(int i = 0; i < runs; i++) {
+//                logger.info("FindSimilar Run " + (i + 1));
+//                List<Scored<String>> keys = runFindSimilar();
+//            }
+//            logger.info(String.format("Average fs time: %.3fms",
+//                    fsTime.getAvgTimeMillis()));
             logger.info(String.format("Average get time: %.3fms",
                     getTime.getAvgTimeMillis()));
         } catch(Exception ex) {
