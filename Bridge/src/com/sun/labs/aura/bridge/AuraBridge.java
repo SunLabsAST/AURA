@@ -37,7 +37,9 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.music.ArtistTagRaw;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.minion.FieldFrequency;
@@ -256,6 +258,11 @@ public class AuraBridge implements Configurable, ItemStore {
     public List<FieldFrequency> getTopValues(String field, int n,
             boolean ignoreCase) throws AuraException, RemoteException {
         return getDataStore().getTopValues(field, n, ignoreCase);
+    }
+
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ItemType itemTypeFilter)
+            throws AuraException, RemoteException {
+        return getDataStore().getTermCounts(term, field, n, new TypeFilter(itemTypeFilter));
     }
 
     @Override
