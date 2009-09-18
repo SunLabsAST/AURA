@@ -244,14 +244,12 @@ class SimpleStats():
         outfile = open("tes_merge.txt", "w")
 
         if self._aB==None:
-            raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. You need to specify a regHost to the constructor.")
-
-        import random
+            raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. \
+                                        You need to specify a regHost to the constructor.")
 
         removed_keys = {}
 
         skeys = wsf.keys()
-        random.shuffle(skeys)
         for tag in skeys:
 
             needs2break = False
@@ -303,6 +301,13 @@ class TermEquivalenceSet():
         self._tags = [tag]
         self.representative_tag = tag
 
+        # Parent tags are tags which are more general than the current tag
+        # ex: "rock" is a parent of "piano rock"
+        self._parent_tags = set()
+        # Child tags are the inverse
+        # ex: "piano rock" is a child of "rock"
+        self._child_tags = set()
+
 
     def get_name(self):
         return self.representative_tag.name
@@ -316,12 +321,33 @@ class TermEquivalenceSet():
 
 
     def merge_tes(self, snd_tes):
-
+        """
+        Combine the tags from two TES
+        """
         if snd_tes.representative_tag.get_itemcount("a")>self.representative_tag.get_itemcount("a"):
             self.representative_tag = snd_tes.representative_tag
 
         for t in snd_tes.get_tags():
             self._tags.append(t)
+
+        self._parent_tags = self._parent_tags.union( snd_tes.get_parent_tags() )
+        self._child_tags = self._child_tags.union( snd_tes.get_child_tags() )
+
+
+    def add_parent_tag(self, tag):
+        self._parent_tags.add(tag)
+
+
+    def add_child_tag(self, tag):
+        self._child_tags.add(tag)
+
+
+    def get_parent_tags(self):
+        return self._parent_tags
+
+
+    def get_child_tags(self):
+        return self._child_tags
 
 
     def get_itemcounts(self, itemtype="a"):
@@ -341,7 +367,13 @@ class TermEquivalenceSet():
 
 
     def __repr__(self):
-        return "TES<'%s' key:'%s' len:%d>" % (self.representative_tag.name, self.wsf_name, len(self._tags))
+        return "TES<'%s' key:'%s' len:%d pt:%d ct:%d>" % (self.representative_tag.name, self.wsf_name,
+                    len(self._tags), len(self._parent_tags), len(self._child_tags))
+
+
+
+
+
 
 
 

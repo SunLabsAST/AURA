@@ -125,6 +125,12 @@ class AuraBridge():
         return j2py(self._bridge.getTopValues(field, n, ignore_case))
 
 
+    def get_term_counts(self, term, field, itemType, n=10):
+        """Gets the counts for a given term in a given field across all of the items in the collection"""
+        itemType = L._assert_type_itemtype(itemType)
+        return j2py(self._bridge.getTermCounts(term, field, n, itemType))
+
+
     def get_tag_similarity(self, key1, key2):
         """
         Get the similarity between two tags computed on their tagged artists field

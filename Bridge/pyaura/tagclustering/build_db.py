@@ -167,6 +167,11 @@ class TagInfo():
             self.item_count = ( len(tagData["a"]), len(tagData["t"]))
             self.totals = ( sum(tagData["a"].values()), sum(tagData["t"].values()) )
 
+
+    def get_key(self):
+        return "artist-tag-raw:%s" % self.name
+
+
     def _get_fnct(self, fnct, itemtype):
         if itemtype in ["a", "artist"]:
             return fnct[0]
@@ -175,8 +180,14 @@ class TagInfo():
         else:
             raise KeyError("Invalid itemtype")
 
-    def get_itemcount(self, itemtype):
+
+    def get_itemcount(self, itemtype="a"):
         return self._get_fnct(self.item_count, itemtype)
 
-    def get_totals(self, itemtype):
+
+    def get_totals(self, itemtype="a"):
         return self._get_fnct(self.totals, itemtype)
+
+
+    def __repr__(self):
+        return "TagInfo<'%s' item_cnt:%d total_app:%d>" % (self.name, self.get_itemcount("a"), self.get_totals("a"))
