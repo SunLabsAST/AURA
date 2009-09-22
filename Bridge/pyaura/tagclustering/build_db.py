@@ -39,14 +39,14 @@ all_tags = {}
 jobs = Queue.Queue()
 
 
-def do_download(output_folder, save_tagdata=True):
+def do_download(output_folder, save_tagdata=True, regHost="brannigan"):
     """
     Downloads tag data form the store. Splits up vectors with items that have 
     been tagged in multiple files and stores an index in alltags.dump with
     statistics
     """
 
-    aB = B.AuraBridge(regHost="brannigan")
+    aB = B.AuraBridge(regHost=regHost)
 
     iT_artist = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("ARTIST")
     iT_track = J.JClass("com.sun.labs.aura.datastore.Item$ItemType").valueOf("TRACK")

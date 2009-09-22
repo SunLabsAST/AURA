@@ -26,6 +26,7 @@
 
 import os
 import re
+import itertools
 import cPickle as C
 import jpype as J
 import pyaura.bridge as B
@@ -35,28 +36,52 @@ from pyaura.lib import j2py
 try:
     import Levenshtein as Leven
 except ImportError:
-    print "Unable to import pylevenshtein, which is required to compute \
-            string similarity. Get it from http://code.google.com/p/pylevenshtein"
+    print "Unable to import pylevenshtein, which is required to compute "+ \
+            "string similarity. Get it from http://code.google.com/p/pylevenshtein"
 
 
 
 DATA_PREFIX= "out500k"
 
-
 # Length of the actual tag name
 MIN_LENGTH=2
 MAX_LENGTH=35
 
-MIN_APPLIED_ITEM_CNT = 20
-MIN_APPLICATIONS = 500
+# Min counts of individual tags
+MIN_APPLIED_ITEM_CNT_TAG = 10
+MIN_APPLICATIONS_TAG = 200
+
+# Min counts of TES
+MIN_APPLIED_ITEM_CNT_TES = 20
+MIN_APPLICATIONS_TES = 500
+
+
+
+
+def _remove_ws(s, rpl=""):
+        if rpl!=" ":
+            s = s.replace(" ", rpl)
+        return s.replace("_", rpl).replace("-", rpl).replace("'", rpl).replace("/", rpl).\
+                 replace(":", rpl).replace(".", rpl).replace(",", rpl).replace("~", rpl).replace("!", rpl).\
+                 replace("*", rpl).replace("?", rpl).lower()
+
 
 
 class Cluster():
 
-    def __init__(self, prefix=DATA_PREFIX, regHost="brannigan"):
+    def __init__(self, prefix=DATA_PREFIX, regHost="brannigan", wsf_name=None):
+        """
+        wsf_name:   If specified, file will be unpickled into self.wsf and
+                    self.tags will not be loaded. Used to load a set of TES
+                    which were already partly processed
+        """
 
-        self.tags = C.load(open(os.path.join(prefix, "alltags.dump")))
-        self.wsf = None
+        if wsf_name==None:
+            self.tags = C.load(open(os.path.join(prefix, "alltags.dump")))
+            self.wsf = None
+        else:
+            self.tags = None
+            self.wsf = C.load(open(os.path.join(prefix, wsf_name)))
 
         if regHost!=None:
             self._aB = B.AuraBridge(regHost=regHost)
@@ -90,14 +115,16 @@ class Cluster():
         self.wsf = self.lexical_sim_ratio(self.wsf)
         print "  %d remaining" % len(self.wsf)
 
-        return wsf
+        return self.wsf
 
 
     def lexical_sim_remove_stopwords(self, tagsDict):
 
 
         # Make sure tags were used enough and aren't too long and too short
-        clean_tags = [(k, v) for k, v in tagsDict.iteritems() if len(k)>=MIN_LENGTH]
+        clean_tags = [(k, v) for k, v in tagsDict.iteritems() if len(k)>=MIN_LENGTH or
+                                        v.get_totals("a")<MIN_APPLICATIONS_TAG or
+                                        v.get_itemcount("a")<MIN_APPLIED_ITEM_CNT_TAG]
 
         # Make sure the tags aren't in the stop list
         # regexbuddy : (?:fuck|shit|favorite|seen[\w]*live)
@@ -114,9 +141,7 @@ class Cluster():
         wsf = {}
         for tagkey in tags.iterkeys():
             # music ?
-            wsf_tag = tagkey.replace(" ", "").replace("_", "").replace("-", "").replace("'", "").replace("/", "").\
-                             replace(":", "").replace(".", "").replace(",", "").replace("~", "").replace("!", "").\
-                             replace("*", "").replace("?", "").lower()
+            wsf_tag = _remove_ws(tagkey, "")
             tlen = len(wsf_tag)
             if tlen<MIN_LENGTH or tlen>MAX_LENGTH:
                 continue
@@ -151,7 +176,7 @@ class Cluster():
         # Remove any tes for which the combined values of item counts
         # or applications isn't high enough
         for key,tes in wsf.items():
-            if tes.get_itemcounts("a")<MIN_APPLIED_ITEM_CNT or tes.get_totals("a")>=MIN_APPLICATIONS:
+            if tes.get_itemcounts("a")<MIN_APPLIED_ITEM_CNT_TES or tes.get_totals("a")<MIN_APPLICATIONS_TES:
                 blackhole = wsf.pop(key)
         return wsf
 
@@ -215,6 +240,54 @@ class Cluster():
         return wsf
 
 
+    def find_parent_tags(self, wsf):
+
+        # Build dict of atomic tags
+        atd = {}
+        for tes in wsf.itervalues():
+            for aT in tes.get_atomic_tagset():
+                try:
+                    atd[aT].add(tes.wsf_name)
+                except KeyError:
+                    atd[aT] = set([tes.wsf_name])
+
+        #####
+        # Build the graph
+        ####
+        # Determine the possible combinations for each atomic tagset
+        for tes in wsf.itervalues():
+            if tes.wsf_name=="rock":
+                import pdb
+                pdb.set_trace()
+            ats = tes.get_atomic_tagset()
+            if len(ats)<=2:
+                comb = [ats]
+            else:
+                comb = []
+                for r in range(2,len(ats)):
+                    comb += itertools.combinations(ats, r)
+
+            
+            for curr_comb in comb:
+                int_set = None
+                # For every atomic tag in our current combination
+                for c in curr_comb:
+                    if int_set is None:
+                        int_set = atd[c]
+                    else:
+                        int_set.intersection( atd[c] )
+                        if len(int_set)==0:
+                            break
+
+                    # If we have keys in our set, we need to set parent/child relations
+                    for k in int_set:
+                        if k!=tes.wsf_name:
+                            wsf[k].add_child_tag( tes.wsf_name )
+                            wsf[tes.wsf_name].add_parent_tag( k )
+
+        return wsf
+
+
 
 
 class TermEquivalenceSet():
@@ -223,6 +296,8 @@ class TermEquivalenceSet():
         self.wsf_name = wsf_name
         self._tags = [tag]
         self.representative_tag = tag
+
+        self._atomic_tagset = None
 
         # Parent tags are tags which are more general than the current tag
         # ex: "rock" is a parent of "piano rock"
@@ -237,6 +312,7 @@ class TermEquivalenceSet():
 
 
     def add_tag(self, new_tag):
+        self._atomic_tagset=None
         self._tags.append(new_tag)
 
         if new_tag.get_itemcount("a")>self.representative_tag.get_itemcount("a"):
@@ -247,6 +323,7 @@ class TermEquivalenceSet():
         """
         Combine the tags from two TES
         """
+        self._atomic_tagset=None
         if snd_tes.representative_tag.get_itemcount("a")>self.representative_tag.get_itemcount("a"):
             self.representative_tag = snd_tes.representative_tag
 
@@ -291,6 +368,59 @@ class TermEquivalenceSet():
 
     def get_tags(self):
         return self._tags
+
+
+    def get_atomic_tagset(self):
+        try:
+            if self._atomic_tagset is None:
+                self._update_atomic_tagset()
+        except AttributeError:
+            self._update_atomic_tagset()
+        return self._atomic_tagset
+
+
+    def _update_atomic_tagset(self):
+        """
+        Will update the set of single word tags making up this tag
+        """
+
+        self._atomic_tagset = None
+        failCandidates = []
+
+        # For each tag in the TES
+        for t in self._tags:
+            # Each word must be longer than 2 and be in all the other tags
+            nowsSplit = [x for x in _remove_ws(t.name, " ").split(" ") if len(x)>=2]
+            found = True
+
+            if len(nowsSplit)==0:
+                continue
+
+            failCandidates.append(nowsSplit)
+
+            # For each word in the given tag
+            for st in nowsSplit:
+                if not all(st in x.name.lower() for x in self._tags):
+                    found = False
+                    break
+
+            if found:
+                self._atomic_tagset = frozenset( [x for x in nowsSplit if len(x)>1] )
+                #assert( len(self._atomic_tagset)>0 )
+
+                if not len(self._atomic_tagset)>0:
+                    import pdb
+                    pdb.set_trace()
+
+                return
+
+        if self._atomic_tagset==None:
+            if len(failCandidates)==1:
+                self._atomic_tagset = frozenset( failCandidates[0] )
+                print "wii"
+            else:
+                import pdb
+                pdb.set_trace()
 
 
     def __len__(self):
