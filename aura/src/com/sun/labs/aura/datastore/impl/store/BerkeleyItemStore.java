@@ -70,9 +70,13 @@ import com.sun.labs.util.props.ConfigurableMXBean;
 import com.sun.labs.util.props.ConfigurationManager;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import com.sun.management.OperatingSystemMXBean;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadMXBean;
 import java.rmi.MarshalledObject;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -258,6 +262,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
         timer = new Timer("StatScheduler", true);
         timer.schedule(new StatSender(), 0, 10 * 1000);
+//        timer.schedule(new CPUTracker(), 1000, 4000);
     }
 
     /**
@@ -1103,7 +1108,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     @Override
     public MarshalledObject<List<Scored<String>>> findSimilar(
             MarshalledObject<DocumentVector> mdv,
-                                                              MarshalledObject<SimilarityConfig> mconfig)
+            MarshalledObject<SimilarityConfig> mconfig)
             throws AuraException, RemoteException {
         try {
             DocumentVector dv = mdv.get();
@@ -1620,6 +1625,46 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                             "for timing of stat " + statName);
                 }
             }
+        }
+    }
+
+    class CPUTracker extends TimerTask {
+
+        com.sun.management.OperatingSystemMXBean osbean;
+
+        RuntimeMXBean rtbean;
+
+        ThreadMXBean threadBean;
+
+        long prevCPUTime;
+
+        long prevUpTime;
+
+        long nCPU;
+
+        public CPUTracker() {
+            osbean = (OperatingSystemMXBean) ManagementFactory.
+                    getOperatingSystemMXBean();
+            rtbean = ManagementFactory.getRuntimeMXBean();
+            threadBean = ManagementFactory.getThreadMXBean();
+            nCPU = osbean.getAvailableProcessors();
+            prevCPUTime = osbean.getProcessCpuTime();
+            prevUpTime = rtbean.getUptime();
+        }
+
+        @Override
+        public void run() {
+            //
+            // Get the cpu time and up time in milliseconds.
+            long currCPUTime = osbean.getProcessCpuTime();
+            long currUpTime = rtbean.getUptime();
+            double elapsedCPUTime = (currCPUTime - prevCPUTime) / 1000000.0;
+            double elapsedUpTime = currUpTime - prevUpTime;
+            double usage = (elapsedCPUTime / (elapsedUpTime * nCPU)) * 100;
+            logger.info(String.format("%d CPUs CPU usage: %.2f threads: %d", 
+                        nCPU, usage, threadBean.getThreadCount()));
+            prevCPUTime = currCPUTime;
+            prevUpTime = currUpTime;
         }
     }
 }
