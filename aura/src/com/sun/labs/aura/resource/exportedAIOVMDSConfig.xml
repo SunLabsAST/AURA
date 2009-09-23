@@ -66,7 +66,7 @@
         <propertylist name="dataStoreHeads">
             <item>dataStoreHead</item>
         </propertylist>
-        <property name="logLevel" value="FINER"/>
+        <property name="logLevel" value="INFO"/>
         <property name="processManager" value="processManager"/>
     </component>
 
@@ -79,7 +79,7 @@
         <property name="register" value="false"/>
         <property name="statService" value="statService"/>
         <property name="cacheSizeMemPercentage" value="30"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -88,7 +88,7 @@
         <property name="indexDir" value="${auraHome}/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <property name="flushInterval" value="300000"/>
-        <property name="logLevel" value="FINE"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl" export="true"/>
