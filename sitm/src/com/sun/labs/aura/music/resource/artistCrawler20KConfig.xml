@@ -61,6 +61,7 @@
         <property name="crawlerStateDir" value="${cacheDir}/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="604800"/>
+        <property name="crawlAlbumAndTracks" value="true"/>
         <property name="crawlAlbumBlurbs" value="false"/>
         <property name="crawlEchoNestReviewsBlogs" value="true" />
     </component>

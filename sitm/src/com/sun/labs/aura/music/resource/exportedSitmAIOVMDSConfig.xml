@@ -102,6 +102,7 @@
         <property name="crawlerStateDir" value="${auraHome}/db/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="maxArtists" value="200"/>
+        <property name="crawlAlbumAndTracks" value="true"/>
         <!--<property name="updateRateInSeconds" value="604800"/> -->
         <property name="updateRateInSeconds" value="1000"/>
         <property name="crawlAlbumBlurbs" value="false"/>
