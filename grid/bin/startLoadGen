@@ -1,9 +1,47 @@
 #!/bin/bash
 
+function usage {
+    echo 'Usage: startLoadGen [-u numUsers] [-t numThreads] [-r runTime]'
+    echo ' numUsers defaults to 200, threads to 100 and run time to 300s'
+}
+
+args=`getopt hr:t:u: $*`
+
+set -- $args
+
+
+export NUM_USERS=2000
+export NUM_THREADS=100
+export RUN_TIME=300
+
+
+for i 
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-r)
+	    RUN_TIME=$2; shift;
+	    shift;;
+	-t)
+	    NUM_THREADS=$2; shift;
+	    shift;;
+	-u)
+	    NUM_USERS=$2; shift;
+	    shift;;
+    esac
+done
+
 DIR=`dirname $0`
 
 CPD=$DIR/../..
 export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
-java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME \
+java -cp $CP -DauraInstance=$INSTANCE \
+    -DrelName=$RELNAME \
     com.sun.labs.aura.grid.ServiceDeployer \
+    -a "-DnumUsers=${NUM_USERS}" \
+    -a "-DnumThreads=${NUM_THREADS}" \
+    -a "-DrunTime=${RUN_TIME}" \
     /com/sun/labs/aura/grid/sitm/loadGenConfig.xml start-loadGen

@@ -26,10 +26,15 @@
 -->
 
 <config>
+
+    <property name="runTime" value="300"/>
+    <property name="numUsers" value="2000"/>
+    <property name="numThreads" value="100"/>
+
     <component name="loadGen" type="com.sun.labs.aura.grid.sitm.GridLoadGenerator">
-        <property name="numUsers" value="2000"/>
-        <property name="numThreads" value="100"/>
-        <property name="time" value="300"/>
+        <property name="numUsers" value="${numUsers}"/>
+        <property name="numThreads" value="${numThreads}"/>
+        <property name="time" value="${runTime}"/>
     </component>
 
     <component name="start-loadGen" type="com.sun.labs.aura.AuraServiceStarter">

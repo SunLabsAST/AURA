@@ -151,7 +151,7 @@
     <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
     
     <!-- The name of the system packages file system -->
-    <property name="packages.filesystem" value="sys.packages"/>   
+    <property name="packages.filesystem" value="sys.packages"/>
      
     <!-- The name of the code filesystem on grid. -->
     <property name="code.filesystem" value="${grid.instance}-aura.dist"/>
@@ -159,25 +159,31 @@
     <!-- properties to hold resource names -->
     <property name="dist.col" value="${code.filesystem}/dist"/>
     <property name="jini.col" value="${code.filesystem}/jini"/>
+    <property name="bin.col" value="${code.filesystem}/bin"/>
     
     <!-- Upload Resources to Caroline filesystems -->
     
     <!-- create a caroline filesystem to upload the Ant jars to -->
-    <target name="create-filesystems" 
+    <target name="create-filesystems"
         description="creates filesystems needed for the code">
         <caroline:filesystem name="${packages.filesystem}" op="create"/>
         <caroline:filesystem name="${code.filesystem}" op="create"/>
     </target>
     
     <!-- create a WebDAV collection to upload Ant jars to-->
-    <target name="create-dist-collections" description="creates Ant package" depends="create-filesystems">
-        <dav:mkcol url="${dav.url}/${dist.col}" userid="${user}" password="${pw}"/>
-        <dav:mkcol url="${dav.url}/${jini.col}" userid="${user}" password="${pw}"/>
+    <target name="create-dist-collection" description="creates Ant package" depends="create-filesystems">
+        <dav:mkcol url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}"/>
     </target>
-    
-    <!--<taskdef name="growl" classname="net.slimeslurp.growl.GrowlEcho"/>    -->
-    <!-- builds the distribution jar, then uploads the results.-->
-    <target name="upload-dist" description="Uploads distribution files" depends="create-dist-collections,make-dist-jar-dir">
+
+    <target name="create-jini-collection" description="creates Ant package" depends="create-filesystems">
+        <dav:mkcol url="${dav.url}/${jini.col}" verbose="true" userid="${user}" password="${pw}"/>
+    </target>
+
+    <target name="create-bin-collection" description="creates Ant package" depends="create-filesystems">
+        <dav:mkcol url="${dav.url}/${bin.col}" verbose="true" userid="${user}" password="${pw}"/>
+    </target>
+
+    <target name="upload-grid-stuff" depends="create-dist-collection,make-dist-jar-dir">
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
             <fileset dir="dist/dist">
@@ -190,9 +196,6 @@
             <fileset dir="../aura/dist">
                 <include name="aura.jar"/>
             </fileset>
-            <fileset dir="../aardvark/dist">
-                <include name="aardvark.jar"/>
-            </fileset>
             <fileset dir="../sitm/dist">
                 <include name="sitm.jar"/>
             </fileset>
@@ -200,45 +203,53 @@
                 <include name="rmilogging.properties"/>
             </fileset>
         </dav:put>
+    </target>
+
+    <target name="upload-jini" description="Upload Jini libs" depends="create-jini-collection">
         <dav:put url="${dav.url}/${jini.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Jini libraries -->
             <fileset dir="../Libraries/jini">
                 <include name="**/*"/>
             </fileset>
         </dav:put>
+    </target>
+
+    <target name="upload-bin" description="Upload scripts" depends="create-bin-collection">
+        <dav:put url="${dav.url}/${bin.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
+            <!-- Jini libraries -->
+            <fileset dir="grid-deploy/on-grid-scripts/bin">
+                <include name="**/*"/>
+            </fileset>
+        </dav:put>
+    </target>
+    
+    <target name="upload-dist" description="Uploads distribution files" depends="upload-grid-stuff,upload-jini,upload-bin">
         <!-- Redo the jar target so that the service deployer is the main program! -->
         <antcall target="do-service-deployer-jar-with-libraries"/>
         <!--<growl message="Grid Upload finished."/> -->
     </target>
 
-    <target name="upload-some" description="Uploads distribution files" depends="create-dist-collections,make-dist-jar-dir">
+    <target name="upload-some" description="Uploads distribution files" depends="create-dist-collection,make-dist-jar-dir">
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
             <fileset dir="dist">
                 <include name="grid.jar"/>
             </fileset>
-<!--            
-<fileset dir="../aura/dist">
-                <include name="aura.jar"/>
-            </fileset>
--->
         </dav:put>
         <dav:put url="${dav.url}/${dist.col}/lib" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
             <fileset dir="dist">
                 <include name="grid.jar"/>
             </fileset>
-<!--  
-          <fileset dir="../SitmLoadGenerator/dist/">
+            <fileset dir="../SitmLoadGenerator/dist/">
                 <include name="SitmLoadGenerator.jar"/>
             </fileset>
--->
         </dav:put>
         <!-- Redo the jar target so that the service deployer is the main program! -->
         <antcall target="do-service-deployer-jar-with-libraries"/>
     </target>
 
-    <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collections,do-service-starter-jar-with-libraries">
+    <target name="upload-grid-jar" description="Uploads distribution files" depends="create-dist-collection,do-service-starter-jar-with-libraries">
         <dav:put url="${dav.url}/${dist.col}" verbose="true" userid="${user}" password="${pw}" lock="false">
             <!-- Distribution jar -->
             <fileset dir="dist">

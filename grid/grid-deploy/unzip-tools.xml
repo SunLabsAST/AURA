@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+ * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+ * 
+ * This code is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2
+ * only, as published by the Free Software Foundation.
+ * 
+ * This code is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License version 2 for more details (a copy is
+ * included in the LICENSE file that accompanied this code).
+ * 
+ * You should have received a copy of the GNU General Public License
+ * version 2 along with this work; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ * 
+ * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
+ * Park, CA 94025 or visit www.sun.com if you need additional
+ * information or have any questions.
+ */
+-->
+
+<project name="unzip-tools" basedir="." default="unzip-distribution"
+	 xmlns:dav="antlib:org.apache.webdav.ant"
+	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+
+  <!-- Where the zip file of the tools is -->
+    <condition property="zipfile" value="/tank/big/Downloads/sse.zip">
+        <not>
+            <isset property="zipfile"/>
+        </not>
+    </condition>
+
+  <!-- Where the libraries are -->
+    <property name="tool.libraries" value="../../ToolLibraries"/>
+
+  <!-- Declare the Caroline tasks -->
+    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+	   uri="antlib:com.sun.caroline.tools.carolant">
+        <classpath>
+            <pathelement location="${tool.libraries}/carolant.jar"/>
+            <pathelement location="${tool.libraries}/caroline.jar"/>
+        </classpath>
+    </taskdef>
+  
+  <!-- Declare the Caroline Ant tasks -->
+    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+        <classpath>
+            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+            <pathelement location="${tool.libraries}/commons-logging.jar"/>
+            <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
+        </classpath>
+    </taskdef>
+  
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
+
+  <!-- create a grid adapter instance to retrieve a reference the grid -->
+    <caroline:grid/>
+
+  <!-- use implicit properties set by the grid adapter above-->    
+    <property name="user" value="${com.sun.caroline.customerID}"/>
+    <property name="pw" value="${com.sun.caroline.password}"/>
+    <property name="grid.url" value="${com.sun.caroline.gridURL}"/>
+    <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
+  
+  <!-- Where the Ant libraries are -->
+    <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
+  
+  <!-- properties to hold resource names -->
+    <property name="ant.col" value="sys.packages/org/apache/tools/ant/1.7.0/lib/"/>
+    <property name="tools.filesystem" value="dev-tools"/>
+    <property name="tools.url" value="${dav.url}/${tools.filesystem}/"/>
+    <property name="packages.filesystem" value="sys.packages"/>
+
+  <!-- Properties describing the service.  Importers must define service.base, service.conf, and service.webapps -->
+    <property name="service.distribution" value="${zipfile}" />
+    <property name="service.working" value="/files/working/"/>
+    <property name="unzip.task" value="${grid.instance}.unzip"/>
+
+  <!-- create a caroline filesystem to upload the service distribution to -->
+    <target name="create-filesystem"
+	  description="creates filesystem if it doesn't exist">
+        <caroline:filesystem op="create" name="${tools.filesystem}"/>
+    </target>
+
+  <!-- Upload Resources to Caroline filesystems -->
+
+  <!-- create a WebDAV collection to upload Ant jars to-->
+    <target name="create-ant-collection" description="creates Ant package">
+        <dav:mkcol url="${dav.url}/${ant.col}" userid="${user}" password="${pw}"/>
+    </target>
+
+  <!-- create a target to copy Ant jars to Caroline -->
+    <target name="deploy-ant" description="copies Ant libraries"
+	  depends="create-ant-collection">
+        <dav:put url="${dav.url}/${ant.col}" userid="${user}" password="${pw}" verbose="true" lock="false">
+            <fileset dir="${ant.lib}">
+                <include name="*.jar"/>
+            </fileset>
+        </dav:put>
+    </target>
+
+  <!-- upload the service distribution and config files to the dist file system -->
+    <target name="upload-tools-distribution"
+	  description="uploads dev tools to the grid"
+	  depends="create-filesystem">
+        <dav:put url="${tools.url}" userid="${user}" password="${pw}"
+            file="${zipfile}" verbose="true" lock="false" />
+        <dav:put url="${tools.url}" userid="${user}" password="${pw}"
+            file="${basedir}/on-grid-scripts/unzip-dist.xml"
+            verbose="true" lock="false" />
+    </target>
+
+  <!-- unzip service distribution on-grid -->
+    <target name="unzip-distribution"
+	  description="unzips the service distribution"
+	  depends="deploy-ant,upload-tools-distribution">
+
+    <!-- Creates and starts a Caroline process to unzip service
+	 distribution -->
+        <caroline:process name="${unzip.task}" op="create"
+		      workingdir="/files/working"
+		      duration="task">
+      <!-- Filesystems to mount -->
+            <caroline:filesystem name="${tools.filesystem}" mountpoint="working"/>
+            <caroline:filesystem name="${packages.filesystem}" mountpoint="sys.packages"/>
+      <!-- Set environment variables -->
+            <env key="ANT_HOME" value="/files/${ant.col}"/>
+            <env key="JAVA_HOME" value="/usr/java"/>
+      <!-- Specify the command line -->
+            <arg value="-Dservice.distribution=/files/working/sse.zip"/>
+            <arg value="-jar"/>
+            <arg value="/files/${ant.col}/ant-launcher.jar"/>
+            <arg value="-f"/>
+            <arg value="unzip-dist.xml"/>
+        </caroline:process>
+    </target>
+
+  <!-- Create Caroline Resources -->
+
+  <!-- destroys unzip process -->
+    <target name="destroy-unzip-task"
+	  description="Removes unzip process if it exists">
+        <caroline:process name="${unzip.task}" op="delete"/>
+    </target>
+</project>
