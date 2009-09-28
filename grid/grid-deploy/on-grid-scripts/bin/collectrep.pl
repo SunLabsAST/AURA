@@ -1,9 +1,11 @@
 #!/usr/bin/perl
 #
 # Launch a collector-wrapped jvm for a replicant.
-
-
-exec '/files/dev-tools/bin/collect', 
+$| = 1;
+$libs = `/usr/bin/find /files/dev-tools/SunStudioExpress/lib -type d`;
+$ENV{'LD_LIBRARY_PATH'} = join ':', split(/\s+/, $libs);
+print `/usr/bin/echo $LD_LIBRARY_PATH`
+exec '/files/dev-tools/SunStudioExpress/bin/collect', 
     '-p', 'high', '-s', 'on', '-j', 'on',
     'java', '-Xmx2g', 
     '-DauraHome=/files/auraDist',

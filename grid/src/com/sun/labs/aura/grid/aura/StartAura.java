@@ -26,11 +26,13 @@ package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.BaseFileSystem;
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
+import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigInteger;
+import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.util.Map;
@@ -54,6 +56,11 @@ public class StartAura extends Aura {
     public static final String PROP_COMBINED_REPLICANT = "combinedReplicant";
 
     private boolean combinedReplicant;
+
+    @ConfigString(defaultValue="")
+    public static final String PROP_COLLECTOR_PREFIX = "collectorPrefix";
+
+    private String collectorPrefix;
 
     public String serviceName() {
         return "StartAura";
@@ -137,16 +144,21 @@ public class StartAura extends Aura {
             //
             // Start the replicants for each prefix
             for(String prefix : repFSMap.keySet()) {
-                ProcessRegistration repReg;
-                if(debugRMI) {
-                    repReg = gu.createProcess(getReplicantName(
-                            prefix), getDebugReplicantConfig(replicantConfig,
-                            prefix));
+                ProcessConfiguration pc;
+                if(prefix.equals(collectorPrefix)) {
+                    pc = getReplicantCollectConfig(prefix);
+                } else if(debugRMI) {
+                    pc = getDebugReplicantConfig(replicantConfig, prefix);
                 } else {
-                    repReg = gu.createProcess(getReplicantName(
-                            prefix), getReplicantConfig(replicantConfig,
-                            prefix));
+                    pc = getReplicantConfig(replicantConfig, prefix);
                 }
+                ProcessRegistration repReg =
+                        gu.createProcess(getReplicantName(prefix), pc);
+                NetworkAddress extaddr = gu.getExternalAddressFor(
+                        getReplicantName(prefix) + "-ext",
+                        getReplicantName(prefix));
+                NetworkAddress intaddr = gu.getAddressFor(getReplicantName(prefix));
+                gu.createNAT(extaddr.getUUID(), intaddr.getUUID(), getReplicantName(prefix) + "-nat");
                 gu.startRegistration(repReg, false);
                 lastReg = repReg;
             }
@@ -202,6 +214,7 @@ public class StartAura extends Aura {
         debugRMI = ps.getBoolean(PROP_DEBUG_RMI);
         numHeads = ps.getInt(PROP_NUM_HEADS);
         combinedReplicant = ps.getBoolean(PROP_COMBINED_REPLICANT);
+        collectorPrefix = ps.getString(PROP_COLLECTOR_PREFIX);
     }
     
     public void start() {

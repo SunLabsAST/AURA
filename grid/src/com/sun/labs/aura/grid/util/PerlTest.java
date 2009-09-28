@@ -45,7 +45,7 @@ public class PerlTest {
         Grid grid = gf.findGrid(0);
         System.out.println(String.format("Got grid %s", grid));
         String[] cmdLine = new String[]{
-            GridUtil.auraDistMntPnt + "/bin/untar.pl",
+            GridUtil.auraDistMntPnt + "/bin/test.pl",
             "2000"
         };
 

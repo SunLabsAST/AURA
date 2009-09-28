@@ -28,6 +28,7 @@
 <config>
     
     <property name="auraInstance" value="live"/>
+    <property name="collectorPrefix" value="00"/>
     
     <!-- <property name="logLevel" value="FINER"/> -->
     
@@ -58,6 +59,13 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
         <property name="debugRMI" value="true"/>
+        <property name="defaultNumReplicants" value="4"/>
+    </component>
+
+    <component name="startCollectorAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numHeads" value="1"/>
+        <property name="collectorPrefix" value="${collectorPrefix}"/>
         <property name="defaultNumReplicants" value="4"/>
     </component>
 
@@ -129,6 +137,13 @@
     <component name="start-debug" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startDebugAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-collector" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startCollectorAura</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
