@@ -318,6 +318,7 @@ class Cluster():
         """
 
         # Load values in a dict
+        print " > Loading tag data from store"
         cAD = {}
         aKeys = {}
         for tes in wsf.values():
@@ -331,30 +332,38 @@ class Cluster():
 
         # We're only going to keep artists that have at lest 25 tags
         # associated with them to make the matrix smaller
-        print "computing big keys"
-        big_keys = [k for k, v in aKeys.iteritems() if v>=25]
-        keys_idx = {}
-        keys_idx.update( zip( big_keys, range(len(big_keys)) ))
-        big_keys = None
-
-        ###
-        # Build matrix
-        mat = N.zeros((len(cAD), len(keys_idx)))
-        # for every tag
-        for i, vec in enumerate(cAD.itervalues()):
-            if i%100==0:
-                print i
-            # Go through all artists
-            for art, cnt in vec.iteritems():
-                # If enough tags had been applied to artist
-                if art in keys_idx:
-                    mat[i][ keys_idx[art] ] = cnt
-
-
-        print "dumping"
         f = T.openFile("lsa.h5", "a")
-        f.createArray("/","prelsa", mat)
+        for MIN_TAG_CNT in [25, 50, 75]:
+            print " > Computing big keys %d" % MIN_TAG_CNT
+            big_keys = [k for k, v in aKeys.iteritems() if v>=MIN_TAG_CNT]
+            keys_idx = {}
+            keys_idx.update( zip( big_keys, range(len(big_keys)) ))
+            big_keys = None
+            print "    Got %d artists" % len(keys_idx)
+
+            ###
+            # Build matrix
+            print " > Building the matrix"
+            mat = N.zeros((len(cAD), len(keys_idx)))
+            # for every tag
+            for i, vec in enumerate(cAD.itervalues()):
+                # Go through all artists
+                for art, cnt in vec.iteritems():
+                    # If enough tags had been applied to artist
+                    if art in keys_idx:
+                        mat[i][ keys_idx[art] ] = cnt
+
+
+            print " > Dumping matrix in h5"
+            f.createArray("/","prelsa%d" % MIN_TAG_CNT, mat)
+            
+            print " > Pickling keys_idx dict"
+            C.dump(keys_idx, open("lsa-keys_idx-%d.dump" % MIN_TAG_CNT, "w"))
+
+        # Close h5
         f.close()
+
+
         
 
 
