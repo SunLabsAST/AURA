@@ -34,6 +34,7 @@ import com.sun.labs.aura.datastore.Item.FieldCapability;
 import com.sun.labs.aura.datastore.Item.FieldType;
 import com.sun.labs.aura.datastore.Item.ItemType;
 import com.sun.labs.aura.datastore.ItemListener;
+import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.music.ArtistTagRaw;
@@ -42,6 +43,7 @@ import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
+import com.sun.labs.aura.util.Scored;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
@@ -282,6 +284,11 @@ public class AuraBridge implements Configurable, ItemStore {
 
     public float getSimilarity(String key1, String key2, String field) throws RemoteException, AuraException {
         return getDataStore().getSimilarity(key1, key2, field);
+    }
+
+    public List<Scored<String>> explainSimilarity(String key1, String key2,
+            String field, int n) throws AuraException, RemoteException {
+        return getDataStore().explainSimilarity(key1, key2, new SimilarityConfig(field, n));
     }
 
 

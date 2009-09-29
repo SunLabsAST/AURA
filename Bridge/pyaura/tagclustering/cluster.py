@@ -28,9 +28,12 @@ import os
 import re
 import itertools
 import cPickle as C
+import tables as T
 import jpype as J
+import numpy as N
 import pyaura.bridge as B
 import pyaura.timestats as TS
+import pyaura.lib as L
 from pyaura.lib import j2py
 
 try:
@@ -49,11 +52,11 @@ MAX_LENGTH=35
 
 # Min counts of individual tags
 MIN_APPLIED_ITEM_CNT_TAG = 10
-MIN_APPLICATIONS_TAG = 200
+MIN_APPLICATIONS_TAG = 500
 
 # Min counts of TES
-MIN_APPLIED_ITEM_CNT_TES = 20
-MIN_APPLICATIONS_TES = 500
+MIN_APPLIED_ITEM_CNT_TES = 25
+MIN_APPLICATIONS_TES = 5000
 
 
 
@@ -89,7 +92,7 @@ class Cluster():
             self._aB = None
 
 
-    def cluster(self):
+    def cluster(self, combineEdit=True):
 
 
         print "Init with %d tags." % len(self.tags)
@@ -111,9 +114,10 @@ class Cluster():
         self.wsf = self.lexical_sim_remove_notused(self.wsf)
         print "  %d remaining" % len(self.wsf)
 
-        print "Combining based on edit distance & artist space similarity..."
-        self.wsf = self.lexical_sim_ratio(self.wsf)
-        print "  %d remaining" % len(self.wsf)
+        if combineEdit:
+            print "Combining based on edit distance & artist space similarity..."
+            self.wsf = self.lexical_sim_ratio(self.wsf)
+            print "  %d remaining" % len(self.wsf)
 
         return self.wsf
 
@@ -123,8 +127,8 @@ class Cluster():
 
         # Make sure tags were used enough and aren't too long and too short
         clean_tags = [(k, v) for k, v in tagsDict.iteritems() if len(k)>=MIN_LENGTH or
-                                        v.get_totals("a")<MIN_APPLICATIONS_TAG or
-                                        v.get_itemcount("a")<MIN_APPLIED_ITEM_CNT_TAG]
+                                        v.get_totals("a")>MIN_APPLICATIONS_TAG or
+                                        v.get_itemcount("a")>MIN_APPLIED_ITEM_CNT_TAG]
 
         # Make sure the tags aren't in the stop list
         # regexbuddy : (?:fuck|shit|favorite|seen[\w]*live)
@@ -181,7 +185,6 @@ class Cluster():
         return wsf
 
 
-
     def lexical_sim_ratio(self, wsf):
 
         timeStats = TS.TimeStats(total=len(wsf), echo_each=25)
@@ -212,16 +215,17 @@ class Cluster():
 
                 # If they have a small enough edit distance
                 ratio = Leven.ratio(tag, sndtag)
+                ldist = Leven.distance(tag, sndtag)
                 if Leven.ratio(tag, sndtag)>0.75:
                     # If they have a small enough similarity in the space of tagged artists
                     sim = self._aB.get_tag_similarity("artist-tag-raw:"+wsf[tag].representative_tag.name,
                                                       "artist-tag-raw:"+wsf[sndtag].representative_tag.name)
                     if sim>0.75:
-                        outfile.write("%s (%d) <-> %s (%d)   ed:%0.2f  sim:%0.2f\n" %
+                        print("%s (%d) <-> %s (%d)   level:%d   ed:%0.2f  sim:%0.2f\n" %
                                                    (wsf[tag].get_name().encode("utf8"), len(wsf[tag]),
                                                     wsf[sndtag].get_name().encode("utf8"), len(wsf[sndtag]),
-                                                    ratio, sim))
-                        outfile.write("   mult:%0.4f     avg:%0.4f\n" % ((ratio*sim), (ratio+sim)/2))
+                                                    ldist, ratio, sim))
+                        print("   mult:%0.4f     avg:%0.4f\n" % ((ratio*sim), (ratio+sim)/2))
 
                     merge_ratio = (ratio+sim)/2.
                     if merge_ratio > 0.8:
@@ -237,6 +241,15 @@ class Cluster():
                         if needs2break:
                             break
 
+        return wsf
+
+
+    def find_parent_tags2(self, wsf):
+
+        for k in wsf.keys():
+            for contained in filter(lambda x: k in x and k!=x, wsf.keys()):
+                wsf[k].add_child_tag(contained)
+                wsf[contained].add_parent_tag(k)
         return wsf
 
 
@@ -256,21 +269,21 @@ class Cluster():
         ####
         # Determine the possible combinations for each atomic tagset
         for tes in wsf.itervalues():
-            if tes.wsf_name=="rock":
-                import pdb
-                pdb.set_trace()
             ats = tes.get_atomic_tagset()
-            if len(ats)<=2:
+            if len(ats)==1:
+                continue
+            if len(ats)==2:
                 comb = [ats]
             else:
                 comb = []
-                for r in range(2,len(ats)):
+                for r in range(1,len(ats)):
                     comb += itertools.combinations(ats, r)
 
-            
+            print ">>> %s" % tes.wsf_name
             for curr_comb in comb:
                 int_set = None
-                # For every atomic tag in our current combination
+                # For every atomic tag in our current combination, try to find
+                # tags that are associated with everyone of them
                 for c in curr_comb:
                     if int_set is None:
                         int_set = atd[c]
@@ -279,13 +292,83 @@ class Cluster():
                         if len(int_set)==0:
                             break
 
+                    print ">>>>>> %s" % curr_comb
+                    print int_set
+                    raw_input()
+
                     # If we have keys in our set, we need to set parent/child relations
                     for k in int_set:
                         if k!=tes.wsf_name:
-                            wsf[k].add_child_tag( tes.wsf_name )
-                            wsf[tes.wsf_name].add_parent_tag( k )
+                            if len(wsf[k].get_atomic_tagset())<len(wsf[tes.wsf_name].get_atomic_tagset()):
+                                wsf[tes.wsf_name].add_parent_tag( k )
+                            elif len(wsf[k].get_atomic_tagset())>len(wsf[tes.wsf_name].get_atomic_tagset()):
+                                wsf[k].add_child_tag( tes.wsf_name )
+                            
 
         return wsf
+
+
+
+    def gen_combined_tes_occurence_mat(self, wsf):
+        """
+        Build a matrix containing the combined occurence count of each artist for every TES
+              A1   A2    A3 ...
+        TES1
+        TES2
+        """
+
+        # Load values in a dict
+        cAD = {}
+        aKeys = {}
+        for tes in wsf.values():
+            cAD[tes.wsf_name] = tes.get_combined_artist_dict(self._aB)
+            for aK in cAD[tes.wsf_name].keys():
+                try:
+                    aKeys[aK] += 1
+                except KeyError:
+                    aKeys[aK] = 1
+        
+
+        # We're only going to keep artists that have at lest 25 tags
+        # associated with them to make the matrix smaller
+        print "computing big keys"
+        big_keys = [k for k, v in aKeys.iteritems() if v>=25]
+        keys_idx = {}
+        keys_idx.update( zip( big_keys, range(len(big_keys)) ))
+        big_keys = None
+
+        ###
+        # Build matrix
+        mat = N.zeros((len(cAD), len(keys_idx)))
+        # for every tag
+        for i, vec in enumerate(cAD.itervalues()):
+            if i%100==0:
+                print i
+            # Go through all artists
+            for art, cnt in vec.iteritems():
+                # If enough tags had been applied to artist
+                if art in keys_idx:
+                    mat[i][ keys_idx[art] ] = cnt
+
+
+        print "dumping"
+        f = T.openFile("lsa.h5", "a")
+        f.createArray("/","prelsa", mat)
+        f.close()
+        
+
+
+
+
+    def get_popular(self, wsf):
+        """
+        Take a dictionnary of TES and order them by popularity
+        """
+        dVal = {}
+        for tes in wsf.values():
+            dVal[tes.wsf_name] = tes.get_totals()
+        dVal = L.dict_sort_byVal(dVal, True)
+        return dVal
 
 
 
@@ -370,7 +453,26 @@ class TermEquivalenceSet():
         return self._tags
 
 
-    def get_atomic_tagset(self):
+    def get_combined_artist_dict(self, aB):
+        """
+        Return the total weighted tag count for all the tags in the TES
+        """
+        total_cnt = float(self.get_totals())
+        artist_dict = {}
+        for tag in self._tags:
+            ttot = tag.get_totals()
+            tobj = aB.get_item(tag.get_key())
+            for tA in tobj.getTaggedArtist().iterator():
+                try:
+                    artist_dict[tA.name] += (tA.count * ttot)
+                except KeyError:
+                    artist_dict[tA.name] = (tA.count * ttot)
+
+        artist_dict.update(zip( artist_dict.keys(), [x/total_cnt for x in artist_dict.values()] ))
+        return artist_dict
+
+
+    def get_atomic_tagset(self, wsfKeys):
         try:
             if self._atomic_tagset is None:
                 self._update_atomic_tagset()
@@ -379,48 +481,66 @@ class TermEquivalenceSet():
         return self._atomic_tagset
 
 
+    def _update_atomic_tagset2(self):
+
+        remove_ws_and_split = lambda var: [x for x in _remove_ws(var, " ").split(" ") if len(x)>=2]
+
+        # Split the rep tag in words
+        rTS = remove_ws_and_split(self.representative_tag.name)
+
+        # Try to find other tags that would be able to split the above found words into smaller parts
+        for t in self._tags:
+            if t.name!=self.representative_tag.name:
+                tS = remove_ws_and_split(t.name)
+                #for ttS in tS:
+
+
+
     def _update_atomic_tagset(self):
         """
         Will update the set of single word tags making up this tag
         """
 
-        self._atomic_tagset = None
-        failCandidates = []
+        self._atomic_tagset = set()
+        #failCandidates = []
 
         # For each tag in the TES
         for t in self._tags:
+
             # Each word must be longer than 2 and be in all the other tags
             nowsSplit = [x for x in _remove_ws(t.name, " ").split(" ") if len(x)>=2]
-            found = True
 
             if len(nowsSplit)==0:
                 continue
 
-            failCandidates.append(nowsSplit)
-
-            # For each word in the given tag
+            #failCandidates.append(nowsSplit)
             for st in nowsSplit:
-                if not all(st in x.name.lower() for x in self._tags):
-                    found = False
-                    break
+                if all(st in x.name.lower() for x in self._tags):
+                    self._atomic_tagset.add( st )
 
-            if found:
-                self._atomic_tagset = frozenset( [x for x in nowsSplit if len(x)>1] )
-                #assert( len(self._atomic_tagset)>0 )
 
-                if not len(self._atomic_tagset)>0:
-                    import pdb
-                    pdb.set_trace()
+        #if len(self._atomic_tagset)==0:
+        #    for fC in failCandidates:
+        #        for sfC in fC:
+        #            if isinstance(sfC, basestring) and len(sfC)==1:
+        #                print "noo"
+        #                import pdb
+        #                pdb.set_trace()
+        #            self._atomic_tagset.add(sfC)
 
-                return
+        #removed = set()
+        #aTkeys = self._atomic_tagset.copy()
+        #for aT in aTkeys:
+        #    if aT in removed:
+        #        continue
+        #    for tempT in self._atomic_tagset.copy():
+        #        if aT.lower() in tempT.lower() and aT!=tempT:
+        #            self._atomic_tagset.remove(tempT)
+        #            removed.add(tempT)
 
-        if self._atomic_tagset==None:
-            if len(failCandidates)==1:
-                self._atomic_tagset = frozenset( failCandidates[0] )
-                print "wii"
-            else:
-                import pdb
-                pdb.set_trace()
+        #if self.wsf_name=="electro":
+        #    import pdb
+        #    pdb.set_trace()
 
 
     def __len__(self):

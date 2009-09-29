@@ -49,6 +49,11 @@ def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=_get_default_prefi
 #        Utility functions         #
 ####################################
 
+
+def dict_sort_byVal(d, reverse=False) :
+    return sorted(d.items(), key=lambda (k,v): (v,k), reverse=reverse)
+
+
 def _lst_to_jarraylist(l):
     aL = J.java.util.ArrayList()
     for k in l:
