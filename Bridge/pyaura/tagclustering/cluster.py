@@ -29,12 +29,12 @@ import re
 import itertools
 import cPickle as C
 import tables as T
-import jpype as J
+from scipy import linalg
+from scipy.spatial.distance import cosine
 import numpy as N
 import pyaura.bridge as B
 import pyaura.timestats as TS
 import pyaura.lib as L
-from pyaura.lib import j2py
 
 try:
     import Levenshtein as Leven
@@ -185,16 +185,16 @@ class Cluster():
         return wsf
 
 
-    def lexical_sim_ratio(self, wsf):
+  
+
+
+    def lexical_sim_store(self, wsf, sim_model):
 
         timeStats = TS.TimeStats(total=len(wsf), echo_each=25)
 
         outfile = open("tes_merge.txt", "w")
 
-        if self._aB==None:
-            raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. "+ \
-                                        "You need to specify a regHost to the constructor.")
-
+        
         removed_keys = {}
 
         skeys = wsf.keys()
@@ -218,9 +218,9 @@ class Cluster():
                 ldist = Leven.distance(tag, sndtag)
                 if Leven.ratio(tag, sndtag)>0.75:
                     # If they have a small enough similarity in the space of tagged artists
-                    sim = self._aB.get_tag_similarity("artist-tag-raw:"+wsf[tag].representative_tag.name,
-                                                      "artist-tag-raw:"+wsf[sndtag].representative_tag.name)
-                    if sim>0.75:
+                        
+                    sim = sim_model.get_sim(tag, sndtag)
+                    if sim>=sim_model.get_interesting_sim():
                         print("%s (%d) <-> %s (%d)   level:%d   ed:%0.2f  sim:%0.2f\n" %
                                                    (wsf[tag].get_name().encode("utf8"), len(wsf[tag]),
                                                     wsf[sndtag].get_name().encode("utf8"), len(wsf[sndtag]),
@@ -228,7 +228,7 @@ class Cluster():
                         print("   mult:%0.4f     avg:%0.4f\n" % ((ratio*sim), (ratio+sim)/2))
 
                     merge_ratio = (ratio+sim)/2.
-                    if merge_ratio > 0.8:
+                    if sim_model.get_accept(ratio, sim):
                         # determine the most popular
                         if wsf[tag].get_totals()>wsf[sndtag].get_totals():
                             alpha, beta = (tag, sndtag)
@@ -309,7 +309,7 @@ class Cluster():
 
 
 
-    def gen_combined_tes_occurence_mat(self, wsf):
+    def generate_combined_tes_occurence_mat(self, wsf):
         """
         Build a matrix containing the combined occurence count of each artist for every TES
               A1   A2    A3 ...
@@ -330,7 +330,7 @@ class Cluster():
                     aKeys[aK] = 1
         
 
-        # We're only going to keep artists that have at lest 25 tags
+        # We're only going to keep artists that have at least 25 tags
         # associated with them to make the matrix smaller
         f = T.openFile("lsa.h5", "a")
         for MIN_TAG_CNT in [25, 50, 75]:
@@ -357,8 +357,10 @@ class Cluster():
             print " > Dumping matrix in h5"
             f.createArray("/","prelsa%d" % MIN_TAG_CNT, mat)
             
-            print " > Pickling keys_idx dict"
-            C.dump(keys_idx, open("lsa-keys_idx-%d.dump" % MIN_TAG_CNT, "w"))
+        print " > Pickling dict of tag id dict"
+        tag_dict = {}
+        tag_dict.update( zip( cAD.keys(), range(len(cAD)) ))
+        C.dump(tag_dict, open("lsa-keys_idx.dump", "w"))
 
         # Close h5
         f.close()
@@ -559,5 +561,145 @@ class TermEquivalenceSet():
     def __repr__(self):
         return "TES<'%s' key:'%s' len:%d pt:%d ct:%d>" % (self.representative_tag.name, self.wsf_name,
                     len(self._tags), len(self._parent_tags), len(self._child_tags))
+
+
+
+
+
+
+class Sim_LSA():
+
+    def __init__(self, min_tag_cnt=75, lsa_dim=200, tfidf_over_tags=False):
+
+        print "** Init LSA sim model **"
+
+        self.lsa_dim = lsa_dim
+
+        if not os.path.exists("lsa.h5"):
+            print "Cannot find combined TES occurence mat. Run generate_combined_tes_occurence_mat() "+\
+                "to generate it."
+
+        self.keys_idx = C.load(open("lsa-keys_idx.dump"))
+
+        # Load occurence matrix
+        f = T.openFile("lsa.h5", "a")
+        if "/lsa_u_%d" % min_tag_cnt in f:
+            print "  Loading SVD from cache"
+            self._u = f.getNode("/lsa_u_%d" % min_tag_cnt).read()
+            self._sigma = f.getNode("/lsa_sigma_%d" % min_tag_cnt).read()
+        else:
+            # Compute SVD decomposition
+            print "  Loading raw matrix"
+            mat = f.getNode("/prelsa%d" % min_tag_cnt).read()
+
+            #####
+            # Compute tf-idf
+            print "  Computing tf/idf"
+
+            if tfidf_over_tags:
+                mat = mat.transpose()
+
+            total_doc_cnt = 1.0 * N.sum(mat, axis=0)
+
+            for i in xrange(mat.shape[0]):
+                try:
+                    idf = N.log( mat.shape[1] / (float(len([x for x in mat[i,:] if x>0]))))
+                    mat[i] = (mat[i] / total_doc_cnt) * idf
+                except ZeroDivisionError:
+                    for name, id in self.keys_idx.iteritems():
+                        if i==id:
+                            break
+                    print "Error. Tag '%s' (%d) is assigned to no artist" % (name, id)
+
+            if tfidf_over_tags:
+                mat = mat.transpose()
+
+            #####
+            # Compute svd
+            print "  Computing SVD"
+            u,sigma,vt = linalg.svd(mat)
+            f.createArray("/", "lsa_u_%d" % min_tag_cnt, u)
+            f.createArray("/", "lsa_sigma_%d" % min_tag_cnt, sigma)
+            self._u = u
+            self._sigma = sigma
+            
+        f.close()
+
+
+        self._sigma = self._sigma[:lsa_dim]
+        self._u = self._u.transpose()[:lsa_dim].transpose()
+
+        self._usig = self._u * self._sigma
+
+
+    def get_accept(self, str_sim, sim):
+        return str_sim>=0.8 and sim>=1.5
+
+
+    def get_interesting_sim(self):
+        """
+        returns the lower similarity bound that is interesting if we're debugging
+        """
+        return 0.95
+
+
+    def get_sim(self, t1, t2):
+
+        return N.dot( self._usig[self.keys_idx[t1]], self._usig[self.keys_idx[t2]] )
+
+
+    def get_cosine_dist(self, t1, t2):
+
+        return cosine( self._usig[self.keys_idx[t1]], self._usig[self.keys_idx[t2]] )
+
+
+    def get_most_sim(self, t, dist_func=None):
+
+        if dist_func is None:
+            dist_func = self.get_sim
+
+        # If we passed int, find the corresponding tag name
+        if isinstance(t, int):
+            for k,v in self.keys_idx.iteritems():
+                if v==t:
+                    t=k
+                    break
+
+        dist_dict = {}
+        for tname, tid in self.keys_idx.iteritems():
+            if tid==t:
+                continue
+            dist_dict[tname] = dist_func(t, tname)
+        
+        return L.dict_sort_byVal(dist_dict, reverse=False)
+
+
+
+class Sim_Aura():
+
+    def __init__(self, aB, wsf):
+        if self._aB==None:
+            raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. "+ \
+                                        "You need to specify a regHost to the constructor.")
+        self._aB = aB
+        self.wsf = wsf
+
+
+    def get_interesting_sim(self):
+        """
+        returns the lower similarity bound that is interesting if we're debugging
+        """
+        return 0.75
+
+
+    def get_accept(self, str_sim, sim):
+        merge_ratio = (str_sim+sim)/2.
+        return merge_ratio > 0.8
+
+
+    def get_sim(self, t1, t2):
+
+        return self._aB.get_tag_similarity("artist-tag-raw:"+self.wsf[t1].representative_tag.name,
+                                            "artist-tag-raw:"+self.wsf[t2].representative_tag.name)
 
 
