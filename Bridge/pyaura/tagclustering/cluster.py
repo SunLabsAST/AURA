@@ -126,8 +126,8 @@ class Cluster():
 
 
         # Make sure tags were used enough and aren't too long and too short
-        clean_tags = [(k, v) for k, v in tagsDict.iteritems() if len(k)>=MIN_LENGTH or
-                                        v.get_totals("a")>MIN_APPLICATIONS_TAG or
+        clean_tags = [(k, v) for k, v in tagsDict.iteritems() if len(k)>=MIN_LENGTH and
+                                        v.get_totals("a")>MIN_APPLICATIONS_TAG and
                                         v.get_itemcount("a")>MIN_APPLIED_ITEM_CNT_TAG]
 
         # Make sure the tags aren't in the stop list
@@ -192,8 +192,7 @@ class Cluster():
 
         timeStats = TS.TimeStats(total=len(wsf), echo_each=25)
 
-        outfile = open("tes_merge.txt", "w")
-
+        outfile = open("tes_merge_%s.txt" % sim_model.name, "w")
         
         removed_keys = {}
 
@@ -216,18 +215,22 @@ class Cluster():
                 # If they have a small enough edit distance
                 ratio = Leven.ratio(tag, sndtag)
                 ldist = Leven.distance(tag, sndtag)
-                if Leven.ratio(tag, sndtag)>0.75:
+                if ratio>0.75:
                     # If they have a small enough similarity in the space of tagged artists
                         
                     sim = sim_model.get_sim(tag, sndtag)
                     if sim>=sim_model.get_interesting_sim():
-                        print("%s (%d) <-> %s (%d)   level:%d   ed:%0.2f  sim:%0.2f\n" %
+                        out_str = "%s (%d) <-> %s (%d)   level:%d   ed:%0.2f  sim:%0.2f\n" % \
                                                    (wsf[tag].get_name().encode("utf8"), len(wsf[tag]),
                                                     wsf[sndtag].get_name().encode("utf8"), len(wsf[sndtag]),
-                                                    ldist, ratio, sim))
-                        print("   mult:%0.4f     avg:%0.4f\n" % ((ratio*sim), (ratio+sim)/2))
+                                                    ldist, ratio, sim)
+                        print out_str
+                        outfile.write(out_str)
+                        
+                        out_str = "   mult:%0.4f     avg:%0.4f\n" % ((ratio*sim), (ratio+sim)/2)
+                        print out_str
+                        outfile.write(out_str)
 
-                    merge_ratio = (ratio+sim)/2.
                     if sim_model.get_accept(ratio, sim):
                         # determine the most popular
                         if wsf[tag].get_totals()>wsf[sndtag].get_totals():
@@ -572,7 +575,7 @@ class Sim_LSA():
     def __init__(self, min_tag_cnt=75, lsa_dim=200, tfidf_over_tags=False):
 
         print "** Init LSA sim model **"
-
+        self.name = "LSASim"
         self.lsa_dim = lsa_dim
 
         if not os.path.exists("lsa.h5"):
@@ -644,8 +647,11 @@ class Sim_LSA():
 
 
     def get_sim(self, t1, t2):
-
-        return N.dot( self._usig[self.keys_idx[t1]], self._usig[self.keys_idx[t2]] )
+        try:
+            return N.dot( self._usig[self.keys_idx[t1]], self._usig[self.keys_idx[t2]] )
+        except KeyError:
+            # We probably pruned the requested tag.
+            return -50
 
 
     def get_cosine_dist(self, t1, t2):
@@ -678,11 +684,12 @@ class Sim_LSA():
 class Sim_Aura():
 
     def __init__(self, aB, wsf):
-        if self._aB==None:
+        if aB==None:
             raise RuntimeError("AuraBridge needs to be initialised for lexical_sim_ratio to run. "+ \
                                         "You need to specify a regHost to the constructor.")
         self._aB = aB
         self.wsf = wsf
+        self.name = "AuraSim"
 
 
     def get_interesting_sim(self):
