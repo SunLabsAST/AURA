@@ -132,7 +132,7 @@ class Cluster():
 
         # Make sure the tags aren't in the stop list
         # regexbuddy : (?:fuck|shit|favorite|seen[\w]*live)
-        clean_tags = [(k, v) for k, v in clean_tags if not re.search(r"(?:f.ck|sh(?:i|1)t|wh(?:o|0)re|favorite|seen[\w]*live)", k, re.IGNORECASE)]
+        clean_tags = [(k, v) for k, v in clean_tags if not re.search(r"(?:f.ck|sh(?:i|1)t|wh(?:o|0)re|favou*rite|seen[\w]*live)", k, re.IGNORECASE)]
 
         clean_dict = {}
         clean_dict.update(clean_tags)

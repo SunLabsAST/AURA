@@ -24,6 +24,11 @@
  # information or have any questions.
  #####
 
+###
+#   This file contains functions to generate a mbid resolved
+#   dataset of top tracks for last.fm tags to train autotagger
+###
+
 import sys
 import time
 import warnings
