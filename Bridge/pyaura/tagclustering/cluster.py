@@ -80,8 +80,15 @@ class Cluster():
         """
 
         if wsf_name==None:
-            self.tags = C.load(open(os.path.join(prefix, "alltags.dump")))
-            self.wsf = None
+            if os.path.exists(os.path.join(prefix, "alltags.dump")):
+                self.tags = C.load(open(os.path.join(prefix, "alltags.dump")))
+                self.wsf = None
+            else:
+                print "WARNING. Can't find the TagInfo local cache at the specified location."
+                print "Will create the local cache in folder '%s'. This WILL take a while." % prefix
+                import pyaura.tagclustering.build_db as BDB
+                BDB.do_download(prefix, save_tagdata=False, regHost=regHost)
+        
         else:
             self.tags = None
             self.wsf = C.load(open(os.path.join(prefix, wsf_name)))

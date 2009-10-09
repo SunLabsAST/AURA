@@ -117,6 +117,10 @@ class ProcessJobs(threading.Thread):
         self.save_tagdata = save_tagdata
         self.timeStats = TS.TimeStats(total=nbr_tags, echo_each=100)
 
+        # Create output folder if it does not exist
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+
     def run(self):
 
         current_idx = 0
