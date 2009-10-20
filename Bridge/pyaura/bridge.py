@@ -131,12 +131,27 @@ class AuraBridge():
         return j2py(self._bridge.getTermCounts(term, field, n, itemType))
 
 
+    def explain_similarity(self, key1, key2, field, n=500):
+        """
+        Explains the similarity between two items.  The explaination consists of
+        the terms that the documents have in common, along with a score indicating
+        the importance of terms to the similarity.
+        """
+        return j2py(self._bridge.explainSimilarity(key1, key2, field, n))
+
+
     def get_tag_similarity(self, key1, key2):
         """
         Get the similarity between two tags computed on their tagged artists field
         """
         return self._bridge.getTagSimilarity(key1, key2)
 
+
+    def get_similarity(self, key1, key2, field):
+        """
+        Get the similarity between two items on the given field
+        """
+        return self._bridge.getSimilarity(key1, key2, field)
 
 
     ####################################
