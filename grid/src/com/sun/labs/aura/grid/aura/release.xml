@@ -53,6 +53,12 @@
         <property name="relName" value="${relName}"/>
     </component>
 
+    <component name="snapshotReplicants" type="com.sun.labs.aura.grid.aura.SnapshotReplicants">
+        <property name="onGrid" value="false"/>
+        <property name="instance" value="${auraInstance}"/>
+        <property name="snapName" value="${relName}"/>
+    </component>
+
     <component name="cleanupRelease" type="com.sun.labs.aura.grid.aura.CleanupRelease">
         <property name="onGrid" value="false"/>
         <property name="instance" value="${auraInstance}"/>
@@ -70,6 +76,13 @@
             <item>stopSITM</item>
             <item>stopAuraAndDestroyAll</item>
             <item>prepareForRelease</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="repSnaps" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>snapshotReplicants</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

@@ -24,9 +24,6 @@
 
 package com.sun.labs.aura.grid.rp.sample;
 
-import com.sun.caroline.platform.FileSystem;
-import com.sun.caroline.platform.GridFactory;
-import com.sun.caroline.platform.ProcessContext;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;

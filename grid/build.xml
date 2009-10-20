@@ -245,6 +245,7 @@
                 <include name="SitmLoadGenerator.jar"/>
             </fileset>
         </dav:put>
+        <dav:put url="${dav.url}/${dist.col}/lib" verbose="true" userid="${user}" password="${pw}" lock="false" file="../Libraries/SunLabsUtilities/slcut.jar"/>
         <!-- Redo the jar target so that the service deployer is the main program! -->
         <antcall target="do-service-deployer-jar-with-libraries"/>
     </target>

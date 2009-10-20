@@ -46,6 +46,7 @@ public class ServletListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         try {
             ServletContext context = sce.getServletContext();
+            logger.info(String.format("context: %s", context));
             URL config = context.getResource("/webMusicExplauraWebConfig.xml");
             logger.info("Config URL is " + config);
 
@@ -63,7 +64,12 @@ public class ServletListener implements ServletContextListener {
                 context.setAttribute("configManager", cm);
 
                 try {
-                    context.setAttribute("MusicDatabase", new MusicDatabase(cm));
+                    MusicDatabase mdb = new MusicDatabase(cm);
+                    logger.info(String.format("mdb: %s", mdb));
+                    context.setAttribute("MusicDatabase", mdb);
+                    DataManager dm = new DataManager(mdb, 500);
+                    logger.info(String.format("dm: %s", dm));
+                    context.setAttribute("DataManager", dm);
                 } catch (AuraException ex) {
                     logger.severe("AuraException : " + ex.getMessage());
                 }

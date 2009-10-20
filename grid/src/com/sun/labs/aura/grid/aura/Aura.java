@@ -31,7 +31,10 @@ import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
+import com.sun.caroline.platform.ResourceName;
 import com.sun.caroline.platform.RuntimeEnvironment;
+import com.sun.caroline.platform.SnapshotFileSystem;
+import com.sun.caroline.platform.SnapshotFileSystemConfiguration;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.DataStoreHead;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
@@ -174,6 +177,27 @@ public abstract class Aura extends ServiceAdapter {
         }
     }
 
+    public void snapShotReplicants(String snapshotName) throws Exception {
+
+        //
+        // Snapshot the replicant file systems.
+        for(Map.Entry<String, FileSystem> e : repFSMap.entrySet()) {
+            BaseFileSystem bfs = (BaseFileSystem) e.getValue();
+            SnapshotFileSystem sfs = bfs.createSnapshot(ResourceName.getCSName(
+                    bfs.getName()) + "-" + snapshotName);
+            SnapshotFileSystemConfiguration sfsc =
+                    sfs.getConfiguration();
+            Map<String, String> md = sfsc.getMetadata();
+            if(md == null) {
+                md = new HashMap<String, String>();
+            }
+            md.put("prefix", e.getKey());
+            sfsc.setMetadata(md);
+            sfs.changeConfiguration(sfsc);
+        }
+        
+    }
+
     public String getDataStoreHeadName(int instanceNumber) {
         return "dsHead-" + instanceNumber;
     }
@@ -286,9 +310,6 @@ public abstract class Aura extends ServiceAdapter {
         extraMounts.add(new FileSystemMountParameters(
                 repFSMap.get(prefix).getUUID(),
                 "data"));
-        extraMounts.add(new FileSystemMountParameters(
-                gu.getGrid().getFileSystem("dev-tools").getUUID(),
-                "dev-tools"));
         ProcessConfiguration pc = gu.getProcessConfig(
                 Replicant.class.getName(),
                 cmdLine,

@@ -72,14 +72,14 @@ public class StartSITM extends SITM {
                 "artistCrawler");
         gu.startRegistration(acReg);
 
-        ProcessRegistration lcReg =
-                gu.createProcess(getListenerCrawlerName(),
-                getListenerCrawlerConfig());
-        internal = lcReg.getRegistrationConfiguration().
-                getNetworkAddresses().iterator().next();
-        gu.createNAT(crawlerExt.getUUID(), internal,
-                "listenerCrawler");
-        gu.startRegistration(lcReg);
+//        ProcessRegistration lcReg =
+//                gu.createProcess(getListenerCrawlerName(),
+//                getListenerCrawlerConfig());
+//        internal = lcReg.getRegistrationConfiguration().
+//                getNetworkAddresses().iterator().next();
+//        gu.createNAT(crawlerExt.getUUID(), internal,
+//                "listenerCrawler");
+//        gu.startRegistration(lcReg);
 
         ProcessRegistration tcReg =
                 gu.createProcess(getTagCrawlerName(),

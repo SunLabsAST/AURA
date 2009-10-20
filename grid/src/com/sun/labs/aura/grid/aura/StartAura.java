@@ -154,11 +154,6 @@ public class StartAura extends Aura {
                 }
                 ProcessRegistration repReg =
                         gu.createProcess(getReplicantName(prefix), pc);
-                NetworkAddress extaddr = gu.getExternalAddressFor(
-                        getReplicantName(prefix) + "-ext",
-                        getReplicantName(prefix));
-                NetworkAddress intaddr = gu.getAddressFor(getReplicantName(prefix));
-                gu.createNAT(extaddr.getUUID(), intaddr.getUUID(), getReplicantName(prefix) + "-nat");
                 gu.startRegistration(repReg, false);
                 lastReg = repReg;
             }

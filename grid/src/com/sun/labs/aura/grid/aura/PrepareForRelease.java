@@ -72,22 +72,9 @@ public class PrepareForRelease extends Aura {
             bfs = (BaseFileSystem) gu.getFS("cache");
             bfs.createSnapshot(ResourceName.getCSName(bfs.getName()) + "-" +
                     relName);
+
+            snapShotReplicants(relName);
             
-            //
-            // Snapshot the replicant file systems.
-            for(Map.Entry<String,FileSystem> e : repFSMap.entrySet()) {
-                bfs = (BaseFileSystem) e.getValue();
-                SnapshotFileSystem sfs = bfs.createSnapshot(ResourceName.getCSName(bfs.getName()) + "-" + relName);
-                SnapshotFileSystemConfiguration sfsc =
-                        sfs.getConfiguration();
-                Map<String, String> md = sfsc.getMetadata();
-                if(md == null) {
-                    md = new HashMap<String, String>();
-                }
-                md.put("prefix", e.getKey());
-                sfsc.setMetadata(md);
-                sfs.changeConfiguration(sfsc);
-            }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Error preparing for release", ex);
         }

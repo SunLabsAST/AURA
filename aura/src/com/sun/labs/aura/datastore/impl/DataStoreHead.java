@@ -326,11 +326,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("dsh T%s gIs for %d took %.3f key0: %s",
+            logger.fine(String.format("dsh T%s gIs for %d took %.3f",
                     Thread.currentThread().getId(),
                     keys.size(),
-                    nw.getTimeMillis(),
-                    keys.toArray()[0]));
+                    nw.getTimeMillis()));
         }
         return ret;
     }

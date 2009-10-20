@@ -50,6 +50,7 @@ import com.sun.labs.minion.query.Equals;
 import com.sun.labs.minion.query.Not;
 import com.sun.labs.minion.query.Substring;
 import com.sun.labs.minion.query.Undefined;
+import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.util.props.ConfigurationManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.python.core.PyDictionary;
@@ -134,6 +136,39 @@ public class MusicDatabase {
         initSimTypes();
         mbidRegex = Pattern.compile("^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$");
         recommendationManager = new RecommendationManager(this);
+
+        //
+        // The code below will remove all listeners from the data store.  This
+        // may be necessary in extreme circumstances, but you should only uncomment
+        // this code if you *really* know what you're doing.
+//        //
+//        // totally temporary!
+//        int nd = 0;
+//        NanoWatch dw = new NanoWatch();
+//
+//        try {
+//
+//            dw.start();
+//            List<String> kl = getAllItemKeys(ItemType.USER);
+//            dw.stop();
+//            logger.info(String.format("Got %d users in %.3f",
+//                    kl.size(), dw.getTimeMillis()));
+//
+//            dw.reset();
+//            dw.start();
+//            for(String k : kl) {
+//                deleteListener(k);
+//                nd++;
+//            }
+//        } catch(Exception ex) {
+//            logger.log(Level.SEVERE,
+//                    String.format("Exception deleting users after %d users", nd),
+//                    ex);
+//        } finally {
+//            dw.stop();
+//            logger.info(String.format("Deleted %d users in %.3fms",
+//                    nd, dw.getTimeMillis()));
+//        }
     }
 
     public void shutdown() {

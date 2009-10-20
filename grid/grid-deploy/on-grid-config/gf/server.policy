@@ -126,6 +126,11 @@ grant {
 //Loading MBeans from anywhere, to take care of side effects of 6235678.
 
 
+grant codeBase "file:/-" {
+      // Allow access to ManagementFactory.getPlatformMBeanServer()
+      permission javax.management.MBeanServerPermission "createMBeanServer";
+};
+
 // Basic set of required permissions granted to all remaining code
 grant {
     //Workaround for bugs #6484935, 6513799
@@ -145,9 +150,10 @@ grant {
     permission java.util.PropertyPermission "*", "read";
 
     permission java.lang.RuntimePermission    "modifyThreadGroup";
+    permission java.lang.RuntimePermission    "modifyThread";
     permission java.lang.RuntimePermission    "getClassLoader";
     permission java.lang.RuntimePermission    "setContextClassLoader";
-        permission javax.management.MBeanPermission "[com.sun.messaging.jms.*:*]", "*"; 
+    permission javax.management.MBeanPermission "[com.sun.messaging.jms.*:*]", "*"; 
 };
 
 

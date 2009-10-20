@@ -410,7 +410,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // Get a handle to the stat service if we got one
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE, this);
-    }
+        }
 
     @Override
     public String[] getProperties() {
@@ -1096,6 +1096,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         exit(state);
         return ret;
     }
+
+    private ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
 
     /**
      * Finds a the n most similar items to the given item.
