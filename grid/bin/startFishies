@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+#
+# Start all of the glassfish servers that we need.
+
+export DIR=`dirname $0`
+
+${DIR}/startGF -n www 
+${DIR}/startGF -n sjg
+${DIR}/startGF -n shawshankr
+${DIR}/startLBGF -n music -b 1 -c 5 -l music
+${DIR}/startLBGF -n fb -b 1 -c 3 -l fb
+${DIR}/startGF -n fb-dev
+

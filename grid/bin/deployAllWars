@@ -7,6 +7,8 @@ done
 
 ./deployWarGF -n www -p / -w ../../MainSite/dist/MainSite.war
 
-./deployGFLBWar -n music -p /api -w ../../SitmWebServices/dist/SitmWebServices.war
-./deployGFLBWar -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war
+./deployWarLBGF -n music -p /api -w ../../SitmWebServices/dist/SitmWebServices.war
+./deployWarLBGF -n music -p / -w ../../WebMusicExplaura/dist/WebMusicExplaura.war
+./deployWarLBGF -n fb -b 1 -c 3 \
+    -p / -w ../../FacebookMusicExplaura/dist/FacebookMusicExplaura.war
 

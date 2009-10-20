@@ -50,7 +50,7 @@
         </iiop-listener>
       </iiop-service>
       <admin-service system-jmx-connector-name="system" type="das-and-server">
-        <jmx-connector port="20000" address="0.0.0.0" security-enabled="false" name="system" auth-realm-name="admin-realm" />
+        <jmx-connector port="8686" address="0.0.0.0" security-enabled="false" name="system" auth-realm-name="admin-realm" />
         <das-config dynamic-reload-enabled="true" autodeploy-dir="${com.sun.aas.instanceRoot}/autodeploy" autodeploy-enabled="true" />
         <property name="adminConsoleContextRoot" value="/admin" />
         <property name="adminConsoleDownloadLocation" value="${com.sun.aas.installRoot}/lib/install/applications/admingui.war" />

@@ -76,7 +76,7 @@ public abstract class SITM extends ServiceAdapter {
             "-DcacheDir=" + GridUtil.cacheFSMntPnt,
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/music/resource/artistCrawlerConfig.xml",
+            "/com/sun/labs/aura/music/resource/artistCrawler20KConfig.xml",
             "starter",
             String.format("%s/sitm/artistCrawler.%%g.out", GridUtil.logFSMntPnt)
         };

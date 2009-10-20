@@ -28,12 +28,18 @@
 <config>
     
     <property name="auraInstance" value="live"/>
-    <property name="collectorPrefix" value="00"/>
+    <property name="collectorPrefix" value="0000"/>
     
     <!-- <property name="logLevel" value="FINER"/> -->
     
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
+        <property name="defaultNumReplicants" value="16"/>
+    </component>
+
+    <component name="startAuraCopy" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="replicantConfig" value="/com/sun/labs/aura/resource/replicantCopyConfig.xml"/>
         <property name="defaultNumReplicants" value="16"/>
     </component>
 
@@ -116,6 +122,13 @@
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-copy" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startAuraCopy</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>
