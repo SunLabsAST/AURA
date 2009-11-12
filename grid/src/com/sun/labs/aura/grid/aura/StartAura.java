@@ -33,7 +33,9 @@ import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -47,12 +49,10 @@ public class StartAura extends Aura {
 
     @ConfigInteger(defaultValue=4)
     public static final String PROP_NUM_HEADS = "numHeads";
-
     private int numHeads;
 
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_COMBINED_REPLICANT = "combinedReplicant";
-
     private boolean combinedReplicant;
 
     public String serviceName() {
@@ -108,7 +108,7 @@ public class StartAura extends Aura {
         ProcessRegistration lastReg = null;
         if(combinedReplicant) {
             //
-            // Start the combinde replicant/clusters for each prefix
+            // Start the combined replicant/clusters for each prefix
             for(String prefix : repFSMap.keySet()) {
                 ProcessRegistration repReg;
                 repReg = gu.createProcess(getReplicantName(
@@ -120,12 +120,13 @@ public class StartAura extends Aura {
         } else {
             //
             // Now, start partition clusters for each prefix
-            for(String prefix : repFSMap.keySet()) {
+            Set<String> prefixes = getPrefixes(repFSMap.keySet());
+            for(String prefix : prefixes) {
                 ProcessRegistration pcReg =
                         gu.createProcess(getPartitionName(
                         prefix),
-                        debugRMI ? getPartitionClusterDebugConfig(prefix) :
-                             getPartitionClusterConfig(prefix));
+                        getPartitionClusterConfig(prefix, true, null,
+                                                  isReplicated(), debugRMI));
                 gu.startRegistration(pcReg, false);
                 lastReg = pcReg;
             }
@@ -134,21 +135,25 @@ public class StartAura extends Aura {
                 lastReg.waitForStateChange(1000000L);
             }
 
-            //
-            // Start the replicants for each prefix
-            for(String prefix : repFSMap.keySet()) {
-                ProcessRegistration repReg;
-                if(debugRMI) {
-                    repReg = gu.createProcess(getReplicantName(
-                            prefix), getDebugReplicantConfig(replicantConfig,
-                            prefix));
-                } else {
-                    repReg = gu.createProcess(getReplicantName(
-                            prefix), getReplicantConfig(replicantConfig,
-                            prefix));
+            if (!isReplicated()) {
+                //
+                // Start the replicants for each prefix
+                for(String prefix : prefixes) {
+                    ProcessRegistration repReg;
+                        repReg = gu.createProcess(getReplicantName(prefix),
+                                            getReplicantConfig(replicantConfig,
+                                                               debugRMI,
+                                                               prefix));
+                    gu.startRegistration(repReg, false);
+                    lastReg = repReg;
                 }
-                gu.startRegistration(repReg, false);
-                lastReg = repReg;
+            } else {
+                //
+                // Start groups of replicants for each prefix
+                for (String prefix : prefixes) {
+                    lastReg = createReplicantGroupProcesses(
+                            replicantConfig, debugRMI, prefix);
+                }
             }
         }
 
@@ -171,7 +176,7 @@ public class StartAura extends Aura {
             
             ProcessRegistration pcReg = gu.createProcess( getPartitionName(
                     prefix),
-                    getPartitionClusterConfig(prefix, false, owner));
+                    getPartitionClusterConfig(prefix, false, owner, false, false));
             gu.startRegistration(pcReg, false);
             lastReg = pcReg;
         }
@@ -183,9 +188,11 @@ public class StartAura extends Aura {
         //
         // Start the replicants for each prefix in the owned map
         for(String prefix : ownedFSMap.keySet()) {
-            ProcessRegistration repReg = gu.createProcess( getReplicantName(
-                    prefix), getReplicantConfig(replicantConfig,
-                    prefix));
+            ProcessRegistration repReg = gu.createProcess(
+                                    getReplicantName(prefix),
+                                    getReplicantConfig(replicantConfig,
+                                                       debugRMI,
+                                                       prefix));
             gu.startRegistration(repReg, false);
             lastReg = repReg;
         }
@@ -202,13 +209,19 @@ public class StartAura extends Aura {
         debugRMI = ps.getBoolean(PROP_DEBUG_RMI);
         numHeads = ps.getInt(PROP_NUM_HEADS);
         combinedReplicant = ps.getBoolean(PROP_COMBINED_REPLICANT);
+
+        if (isReplicated() && combinedReplicant) {
+            throw new PropertyException(ps.getInstanceName(), PROP_REPLICATED,
+                    "CombinedReplicant isn't supported in HA mode");
+        }
+
     }
     
     public void start() {
         try {
             if(repFSMap.size() == 0) {
                 //
-                // If there's no file systems, then create them!
+                // Make one filesystem per partition
                 createReplicantFileSystems();
             }
             createLoginSvcFileSystem(instance);
@@ -219,5 +232,26 @@ public class StartAura extends Aura {
     }
 
     public void stop() {
+    }
+
+    /**
+     * Gets a set of prefixes from the idStrings passed in.  The input is
+     * in the form of prefix:nodeName, so this gets the unique prefixes.  This
+     * method also allows just a set of prefixes to be passed in.
+     *
+     * @param idStrings a set of prefix:nodeName strings
+     * @return a set of prefixes
+     */
+    public static Set<String> getPrefixes(Set<String> idStrings) {
+        Set<String> prefixes = new HashSet<String>();
+        for (String idStr : idStrings) {
+            if (idStr.contains(":")) {
+                String prefix = idStr.substring(0, idStr.indexOf(':'));
+                prefixes.add(prefix);
+            } else {
+                prefixes.add(idStr);
+            }
+        }
+        return prefixes;
     }
 }

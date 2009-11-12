@@ -42,7 +42,7 @@
     <property name="prefix" value="01"/>
     
     <property name="dataFS" value="${auraHome}/${prefix}"/>
-    
+
     <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
         <propertylist name="entries">
             <item>${prefix}</item>

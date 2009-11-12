@@ -36,6 +36,15 @@
         <property name="defaultNumReplicants" value="16"/>
     </component>
 
+    <component name="startReplicatedAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numHeads" value="1"/>
+        <property name="defaultNumReplicants" value="2"/>
+        <property name="replicated" value="true"/>
+        <property name="replicantConfig" value="/com/sun/labs/aura/resource/replicantHAConfig.xml"/>
+        <property name="groupSize" value="3"/>
+    </component>
+
     <component name="startComboAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="combinedReplicant" value="true"/>
@@ -108,6 +117,13 @@
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-replicated" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startReplicatedAura</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

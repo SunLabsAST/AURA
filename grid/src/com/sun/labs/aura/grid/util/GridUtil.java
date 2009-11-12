@@ -130,7 +130,7 @@ public class GridUtil {
             String type,
             String[] cmdLine,
             String logName) throws Exception {
-        return getProcessConfig(type, cmdLine, logName, null, false);
+        return getProcessConfig(type, cmdLine, logName, null, false, false);
     }
 
     /**
@@ -142,7 +142,7 @@ public class GridUtil {
     public ProcessConfiguration getProcessConfig(
             String[] cmdLine,
             String logName) throws Exception {
-        return getProcessConfig(null, cmdLine, logName, null, false);
+        return getProcessConfig(null, cmdLine, logName, null, false, false);
     }
 
     /**
@@ -158,7 +158,7 @@ public class GridUtil {
             String[] cmdLine,
             String logName,
             Collection<FileSystemMountParameters> extraMounts) throws Exception {
-        return getProcessConfig(type, cmdLine, logName, extraMounts, false);
+        return getProcessConfig(type, cmdLine, logName, extraMounts, false, false);
     }
 
     /**
@@ -169,16 +169,22 @@ public class GridUtil {
      * @param extraMounts extra mount points to give to the process configuration.
      * @param appendOutput if <code>true</code>, then append output to the existing
      * output files.
+     * @param logtoRoot whether logs should go into a subdirectory, or the root
+     * of the log filesystem
      * @return a process configuration.
      */
     public ProcessConfiguration getProcessConfig(
             String type, String[] cmdLine,
             String logName,
             Collection<FileSystemMountParameters> extraMounts,
-            boolean appendOutput) throws Exception {
+            boolean appendOutput, boolean logToRoot) throws Exception {
         ProcessConfiguration pc = new ProcessConfiguration();
-        pc.setSystemSinks(String.format("%s/other/%s.out", logFSMntPnt,
-                logName), appendOutput);
+        String logFileFmt = "%s/other/%s.out";
+        if (logToRoot) {
+            logFileFmt = "%s/%s.out";
+        }
+        pc.setSystemSinks(String.format(logFileFmt, logFSMntPnt, logName),
+                          appendOutput);
 
         //
         // Every body will get dist, log and cache filesystems.
@@ -364,7 +370,7 @@ public class GridUtil {
             throws Exception {
         long finish = timeout + System.currentTimeMillis();
         int n = 0;
-        log.info(String.format("Watiing for %d registrations", stopped.size()));
+        log.info(String.format("Waiting for %d registrations", stopped.size()));
         while(stopped.size() > 0) {
             ProcessRegistration reg = stopped.poll();
 
@@ -551,6 +557,15 @@ public class GridUtil {
     }
 
     /**
+     * Returns the internal hostname for a particular host (including instance)
+     * @param hostName
+     * @return
+     */
+    public String getInternalHostName(String hostName) {
+        return instance + "-" + hostName;
+    }
+
+    /**
      * Get an address for a given hostname.  The hostname should be based
      * on the process name.  The address is allocated and a host name binding
      * is created for it.
@@ -564,7 +579,7 @@ public class GridUtil {
         // virtual service
         HostNameZone hnZone = grid.getInternalHostNameZone();
         NetworkAddress internalAddress = null;
-        hostName = instance + "-" + hostName;
+        hostName = getInternalHostName(hostName);
         try {
             internalAddress =
                     network.allocateAddress(hostName);

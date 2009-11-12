@@ -28,6 +28,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
@@ -53,6 +54,8 @@ public class RewriteBDB {
             destination = new BerkeleyDataWrapper(destDBEnv, logger);
         } catch (DatabaseException e) {
             logger.log(Level.SEVERE, "Unable to open DBs", e);
+        } catch (AuraException e) {
+            logger.log(Level.SEVERE, "Unable to open DBs", e);
         }
     }
 
@@ -61,9 +64,9 @@ public class RewriteBDB {
         // Migrate all items
         logger.info("Migrating items");
         long itemCnt = 0;
-        DBIterator<ItemImpl> items = source.getItemIterator();
+        DBIterator<Item> items = source.getAllIterator(null);
         while (items.hasNext()) {
-            destination.putItem(items.next());
+            destination.putItem((ItemImpl)items.next());
             itemCnt++;
         }
         items.close();

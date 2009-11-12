@@ -51,7 +51,12 @@ public class RepPanel extends FlowPanel {
         super();
         this.rep = rep;
         setStylePrimaryName("viz-repPanel");
-        add(new Label("Replicant"));
+        String idStr = rep.getIdString();
+        String nodeName = "";
+        if (idStr.contains(":")) {
+            nodeName = idStr.substring(idStr.indexOf(':') + 1, idStr.length());
+        }
+        add(new Label("Replicant " + nodeName));
         long dbSize = rep.getDBSize();
         dbSize /= 1024 * 1024;
         add(new StyleLabel("DB Size:  " + dbSize + "MB",
@@ -105,13 +110,13 @@ public class RepPanel extends FlowPanel {
             Widget w = details.getWidget(i);
             if (w instanceof TimerPanel) {
                 TimerPanel t = (TimerPanel)w;
-                if (t.getName().equals("rep" + rep.getPrefix())) {
+                if (t.getName().equals("rep" + rep.getIdString())) {
                     return;
                 }
             }
         }
         
-        TimerPanel repStatsPanel = new TimerPanel("rep" + rep.getPrefix(), 15) {
+        TimerPanel repStatsPanel = new TimerPanel("rep" + rep.getIdString(), 15) {
             public void redraw() {
                 VizServiceAsync service = GWTMainEntryPoint.getVizService();
                 final AsyncCallback callback = new AsyncCallback() {
@@ -125,12 +130,12 @@ public class RepPanel extends FlowPanel {
                         VizUI.alert("Communication failed: " + caught.getMessage());
                     }
                 };
-                service.getRepStats(rep.getPrefix(), callback);
+                service.getRepStats(rep.getIdString(), callback);
             }
             
             public void displayStats(RepStats stats) {
                 clear();
-                add(new Label("Stats for Replicant " + rep.getPrefix()));
+                add(new Label("Stats for Replicant " + rep.getIdString()));
                 add(new StyleLabel("Refreshes every 15 seconds", "viz-subText"));
                 
                 //
@@ -163,8 +168,8 @@ public class RepPanel extends FlowPanel {
                 FlowPanel contents = new FlowPanel();
                 resetConfirm.setWidget(contents);
                 contents.add(new Label("Really reset all stats for replicant " +
-                        rep.getPrefix() + "?"));
-                Button resetButton = new Button("Reset " + rep.getPrefix());
+                        rep.getIdString() + "?"));
+                Button resetButton = new Button("Reset " + rep.getIdString());
                 resetButton.addClickListener(new ClickListener() {
                     public void onClick(Widget w) {
                         resetConfirm.hide();
@@ -212,7 +217,7 @@ public class RepPanel extends FlowPanel {
             }
         };
         if (toUpdate != null) {
-            service.resetRepStats(rep.getPrefix(), callback);
+            service.resetRepStats(rep.getIdString(), callback);
         } else {
             service.resetRepStats(null, callback);
         }
@@ -229,7 +234,7 @@ public class RepPanel extends FlowPanel {
                 VizUI.alert("Communication failed: " + caught.getMessage());
             }
         };
-        service.getLogLevel(rep.getPrefix(), callback);
+        service.getLogLevel(rep.getIdString(), callback);
     }
 
     public void doLogDialog2(final String logLevel) {
@@ -251,13 +256,13 @@ public class RepPanel extends FlowPanel {
         VizServiceAsync service = GWTMainEntryPoint.getVizService();
         final AsyncCallback callback = new AsyncCallback() {
             public void onSuccess(Object result) {
-                new RepLogDialog(rep.getPrefix(), allNames, (List<String>)result, currLogLevel).show();
+                new RepLogDialog(rep.getIdString(), allNames, (List<String>)result, currLogLevel).show();
             }
 
             public void onFailure(Throwable caught) {
                 VizUI.alert("Communication failed: " + caught.getMessage());
             }
         };
-        service.getRepSelectedLogNames(rep.getPrefix(), callback);
+        service.getRepSelectedLogNames(rep.getIdString(), callback);
     }
 }

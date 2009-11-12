@@ -155,7 +155,12 @@ public class ServiceDeployer {
         }
 
         ProcessConfiguration processConfig =
-                getGridUtil().getProcessConfig(getClass().getName(), cmd, starter, mountParams);
+                getGridUtil().getProcessConfig(getClass().getName(),
+                                               cmd,
+                                               starter,
+                                               mountParams,
+                                               false,
+                                               true);
         processConfig.setProcessExitAction(ProcessExitAction.DESTROY);
 
         Network network = getGridUtil().getNetwork();

@@ -33,6 +33,7 @@ public class RepInfo implements Serializable {
     protected long dbSize = 0;
     protected long indexSize = 0;
     protected String prefix;
+    protected String idString;
     
     public RepInfo() {
     }
@@ -59,5 +60,13 @@ public class RepInfo implements Serializable {
     
     public void setPrefix(String prefix) {
         this.prefix = prefix;
+    }
+
+    public String getIdString() {
+        return idString;
+    }
+
+    public void setIdString(String idString) {
+        this.idString = idString;
     }
 }

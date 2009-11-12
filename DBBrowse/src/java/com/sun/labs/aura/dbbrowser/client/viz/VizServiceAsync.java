@@ -39,9 +39,9 @@ public interface VizServiceAsync {
 
     public void getPCInfo(AsyncCallback asyncCallback);
     
-    public void getRepStats(String prefix, AsyncCallback asyncCallback);
+    public void getRepStats(String idStr, AsyncCallback asyncCallback);
     
-    public void resetRepStats(String prefix, AsyncCallback asyncCallback);
+    public void resetRepStats(String idStr, AsyncCallback asyncCallback);
 
     public void getCPULoads(AsyncCallback asyncCallback);
 
@@ -49,13 +49,13 @@ public interface VizServiceAsync {
 
     public void getRepLogNames(AsyncCallback asyncCallback);
 
-    public void getRepSelectedLogNames(String prefix, AsyncCallback asyncCallback);
+    public void getRepSelectedLogNames(String idStr, AsyncCallback asyncCallback);
 
-    public void setRepSelectedLogNames(String prefix, List<String> selected, AsyncCallback asyncCallback);
+    public void setRepSelectedLogNames(String idStr, List<String> selected, AsyncCallback asyncCallback);
 
-    public void getLogLevel(String prefix, AsyncCallback asyncCallback);
+    public void getLogLevel(String idStr, AsyncCallback asyncCallback);
 
-    public void setLogLevel(String prefix, String level, AsyncCallback asyncCallback);
+    public void setLogLevel(String idStr, String level, AsyncCallback asyncCallback);
 
     public void haltPC(PCInfo pc, AsyncCallback asyncCallback);
     

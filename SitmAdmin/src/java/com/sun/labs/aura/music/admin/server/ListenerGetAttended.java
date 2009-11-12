@@ -64,7 +64,7 @@ public class ListenerGetAttended extends Worker {
         }
 
         if (fromAttention) {
-            List<Scored<String>> sids = mdb.getAllArtistsAsIDs(key);
+            List<Scored<String>> sids = mdb.getAllArtistsAsIDsWithIterator(key);
 
 
             long count = 0L;
@@ -75,7 +75,7 @@ public class ListenerGetAttended extends Worker {
             }
             result.output("Total: " + count + " Uniques:" + sids.size());
         } else {
-            List<Tag> ltags = listener.getFavoriteArtist();
+            /*List<Tag> ltags = listener.getFavoriteArtist();
             long count = 0L;
             for (Tag tag : ltags) {
                 Artist artist = mdb.artistLookup(tag.getName());
@@ -83,6 +83,8 @@ public class ListenerGetAttended extends Worker {
                 count += tag.getCount();
             }
             result.output("Total: " + count + " Uniques:" + ltags.size());
+             * */
+            result.output("Didn't run");
         }
     }
 }

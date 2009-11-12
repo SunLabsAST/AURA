@@ -26,6 +26,7 @@ package com.sun.labs.aura.util;
 
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.BinaryTrie;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
@@ -108,11 +109,11 @@ public class DBSplitter {
         // of the children.  Start with the items, then do the attention
         StopWatch sw = new StopWatch();
         sw.start();
-        DBIterator<ItemImpl> itemIt = bdbRoot.getItemIterator();
+        DBIterator<Item> itemIt = bdbRoot.getAllIterator(null);
         System.out.print("About to transfer " + bdbRoot.getItemCount(null) +
                 " items........");
         while(itemIt.hasNext()) {
-            ItemImpl item = itemIt.next();
+            ItemImpl item = (ItemImpl)itemIt.next();
             BerkeleyDataWrapper target =
                     trie.get(DSBitSet.parse(item.hashCode()));
             target.putItem(item);

@@ -24,7 +24,6 @@
 
 package com.sun.labs.aura.dbbrowser.client.viz;
 
-import com.google.gwt.i18n.client.NumberFormat;
 import com.sun.labs.aura.dbbrowser.client.*;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -35,6 +34,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,16 @@ public class PCPanel extends HorizontalPanel {
         
         replicants = new VerticalPanel();
         add(replicants);
+        //
+        // Sort the replicants in order of their IdStrings
         List reps = pc.getRepInfos();
+        Comparator<RepInfo> cmp = new Comparator<RepInfo>() {
+            @Override
+            public int compare(RepInfo o1, RepInfo o2) {
+                return o1.getIdString().compareTo(o2.getIdString());
+            }
+        };
+        Collections.sort(reps, cmp);
         for (Iterator it = reps.iterator(); it.hasNext();) {
             RepInfo rep = (RepInfo)it.next();
             repPanel = new RepPanel(rep);

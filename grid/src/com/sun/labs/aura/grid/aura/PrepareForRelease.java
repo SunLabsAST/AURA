@@ -84,7 +84,16 @@ public class PrepareForRelease extends Aura {
                 if(md == null) {
                     md = new HashMap<String, String>();
                 }
-                md.put("prefix", e.getKey());
+                String key = e.getKey();
+                //
+                // For HA, the key is prefix:nodeName
+                if (key.contains(":")) {
+                    String[] parts = key.split(":", 2);
+                    md.put("prefix", parts[0]);
+                    md.put("nodeName", parts[1]);
+                } else {
+                    md.put("prefix", e.getKey());
+                }
                 sfsc.setMetadata(md);
                 sfs.changeConfiguration(sfsc);
             }
