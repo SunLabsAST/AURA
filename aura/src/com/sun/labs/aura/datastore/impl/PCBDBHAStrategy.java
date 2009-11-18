@@ -26,6 +26,7 @@ package com.sun.labs.aura.datastore.impl;
 
 import com.sleepycat.je.rep.NodeType;
 import com.sleepycat.je.rep.ReplicationConfig;
+import com.sleepycat.je.rep.ReplicationGroup;
 import com.sleepycat.je.rep.ReplicationNode;
 import com.sleepycat.je.rep.monitor.GroupChangeEvent;
 import com.sleepycat.je.rep.monitor.Monitor;
@@ -94,7 +95,7 @@ public class PCBDBHAStrategy implements PCStrategy, MonitorChangeListener {
     /**
      * The descriptive data for each replicant in "replicants".
      */
-    protected HashMap<Replicant,RepHAInfo> repInfoMap;
+    protected final HashMap<Replicant,RepHAInfo> repInfoMap;
 
     /**
      * The intended group size for this group
@@ -155,10 +156,39 @@ public class PCBDBHAStrategy implements PCStrategy, MonitorChangeListener {
                              String repGroupName,
                              String repName,
                              String helperHostStr) throws AuraException {
-        RepHAInfo info = new RepHAInfo(repGroupName, repName, helperHostStr);
-        repInfoMap.put(replicant, info);
-        replicants.add(replicant);
-        if (replicants.size() == groupSize) {
+        //
+        // Check for duplicate and replace (in case we got a restart in here)
+        logger.info("Adding replicant " + repName);
+        synchronized (repInfoMap) {
+            RepHAInfo info = new RepHAInfo(repGroupName, repName, helperHostStr);
+            Replicant oldRep = null;
+            for (Map.Entry<Replicant,RepHAInfo> infoEntry : repInfoMap.entrySet()) {
+                if (infoEntry.getValue().equals(info)) {
+                    //
+                    // We think we already have this replicant, so replace the
+                    // handle we have with the new one.  Since this may be a new
+                    // instance of the replicant, make sure we use the old
+                    // reference to the replicant to take it out of our collections
+                    oldRep = infoEntry.getKey();
+                    logger.warning("Found existing replicant named " + repName +
+                            ", will replace.");
+                }
+            }
+            if (oldRep != null) {
+                repInfoMap.remove(oldRep);
+                replicants.remove(oldRep);
+            }
+
+            //
+            // Now add the replicant as usual
+            repInfoMap.put(replicant, info);
+            replicants.add(replicant);
+        }
+
+        //
+        // If we haven't already set up monitoring and we're now a complete
+        // group, we should start monitoring it.
+        if (replicants.size() == groupSize && monitor == null) {
             //
             // We're up to the right number of replicants.  We're ready to
             // go!  First, assemble the listener sockets for the whole group
@@ -263,6 +293,36 @@ public class PCBDBHAStrategy implements PCStrategy, MonitorChangeListener {
         // This could be a way to handle restarting replicants, but I suspect
         // the grid process manager and the configuration system will do fine
         // for this.
+
+        //
+        // Meanwhile, if we lost a replicant, we should make sure to keep
+        // tabs on that and update our group list.  If we added a node, we
+        // take care of that one ourselves via addReplication
+        ReplicationGroup newGrp = evt.getRepGroup();
+
+        //
+        // If we lost a node, we'll have a node in our list that we think is
+        // there but that actually isn't.  We can't use the Replicant handle
+        // at all since in all likelihood, it has died.  NOTE: This code
+        // needs to be moved/refactored once we get a version of BDB that
+        // will actually send a notification when a node as gone offline.
+        synchronized (repInfoMap) {
+            ArrayList<Replicant> rem = new ArrayList<Replicant>();
+            for (Map.Entry<Replicant, RepHAInfo> repInfoEnt : repInfoMap.entrySet()) {
+                RepHAInfo repInfo = repInfoEnt.getValue();
+                ReplicationNode member = newGrp.getMember(repInfo.getNodeName());
+                if (member == null) {
+                    rem.add(repInfoEnt.getKey());
+                    logger.warning("Lost replicant " + repInfo.getNodeName() +
+                            ", removing from partition cluster");
+                }
+            }
+
+            for (Replicant rep : rem) {
+                replicants.remove(rep);
+                repInfoMap.remove(rep);
+            }
+        }
     }
 
     @Override
@@ -1623,6 +1683,19 @@ public class PCBDBHAStrategy implements PCStrategy, MonitorChangeListener {
 
         public String getNodeHostPort() {
             return nodeHostPort;
+        }
+
+        public boolean equals(Object other) {
+            if (!(other instanceof RepHAInfo)) {
+                return false;
+            }
+            RepHAInfo o = (RepHAInfo)other;
+            if (o.getGroupName().equals(groupName) &&
+                    o.getNodeHostPort().equals(nodeHostPort) &&
+                    o.getNodeName().equals(nodeName)) {
+                return true;
+            }
+            return false;
         }
     }
 
