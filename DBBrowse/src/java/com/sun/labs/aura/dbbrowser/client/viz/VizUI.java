@@ -287,8 +287,7 @@ public class VizUI extends DockPanel {
         for (Map.Entry<String,PCPanel> pc : prefixToPCPanel.entrySet()) {
             Double load = loads.get("part-" + pc.getKey());
             pc.getValue().setCPULoad(load);
-            load = loads.get("replicant-" + pc.getKey());
-            pc.getValue().setRepCPULoad(load);
+            pc.getValue().setRepCPULoads(loads);
         }
     }
 

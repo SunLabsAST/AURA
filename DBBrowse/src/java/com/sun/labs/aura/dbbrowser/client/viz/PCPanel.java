@@ -36,6 +36,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class PCPanel extends HorizontalPanel {
     
     protected Panel cpuLoad = null;
 
-    protected RepPanel repPanel;
+    protected Map<String,RepPanel> repPanelMap;
 
     public PCPanel(PCInfo pc) {
         super();
@@ -98,11 +99,13 @@ public class PCPanel extends HorizontalPanel {
                 return o1.getIdString().compareTo(o2.getIdString());
             }
         };
+        repPanelMap = new HashMap<String,RepPanel>();
         Collections.sort(reps, cmp);
         for (Iterator it = reps.iterator(); it.hasNext();) {
             RepInfo rep = (RepInfo)it.next();
-            repPanel = new RepPanel(rep);
-            replicants.add(repPanel);
+            RepPanel curr = new RepPanel(rep);
+            repPanelMap.put(rep.getIdString(), curr);
+            replicants.add(curr);
         }
     }
     
@@ -119,8 +122,12 @@ public class PCPanel extends HorizontalPanel {
         myself.insert(cpuLoad, index);
     }
 
-    public void setRepCPULoad(double load) {
-        repPanel.setCPULoad(load);
+    public void setRepCPULoads(Map<String,Double> loads) {
+        for (String idStr : repPanelMap.keySet()) {
+            RepPanel panel = repPanelMap.get(idStr);
+            Double val = loads.get("replicant-" + idStr);
+            panel.setCPULoad(val);
+        }
     }
     
     protected void doHalt() {
