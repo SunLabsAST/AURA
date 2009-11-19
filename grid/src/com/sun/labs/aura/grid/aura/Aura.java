@@ -72,7 +72,7 @@ public abstract class Aura extends ServiceAdapter {
     @ConfigInteger(defaultValue=16)
     public static final String PROP_DEFAULT_NUM_REPLICANTS = "defaultNumReplicants";
 
-    private int defaultNumReplicants;
+    protected int defaultNumReplicants;
 
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_REPLICATED = "replicated";

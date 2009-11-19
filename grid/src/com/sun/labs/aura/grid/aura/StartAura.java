@@ -219,7 +219,11 @@ public class StartAura extends Aura {
     
     public void start() {
         try {
-            if(repFSMap.size() == 0) {
+            int totalReps = defaultNumReplicants;
+            if (isReplicated()) {
+                totalReps *= getGroupSize();
+            }
+            if(repFSMap.size() != totalReps) {
                 //
                 // Make one filesystem per partition
                 createReplicantFileSystems();

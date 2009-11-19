@@ -27,7 +27,7 @@
 
 <config>
 
-    <property name="filesystem" value="j1-replicant-0:A"/>
+    <property name="filesystem" value="live-aura.dist"/>
 
     <component name="metaData" type="com.sun.labs.aura.grid.util.FSMetaData">
         <property name="onGrid" value="false"/>

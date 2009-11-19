@@ -30,6 +30,7 @@
     <property name="auraInstance" value="live"/>
     <property name="newInstance" value="devel"/>
     <property name="nBits" value="4"/>
+    <property name="convertForHA" value="false"/>
     
     <!-- <property name="logLevel" value="FINER"/> -->
     
@@ -39,6 +40,7 @@
         <property name="nBits" value="${nBits}"/>
         <property name="newInstance" value="${newInstance}"/>
         <property name="onGrid" value="false"/>
+        <property name="convertForHA" value="${convertForHA}"/>
     </component>
 
     <component name="start" type="com.sun.labs.aura.AuraServiceStarter">

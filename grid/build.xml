@@ -190,9 +190,6 @@
             <fileset dir="../aura/dist">
                 <include name="aura.jar"/>
             </fileset>
-            <fileset dir="../aardvark/dist">
-                <include name="aardvark.jar"/>
-            </fileset>
             <fileset dir="../sitm/dist">
                 <include name="sitm.jar"/>
             </fileset>

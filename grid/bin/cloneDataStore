@@ -1,11 +1,11 @@
 #!/bin/bash
 
 function usage {
-    echo 'Usage: cloneDataStore -h [-i instance name] -n [new instance name] -b [prefix bits]'
-    echo ' instance name defaults to live, prefix bits to 4'
+    echo 'Usage: cloneDataStore -h [-i instance name] -n [new instance name] -b [prefix bits] -c'
+    echo ' instance name defaults to live, prefix bits to 4, use -c to convert to HA'
 }
 
-args=`getopt hi:n:b: $*`
+args=`getopt hci:n:b: $*`
 
 if [ $? != 0 ]
 then
@@ -19,6 +19,7 @@ DIR=`dirname $0`
 
 export INSTANCE="live"
 export BITS=4
+export CONVERT="false"
 
 
 for i 
@@ -37,6 +38,9 @@ do
 	-n)
 	    NEW_INSTANCE=$2; shift;
 	    shift;;
+        -c)
+            CONVERT="true";
+            shift;;
     esac
 done
 
@@ -51,7 +55,7 @@ CPD=$DIR/../..
 export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
 java -cp $CP \
     -DauraInstance=$INSTANCE -DnewInstance=${NEW_INSTANCE} \
-    -DnBits=${BITS} \
+    -DnBits=${BITS} -DconvertForHA=${CONVERT}\
     com.sun.labs.aura.AuraServiceStarter \
     /com/sun/labs/aura/grid/aura/cloneConfig.xml start
 

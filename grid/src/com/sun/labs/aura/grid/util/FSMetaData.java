@@ -69,7 +69,7 @@ public class FSMetaData extends ServiceAdapter {
         
         BaseFileSystemConfiguration fsc = fs.getConfiguration();
         Map<String,String> md = fsc.getMetadata();
-
+        System.out.println("Filesystem " + fsName + " has " + md.size() + " entries");
         for (Entry<String,String> e : md.entrySet()) {
             System.out.println(String.format("%20s %20s", e.getKey(), e.getValue()));
         }
