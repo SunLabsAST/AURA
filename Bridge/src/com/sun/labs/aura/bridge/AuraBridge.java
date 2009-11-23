@@ -37,10 +37,14 @@ import com.sun.labs.aura.datastore.ItemListener;
 import com.sun.labs.aura.datastore.SimilarityConfig;
 import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
+import com.sun.labs.aura.music.ArtistTagRaw;
+import com.sun.labs.aura.recommender.TypeFilter;
 import com.sun.labs.aura.util.AuraException;
+import com.sun.labs.aura.util.Counted;
 import com.sun.labs.aura.util.ItemAdapter;
 import com.sun.labs.aura.util.RemoteComponentManager;
 import com.sun.labs.aura.util.Scored;
+import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurationManager;
@@ -111,10 +115,6 @@ public class AuraBridge implements Configurable, ItemStore {
 
     public MusicDBBridge getMdb() {
         return mdb;
-    }
-
-    public List<Scored<Item>> findSimilar(String key, SimilarityConfig config) throws AuraException, RemoteException {
-        return getDataStore().findSimilar(key, config);
     }
 
     @Override
@@ -257,6 +257,16 @@ public class AuraBridge implements Configurable, ItemStore {
         return getDataStore().getItemCount(itemType);
     }
 
+    public List<FieldFrequency> getTopValues(String field, int n,
+            boolean ignoreCase) throws AuraException, RemoteException {
+        return getDataStore().getTopValues(field, n, ignoreCase);
+    }
+
+    public List<Counted<String>> getTermCounts(String term, String field, int n, ItemType itemTypeFilter)
+            throws AuraException, RemoteException {
+        return getDataStore().getTermCounts(term, field, n, new TypeFilter(itemTypeFilter));
+    }
+
     @Override
     public List<String> getSupportedScriptLanguages() throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -265,6 +275,20 @@ public class AuraBridge implements Configurable, ItemStore {
     @Override
     public void close() throws AuraException, RemoteException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
+    public float getTagSimilarity(String key1, String key2) throws RemoteException, AuraException {
+        return getSimilarity(key1, key2, ArtistTagRaw.FIELD_TAGGED_ARTISTS);
+    }
+
+    public float getSimilarity(String key1, String key2, String field) throws RemoteException, AuraException {
+        return getDataStore().getSimilarity(key1, key2, field);
+    }
+
+    public List<Scored<String>> explainSimilarity(String key1, String key2,
+            String field, int n) throws AuraException, RemoteException {
+        return getDataStore().explainSimilarity(key1, key2, new SimilarityConfig(field, n));
     }
 
 

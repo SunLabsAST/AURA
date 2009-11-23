@@ -63,7 +63,7 @@ public class Commander {
     private boolean trace;
     private boolean traceSends;
     private boolean log;
-    private Long lastCommandTime = new Long(0L);
+    private final SLong lastCommandTime = new SLong();
     private long minimumCommandPeriod = 0L;
     private static ThreadLocal<DocumentBuilder> builder = new ThreadLocal<DocumentBuilder>() {
         @Override
@@ -83,7 +83,7 @@ public class Commander {
     private int tryCount = 5;
     private final int DEFAULT_TIMEOUT = 60 * 1000;
 
-    private ExpiringLRUCache cache;
+    private final ExpiringLRUCache cache;
     private boolean useCache;
     private final int CACHE_SIZE = 500;
     private final int CACHE_SECS2LIVE = 60 * 60;
@@ -116,9 +116,8 @@ public class Commander {
         setTimeout(DEFAULT_TIMEOUT);
 
         this.useCache = useCache;
-        if (useCache) {
-            cache = new ExpiringLRUCache(CACHE_SIZE, CACHE_SECS2LIVE);
-        }
+        cache = new ExpiringLRUCache(CACHE_SIZE, CACHE_SECS2LIVE);
+
     }
 
     public void setSynchronizeSendCommand(boolean sync) {
@@ -202,14 +201,20 @@ public class Commander {
     public InputStream sendCommandRaw(String command) throws IOException {
         if (synchronizeSendCommand) {
             synchronized (lastCommandTime) {
-                long curGap = System.currentTimeMillis() - lastCommandTime;
-                long delayTime = minimumCommandPeriod - curGap;
-                delay(delayTime);
+                try {
+                    long curGap = System.currentTimeMillis() - lastCommandTime.getVal();
+                    long delayTime = minimumCommandPeriod - curGap;
+                    delay(delayTime);
 
-                InputStream is = doSendCommandRaw(command);
-                lastCommandTime = System.currentTimeMillis();
+                    InputStream is = doSendCommandRaw(command);
 
-                return is;
+                    return is;
+                    
+                } finally {
+                    // Make sure we set the new lastCommandTime even if we
+                    // are throwing an exception
+                    lastCommandTime.setVal(System.currentTimeMillis());
+                }
             }
         } else {
             return doSendCommandRaw(command);
@@ -359,7 +364,20 @@ public class Commander {
         this.timeout = timeout;
     }
 
+    private class SLong {
+        
+        long longVal;
 
+        public void setVal(long newVal) {
+            longVal = newVal;
+        }
+
+        public long getVal() {
+            return longVal;
+        }
+    }
+
+    
     public static void main(String[] args) throws IOException, AuraException {
 
         Commander commander = new Commander("last.fm2", "http://ws.audioscrobbler.com/2.0/", "&api_key="+new LastFM2Impl().getAPIKey(), true);

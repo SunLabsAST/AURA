@@ -22,15 +22,21 @@
  # information or have any questions.
  #####
 
-import jpype as J
 import os
+import sys
 import warnings
-
+import jpype as J
+import pyaura
 
 DEFAULT_GRID_REGHOST="172.16.136.2"
 
 
-def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..", "dist"), 
+def _get_default_prefix():
+    pyaura_folder = sys.__dict__["modules"]["pyaura"].__file__[:-20]
+    return os.path.join(pyaura_folder, "dist")
+
+
+def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=_get_default_prefix(),
                 max_heap="2G", regHost=DEFAULT_GRID_REGHOST):
 
     cP = os.path.join(classpath_prefix, "Bridge.jar")
@@ -39,11 +45,14 @@ def init_jvm(jvm_path=J.getDefaultJVMPath(), classpath_prefix=os.path.join("..",
                         "-DregHost="+regHost, "-Djava.class.path="+cP)
 
 
-
-
 ####################################
 #        Utility functions         #
 ####################################
+
+
+def dict_sort_byVal(d, reverse=False) :
+    return sorted(d.items(), key=lambda (k,v): (v,k), reverse=reverse)
+
 
 def _lst_to_jarraylist(l):
     aL = J.java.util.ArrayList()
@@ -91,6 +100,10 @@ def j2py(elem, max_depth=None):
 
     elif isinstance(elem, J.JClass("com.sun.labs.aura.util.Scored")):
         return PyScored( j2py(elem.getScore(), max_depth), j2py(elem.getItem(), max_depth) )
+
+    elif isinstance(elem, J.JClass("com.sun.labs.minion.FieldFrequency")):
+        # Convert FieldFrequency into PyScored because they are essentially the same
+        return PyScored( elem.getFreq(), j2py(elem.getVal(), max_depth) )
 
     elif isinstance(elem, J.JClass("com.sun.labs.aura.datastore.impl.store.persist.ItemImpl")):
 
@@ -172,7 +185,7 @@ class PyScored():
     def __repr__(self) :
 
         name = None
-        if isinstance(self.item, str):
+        if isinstance(self.item, str) or isinstance(self.item, unicode):
             name = self.item
         elif str(type(self.item)).startswith("com.sun.labs.aura.music") and \
                 str(type(self.item))[24:] in ["Album", "Artist", "Track", "Listener"]:

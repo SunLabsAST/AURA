@@ -76,9 +76,10 @@ public class MusicSearchInterfaceImpl extends RemoteServiceServlet
     @Override
     public void init(ServletConfig sc) throws WebException {
         try {
-            logger.info("Init");
             super.init(sc);
-            dm = ServletTools.getDataManager(sc);
+            logger.info("Init MSII");
+            dm = (DataManager) sc.getServletContext().getAttribute("DataManager");
+            logger.info(String.format("dm: %s", dm));
         } catch (ServletException sE) {
             logger.severe("ServletException :: "+WebLib.traceToString(sE));
             throw new WebException(WebException.errorMessages.INIT_ERROR);

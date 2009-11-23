@@ -185,7 +185,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 threadPool.submit(updater);
             }
 
-            {
+            if (crawlAlbumAndTracks) {
                 Runnable updater = new Runnable() {
 
                     // this thread keeps all of our albums
@@ -209,7 +209,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 threadPool.submit(updater);
             }
 
-            {
+            if (crawlAlbumAndTracks) {
                 Runnable updater = new Runnable() {
 
                     // this thread keeps all of our albums
@@ -276,6 +276,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             maxArtists = ps.getInt(PROP_MAX_ARTISTS);
             crawlAlbumBlurbs = ps.getBoolean(PROP_CRAWL_ALBUM_BLURBS);
             maxBlurbPages = ps.getInt(PROP_MAX_BLURB_PAGES);
+            crawlAlbumAndTracks = ps.getBoolean(PROP_CRAWL_ALBUM_AND_TRACKS);
             crawlEchoNestReviewsBlogs = ps.getBoolean(PROP_CRAWL_ECHONEST_REVIEWSBLOGS);
             util = new Util(flickr, youtube);
             tagFilter = new TagFilter();
@@ -1118,7 +1119,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             if (pages <= 1) {
                 pages = 1;
             }
-            String mbrid = mbalbum.getId();
+            String mbrid = mbalbum.getMbid();
             Item albumItem = getDataStore().getItem(mbrid);
             Album album = null;
             if (albumItem == null) {
@@ -1606,6 +1607,9 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
     @ConfigInteger(defaultValue = 100000)
     public final static String PROP_MAX_ARTISTS = "maxArtists";
     private int maxArtists;
+    @ConfigBoolean(defaultValue = true)
+    public final static String PROP_CRAWL_ALBUM_AND_TRACKS = "crawlAlbumAndTracks";
+    private boolean crawlAlbumAndTracks;
     @ConfigBoolean(defaultValue = true)
     public final static String PROP_CRAWL_ALBUM_BLURBS = "crawlAlbumBlurbs";
     private boolean crawlAlbumBlurbs;

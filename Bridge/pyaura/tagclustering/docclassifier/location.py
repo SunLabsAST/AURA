@@ -1,3 +1,4 @@
+
  ######
  # Copyright 2007-2009 Sun Microsystems, Inc. All Rights Reserved.
  # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
@@ -23,30 +24,4 @@
  #####
 
 
-import jpype as J
-from lib import *
-
-
-# Auto start the jvm if it's not running
-if J.isJVMStarted()==0:
-    print "Starting the JVM with default params..."
-    init_jvm()
-
-
-
-def get_keyset(splitNbr, prefix=""):
-    fnct = lambda x: x.readKeySplit(prefix, splitNbr)
-    return _get_simdata(fnct)
-
-
-def get_tag_sim(splitNbr, prefix="",):
-    fnct = lambda x: x.readMapSplit(prefix, splitNbr)
-    return _get_simdata(fnct)
-
-
-def _get_simdata(fnct):
-    tagClustClass = J.JClass("com.sun.labs.aura.grid.sitm.TagClusterer")
-    print "Loading java object..."
-    jobj = fnct(tagClustClass)
-    print "Converting to python native..."
-    return j2py( jobj )
+ 

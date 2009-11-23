@@ -57,12 +57,13 @@
     <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler" export="true">
         <property name="dataStore" value="dataStoreHead"/>
         <property name="crawlerController" value="crawlerController"/>
-        <property name="maxArtists" value="30000"/>
+        <property name="maxArtists" value="20000"/>
         <property name="crawlerStateDir" value="${cacheDir}/artist_crawler.state"/>
         <property name="logLevel" value="INFO"/>
         <property name="updateRateInSeconds" value="604800"/>
+        <property name="crawlAlbumAndTracks" value="false"/>
         <property name="crawlAlbumBlurbs" value="false"/>
-        <property name="crawlEchoNestReviewsBlogs" value="true" />
+        <property name="crawlEchoNestReviewsBlogs" value="false" />
     </component>
 
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">

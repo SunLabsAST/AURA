@@ -37,6 +37,7 @@ import com.sun.labs.minion.FieldInfo;
 import com.sun.labs.minion.FieldValue;
 import com.sun.labs.minion.IndexableString;
 import com.sun.labs.minion.Posting;
+import com.sun.labs.minion.QueryStats;
 import com.sun.labs.minion.Result;
 import com.sun.labs.minion.ResultSet;
 import com.sun.labs.minion.ResultsFilter;
@@ -62,7 +63,6 @@ import com.sun.labs.minion.retrieval.FieldEvaluator;
 import com.sun.labs.minion.retrieval.ResultAccessorImpl;
 import com.sun.labs.minion.retrieval.ResultImpl;
 import com.sun.labs.minion.retrieval.ResultSetImpl;
-import com.sun.labs.minion.util.DirCopier;
 import com.sun.labs.minion.util.FileLockException;
 import com.sun.labs.minion.util.NanoWatch;
 import com.sun.labs.minion.util.Util;
@@ -208,22 +208,18 @@ public class ItemSearchEngine implements Configurable {
             if(copyLocation.equals("")) {
                 copyLocation = System.getProperty("java.io.tmpdir");
             }
-            String tds = String.format("%s%sreplicant-%s%sitemIndex.idx",
-                                       copyLocation,
-                                       File.separator,
-                                       ps.getString(PROP_PREFIX),
-                                       File.separator);
-            File td = new File(tds);
+            File td = new File(new File(new File(copyLocation), String.format("replicant-%s",
+                    ps.getString(PROP_PREFIX))), "itemIndex.idx");
             if(!td.mkdirs()) {
                 throw new PropertyException(ps.getInstanceName(),
                                             PROP_COPY_DIR,
                                             "Unable to make temporary directory for search index");
             }
             try {
-                logger.info("Copying search index into temp dir");
+                logger.info(String.format("Copying search index from %s into temp dir %s", indexDir, td));
                 FileUtil.dirCopier(new File(indexDir), td);
-                logger.info("Copying completed");
-                indexDir = tds;
+                indexDir = td.toString();
+                logger.info(String.format("Copying completed, indexDir: %s", indexDir));
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(),
                                             PROP_COPY_DIR,
@@ -630,19 +626,21 @@ public class ItemSearchEngine implements Configurable {
         return ret;
     }
 
-    public List<Counted<String>> getTermCounts(String term, String field, int n, ResultsFilter rf)
+    public List<Counted<String>> getTermCounts(String term, String field, int n,
+                                               ResultsFilter rf)
             throws AuraException, RemoteException {
         FieldInfo fi = engine.getFieldInfo(field);
         if(fi == null) {
             return new ArrayList<Counted<String>>();
         }
         PostingsIteratorFeatures feat = new PostingsIteratorFeatures();
-        feat.setFields(((SearchEngineImpl) engine).getPM().getMetaFile().getFieldArray(field));
+        feat.setFields(((SearchEngineImpl) engine).getPM().getMetaFile().
+                getFieldArray(field));
         List<Counted<String>> ret = new ArrayList<Counted<String>>();
 
         ResultAccessorImpl ri = null;
         if(rf != null) {
-            ri= new ResultAccessorImpl();
+            ri = new ResultAccessorImpl();
         }
         for(DiskPartition p : ((SearchEngineImpl) engine).getPM().
                 getActivePartitions()) {
@@ -935,6 +933,8 @@ public class ItemSearchEngine implements Configurable {
             // Stop listening for things and shut down the engine.
             shuttingDown = true;
             logger.log(Level.INFO, "Shutting down search engine");
+            System.err.format("Query Stats:\n%s\n",
+                              engine.getQueryStats().dump());
             engine.close();
         } catch(SearchEngineException ex) {
             logger.log(Level.WARNING, "Error closing index data engine", ex);
@@ -1017,7 +1017,7 @@ public class ItemSearchEngine implements Configurable {
      * Whether we should delete our index directory at startup.
      * Use with caution, eh?
      */
-    @ConfigBoolean(defaultValue=false)
+    @ConfigBoolean(defaultValue = false)
     public static final String PROP_DELETE_INDEX = "deleteIndex";
 
     /**

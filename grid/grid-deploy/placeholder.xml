@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+ * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+ * 
+ * This code is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2
+ * only, as published by the Free Software Foundation.
+ * 
+ * This code is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License version 2 for more details (a copy is
+ * included in the LICENSE file that accompanied this code).
+ * 
+ * You should have received a copy of the GNU General Public License
+ * version 2 along with this work; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ * 
+ * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
+ * Park, CA 94025 or visit www.sun.com if you need additional
+ * information or have any questions.
+ */
+-->
+
+<project name="placeholder" basedir="." default="create-service"
+	 xmlns:dav="antlib:org.apache.webdav.ant"
+	 xmlns:caroline="antlib:com.sun.caroline.tools.carolant">
+
+    <condition property="deployment.name" value="placeholder">
+        <not>
+            <isset property="deployment.name"/>
+        </not>
+    </condition>
+
+  <!-- Where the libraries are -->
+    <property name="tool.libraries" value="../../ToolLibraries"/>
+
+  <!-- Declare the Caroline tasks -->
+    <taskdef resource="com/sun/caroline/tools/carolant/antlib.xml"
+	   uri="antlib:com.sun.caroline.tools.carolant">
+        <classpath>
+            <pathelement location="${tool.libraries}/carolant.jar"/>
+            <pathelement location="${tool.libraries}/caroline.jar"/>
+        </classpath>
+    </taskdef>
+  
+  <!-- Declare the Caroline Ant tasks -->
+    <taskdef resource="org/apache/webdav/ant/antlib.xml" uri="antlib:org.apache.webdav.ant">
+        <classpath>
+            <pathelement location="${tool.libraries}/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/jakarta-slide-webdavlib-2.2pre1.jar"/>
+            <pathelement location="${tool.libraries}/commons-httpclient.jar"/>
+            <pathelement location="${tool.libraries}/commons-logging.jar"/>
+            <pathelement location="${tool.libraries}/jdom-1.0.jar"/>
+        </classpath>
+    </taskdef>
+  
+    <loadproperties srcfile="${user.home}${file.separator}.caroline">
+        <filterchain>
+            <prefixlines prefix="grid."/>
+        </filterchain>
+    </loadproperties>
+
+  <!-- create a grid adapter instance to retrieve a reference the grid -->
+    <caroline:grid/>
+
+  <!-- use implicit properties set by the grid adapter above-->    
+    <property name="user" value="${com.sun.caroline.customerID}"/>
+    <property name="pw" value="${com.sun.caroline.password}"/>
+    <property name="grid.url" value="${com.sun.caroline.gridURL}"/>
+    <property name="dav.url" value="${com.sun.caroline.gridURL}/${user}"/>
+  
+  <!-- Where the Ant libraries are -->
+    <property name="ant.lib" value="${tool.libraries}/ant-lib"/>
+  
+  <!-- properties to hold resource names -->
+    <property name="network" value="${grid.instance}-auraNet"/>
+    <property name="dist.filesystem" value="${grid.instance}-aura.dist"/>
+    <property name="log.filesystem" value="${grid.instance}-aura.logs"/>
+    <property name="data.filesystem" value="${grid.instance}-replicant-0000"/>
+    <property name="web.url" value="${dav.url}/${dist.filesystem}/web/"/>
+    <property name="packages.filesystem" value="sys.packages"/>
+
+    <property name="intaddress" value="${deployment.name}.intaddress"/>
+    <property name="service.process" value="${deployment.name}.svc"/>
+    <property name="extaddress" value="${deployment.name}.extaddress"/>
+    <property name="extbinding" value="${deployment.name}.extbinding"/>
+    <property name="intbinding" value="${deployment.name}.intbinding"/>
+    <property name="staticnat" value="${deployment.name}.staticnat"/>
+    <property name="exthost" value="${deployment.name}"/>
+
+    <target name="create-network"
+	  description="creates a network if it doesn't exist">
+        <caroline:network name="${network}" op="create" hosts="512"/>
+    </target>
+
+    <target name="create-intaddress"
+	  description="creates an internal addresses if not already present"
+	  depends="create-network">
+        <caroline:intaddress name="${intaddress}" op="create" networkname="${network}"/>
+    </target>
+
+    <target name="create-intbinding" depends="create-intaddress"
+	  description="creates an internal binding if it doesn't exist">
+        <caroline:intbinding name="${intbinding}" op="create"
+			 hostname="${service.process}">
+            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
+        </caroline:intbinding>
+    </target>
+
+    <target name="create-extaddress"
+	  description="creates an external address if it doesn't exist">      
+        <caroline:extaddress name="${extaddress}" op="create"/>
+    </target>
+  
+    <target name="create-extbinding" depends="create-extaddress"
+	  description="creates an external binding if it doesn't exist">      
+        <caroline:extbinding name="${extbinding}" op="create"
+			 hostname="${exthost}">
+            <caroline:extaddress name="${extaddress}"/>
+        </caroline:extbinding>
+    </target>
+  
+    <target name="create-staticnat"
+	  description="creates a static nat if one doesn't exist"
+	  depends="create-extaddress, create-intaddress">      
+        <caroline:staticnat name="${staticnat}" op="create">
+            <caroline:extaddress name="${extaddress}"/>
+            <caroline:intaddress
+	  name="${intaddress}" 
+	  networkname="${network}"/>
+        </caroline:staticnat>
+    </target>
+  
+    <target name="create-service"
+	  description="creates a service process if one doesn't exist"
+	  depends="create-intbinding,create-staticnat,create-extbinding">
+    
+        <caroline:process name="${service.process}"
+		      op="create" workingdir="/files/auraDist" 
+		      homedir="/files/auraDist" runtime="PERL">                
+            <caroline:filesystem name="${dist.filesystem}" mountpoint="auraDist"/>
+            <caroline:filesystem name="${log.filesystem}" mountpoint="auraLogs"/>
+            <caroline:filesystem name="${data.filesystem}" mountpoint="data"/>
+            <caroline:filesystem name="music-1.filesystem" mountpoint="m1"/>
+            <caroline:filesystem name="music-2.filesystem" mountpoint="m2"/>
+            <caroline:filesystem name="music-3.filesystem" mountpoint="m3"/>
+            <caroline:filesystem name="music-4.filesystem" mountpoint="m4"/>
+            <caroline:filesystem name="music-5.filesystem" mountpoint="m5"/>
+            <caroline:filesystem name="www.filesystem" mountpoint="www"/>
+            <caroline:intaddress name="${intaddress}" networkname="${network}"/>
+            <arg value="/files/auraDist/bin/sleeper.pl"/>
+        </caroline:process>
+    </target>
+
+    <target name="destroy-intaddress"
+	  description="destroys internal addresses if they exists"
+	  depends="destroy-service,destroy-intbinding">
+        <caroline:intaddress name="${intaddress}" op="delete" networkname="${network}"/>
+    </target>
+
+    <target name="destroy-intbinding"
+	  description="Destroys an internal binding if it doesn't exist">
+        <caroline:intbinding name="${intbinding}" op="delete"  hostname="${service.process}"/>
+    </target>
+  
+    <target name="destroy-staticnat"
+	  description="destroys static nat if one exists">
+        <caroline:staticnat name="${staticnat}" op="delete"/>
+    </target>
+
+    <target name="destroy-extbinding"
+	  description="destroys external binding if one exists">
+        <caroline:extbinding name="${extbinding}" op="delete"/>
+    </target>
+  
+    <target name="destroy-extaddress"
+	  description="Destroys external address if one exists"
+	  depends="destroy-staticnat,destroy-extbinding">
+        <caroline:extaddress name="${extaddress}" op="delete" />
+    </target>
+
+    <target name="destroy-service"
+            description="destroy placeholder service">
+        <caroline:process op="delete" name="${service.process}"/>
+    </target>
+ 
+  
+    <target name="cleanup"
+	  depends="destroy-staticnat,destroy-intaddress,destroy-extbinding,destroy-extaddress"/>
+
+</project>

@@ -401,6 +401,29 @@ public class ShellUtils {
                     }
                 });
 
+        shell.add("user",
+                new CommandInterface() {
+
+                    public String execute(CommandInterpreter ci, String[] args) {
+                        try {
+                            if(args.length == 1) {
+                                return getHelp();
+                            }
+
+                            User user = dataStore.getUser(args[1]);
+                            dumpUser(user);
+                        } catch(Exception ex) {
+                            shell.getOutput().println("Error " + ex);
+                            ex.printStackTrace();
+                        }
+                        return "";
+                    }
+
+                    public String getHelp() {
+                        return "usage: item <key> gets an item and prints the data map";
+                    }
+                });
+
         shell.add("delItem",
                 new CommandInterface() {
 
@@ -985,6 +1008,7 @@ public class ShellUtils {
 
     public void dumpUser(User user) throws AuraException, RemoteException {
         dumpItem(user);
+        shell.getOutput().printf("random string: %s\n", user.getUserRandString());
     }
 
     public void dumpItem(Item item) {

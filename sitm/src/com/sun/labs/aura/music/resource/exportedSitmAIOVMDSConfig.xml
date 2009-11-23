@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+ * Copyright 2005-2009 Sun Microsystems, Inc. All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+ *
+ * This code is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2
+ * only, as published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License version 2 for more details (a copy is
+ * included in the LICENSE file that accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License
+ * version 2 along with this work; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ *
+ * Please contact Sun Microsystems, Inc., 16 Network Circle, Menlo
+ * Park, CA 94025 or visit www.sun.com if you need additional
+ * information or have any questions.
+ */
+-->
+
+<config>
+    <!-- Where the aura data lives -->
+    <property name="auraHome" value="/aura/sitm/db"/>
+    <property name="cacheDir" value="${auraHome}/cache"/>
+    <property name="auraDistDir" value="${auraHome}/dist"/>
+    <property name="auraPolicy" value="${auraDistDir}/jsk-all.policy"/>
+    <property name="auraGroup" value="AuraSitm"/>
+
+    <!-- Where the aura distribution jar was unpacked. -->
+
+    <property name="csPort" value="9995"/>
+    <property name="logLevel" value="WARNING"/>
+
+    <!-- A component registry that will be used to lookup and register components. -->
+    <component name="registry" type="com.sun.labs.util.props.ComponentRegistry">
+        <propertylist name="groupList">
+            <item>${auraGroup}</item>
+        </propertylist>
+        <property name="csDirs" value="${auraDistDir}/lib"/>
+        <property name="csPort" value="${csPort}"/>
+        <propertylist name="codebaseJars">
+            <item>aura.jar</item>
+            <item>minion.jar</item>
+            <item>slcut.jar</item>
+        </propertylist>
+        <property name="securityPolicy" value="${auraPolicy}"/>
+    </component>
+
+    <component name="dataStoreHead" type="com.sun.labs.aura.datastore.impl.store.BerkeleyDataStore" export="true">
+        <property name="logLevel" value="INFO"/>
+        <property name="itemStore" value="itemStore"/>
+    </component>
+
+    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ManualProcessManager" export="true" import="false"/>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true">
+        <property name="prefix" value="0"/>
+        <propertylist name="dataStoreHeads">
+            <item>dataStoreHead</item>
+        </propertylist>
+        <property name="logLevel" value="INFO"/>
+        <property name="processManager" value="processManager"/>
+    </component>
+
+    <!-- The configuration for a partition cluster. -->
+    <component name="itemStore" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true">
+        <property name="prefix" value="0"/>
+        <property name="dbEnv" value="${auraHome}/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine"/>
+        <property name="partitionCluster" value="partitionCluster"/>
+        <property name="register" value="false"/>
+        <property name="statService" value="statService"/>
+        <property name="cacheSizeMemPercentage" value="30"/>
+        <property name="logLevel" value="INFO"/>
+    </component>
+
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="prefix" value="0"/>
+        <property name="indexDir" value="${auraHome}/itemIndex.idx"/>
+        <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
+        <property name="flushInterval" value="300000"/>
+        <property name="logLevel" value="INFO"/>
+    </component>
+
+    <component name="statService" type="com.sun.labs.aura.service.StatServiceImpl" export="true"/>
+
+   <component name="crawlerController" type="com.sun.labs.aura.music.crawler.CrawlerControllerImpl" export="true">
+   </component>
+
+    <component name="artistCrawler" type="com.sun.labs.aura.music.crawler.ArtistCrawler" export="true">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
+        <property name="crawlerStateDir" value="${auraHome}/db/artist_crawler.state"/>
+        <property name="logLevel" value="INFO"/>
+        <property name="maxArtists" value="200"/>
+        <property name="crawlAlbumAndTracks" value="true"/>
+        <!--<property name="updateRateInSeconds" value="604800"/> -->
+        <property name="updateRateInSeconds" value="1000"/>
+        <property name="crawlAlbumBlurbs" value="false"/>
+        <property name="crawlEchoNestReviewsBlogs" value="true" />
+    </component>
+
+    <component name="tagCrawler" type="com.sun.labs.aura.music.crawler.TagCrawler">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
+        <property name="logLevel" value="INFO"/>
+        <!-- once a week: 7 * 24 * 60 * 60 == 604800 -->
+        <property name="updateRateInSeconds" value="86400"/>
+        <property name="forceCrawl" value="false"/>
+    </component>
+
+    <component name="listenerCrawler" type="com.sun.labs.aura.music.crawler.ListenerCrawler">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="crawlerController" value="crawlerController"/>
+        <property name="artistCrawler" value="artistCrawler"/>
+        <property name="crawlerStateDir" value="${auraHome}/db/listener_crawler.state"/>
+        <property name="enableListenerDiscovery" value="true" />
+        <property name="logLevel" value="WARNING"/>
+        <property name="nbrChartWeek" value="2" />
+        <property name="maxListeners" value="200" />
+        <property name="defaultPeriod" value="604800"/>
+    </component>
+
+    <component name="musicShell" type="com.sun.labs.aura.music.util.MusicShell">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="artistCrawler" value="artistCrawler"/>
+        <property name="tagCrawler" value="tagCrawler"/>
+        <property name="listenerCrawler" value="listenerCrawler"/>
+        <property name="statService" value="statService"/>
+    </component>
+
+
+  <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>processManager</item>
+            <item>statService</item>
+            <!-- <item>loginService</item> -->
+            <item>crawlerController</item>
+            <item>artistCrawler</item>
+            <item>tagCrawler</item>
+            <item>listenerCrawler</item>
+            <item>musicShell</item>
+        </propertylist>
+    </component>
+
+    <component name="ncstarter" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>dataStoreHead</item>
+            <item>processManager</item>
+            <item>statService</item>
+            <!-- <item>loginService</item> -->
+            <item>crawlerController</item>
+            <item>musicShell</item>
+        </propertylist>
+    </component>
+
+
+</config>

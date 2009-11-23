@@ -26,6 +26,8 @@
 -->
 
 <config>
+
+    <property name="deleteIndexDir" value="false"/>
     
     <!-- Where the aura data lives -->
     <property name="auraHome" value="/aura"/>
@@ -72,7 +74,7 @@
         <property name="itemSearchEngine" value="itemSearchEngine"/>
         <property name="partitionCluster" value="partitionCluster"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="INFO"/>
+        <property name="logLevel" value="FINE"/>
         <propertylist name="logMethods">
             <item>FIND_SIM</item>
             <item>GET_ITEMS</item>
@@ -84,6 +86,7 @@
     <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
         <property name="flushInterval" value="300000"/>
+        <property name="deleteIndex" value="${deleteIndexDir}"/>
     </component>
 
     <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>

@@ -82,7 +82,7 @@
         <property name="partitionCluster" value="partitionCluster0"/>
         <property name="cacheSizeMemPercentage" value="30"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     <!-- The configuration for a partition cluster. -->
@@ -93,7 +93,7 @@
         <property name="partitionCluster" value="partitionCluster1"/>
         <property name="cacheSizeMemPercentage" value="30"/>
         <property name="statService" value="statService"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
@@ -101,17 +101,17 @@
         <property name="indexDir" value="${auraHome}/db/0/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
         <!-- <property name="engineLogLevel" value="3"/> -->
-        <property name="flushInterval" value="300000"/>
-        <property name="logLevel" value="WARNING"/>
+        <property name="flushInterval" value="60000"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     <!-- The configuration for the search engine associated with this replicant -->
     <component name="itemSearchEngine1" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
         <property name="indexDir" value="${auraHome}/db/1/itemIndex.idx"/>
         <property name="engineConfigFile" value="itemSearchEngineConfig.xml"/>
-        <property name="flushInterval" value="300000"/>
+        <property name="flushInterval" value="60000"/>
         <!-- <property name="engineLogLevel" value="3"/> -->
-        <property name="logLevel" value="WARNING"/>
+        <property name="logLevel" value="INFO"/>
     </component>
     
     
@@ -166,6 +166,11 @@
         <property name="statService" value="statService"/>
     </component>
 
+    <component name="auraShell" type="com.sun.labs.aura.AuraShell">
+        <property name="dataStore" value="dataStoreHead"/>
+        <property name="statService" value="statService"/>
+        </component>
+
     <component name="starter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>dataStoreHead</item>
@@ -194,8 +199,7 @@
             <item>replicant1</item>
             <item>statService</item>
             <item>loginService</item>
-            <item>crawlerController</item>
-            <item>musicShell</item>
+            <item>auraShell</item>
         </propertylist>
     </component>
 

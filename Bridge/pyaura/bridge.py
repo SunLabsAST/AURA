@@ -24,7 +24,6 @@
 
 
 import jpype as J
-import os
 import lib as L
 from lib import j2py
 
@@ -32,14 +31,15 @@ from lib import j2py
 class AuraBridge():
     """
     This class serves as a bridge between python code and the Aura datastore by 
-    implementing the datastore and musicdb api.
+    implementing the datastore and musicdb APIs.
     """
 
     def __init__(self, jvm_path=J.getDefaultJVMPath(),
-                    classpath_prefix=os.path.join("..", "dist"),
+                    classpath_prefix=L._get_default_prefix(),
                     regHost=L.DEFAULT_GRID_REGHOST):
-    
-        L.init_jvm(jvm_path, classpath_prefix)
+
+        if J.isJVMStarted()==0:
+            L.init_jvm(jvm_path=jvm_path, classpath_prefix=classpath_prefix, regHost=regHost)
         
         AuraBridge = J.JClass("com.sun.labs.aura.bridge.AuraBridge")
         self._bridge = AuraBridge()
@@ -93,7 +93,7 @@ class AuraBridge():
         """Gets attentions created since timestamp, given an attention configuration"""
         L._assert_type_attn_config(attn_config)
         aL = self._bridge.getAttentionSince(attn_config, J.java.util.Date(timestamp))
-        return _jarraylist_to_lst(aL)
+        return j2py(aL)
 
 
     def get_attention_since_count(self, attn_config, timestamp):
@@ -120,14 +120,38 @@ class AuraBridge():
         self._bridge.deleteItem(key)
 
 
-    ######
-
-    def find_similar(self, key, field):
-
-        simconfig = J.JClass("com.sun.labs.aura.datastore.SimilarityConfig")(field)
-        return j2py( self._bridge.findSimilar(key, simconfig) )
+    def get_top_values(self, field, n=100, ignore_case=False):
+        """Gets the most frequent values for the named field"""
+        return j2py(self._bridge.getTopValues(field, n, ignore_case))
 
 
+    def get_term_counts(self, term, field, itemType, n=10):
+        """Gets the counts for a given term in a given field across all of the items in the collection"""
+        itemType = L._assert_type_itemtype(itemType)
+        return j2py(self._bridge.getTermCounts(term, field, n, itemType))
+
+
+    def explain_similarity(self, key1, key2, field, n=500):
+        """
+        Explains the similarity between two items.  The explaination consists of
+        the terms that the documents have in common, along with a score indicating
+        the importance of terms to the similarity.
+        """
+        return j2py(self._bridge.explainSimilarity(key1, key2, field, n))
+
+
+    def get_tag_similarity(self, key1, key2):
+        """
+        Get the similarity between two tags computed on their tagged artists field
+        """
+        return self._bridge.getTagSimilarity(key1, key2)
+
+
+    def get_similarity(self, key1, key2, field):
+        """
+        Get the similarity between two items on the given field
+        """
+        return self._bridge.getSimilarity(key1, key2, field)
 
 
     ####################################
@@ -151,13 +175,18 @@ class AuraBridge():
     def _iterator_loop(self, it_id):
         """Actual iterator loop used by all our iterators"""
         try:
-            go = True
-            while go:
-                nextVal = self._bridge.iteratorNext(it_id)
-                if not nextVal is None:
-                    yield j2py(nextVal)
-                else:
-                    go = False
+            while True:
+                try:
+                    nextVal = self._bridge.iteratorNext(it_id)
+                    if not nextVal is None:
+                        yield j2py(nextVal)
+                    else:
+                        break
+                except:
+                    #todo fix this to catch only the right exception
+                    print "Iterator end"
+                    break
+
         finally:
             self._bridge.iteratorClose(it_id)
 
@@ -191,3 +220,18 @@ class MusicDatabase():
         return j2py(sA)
 
 
+    def get_tags(self, taggable_item, tag_type="SOCIAL"):
+        """
+        Given a taggable item and a tag_type, returns its tags
+
+        Possible tag_type values : SOCIAL, SOCIAL_RAW, BIO, BLURB, AUTO, REVIEW_EN, BLOG_EN
+        """
+        tt = J.JClass("com.sun.labs.aura.music.TaggableItem$TagType").valueOf(tag_type)
+        return j2py( taggable_item.getTags(tt) )
+
+
+    def find_similar_rawtags(self, tagname, count=25):
+        """
+        
+        """
+        return j2py( self._bridge.getMdb().findSimilar("artist-tag-raw:"+tagname, count) )

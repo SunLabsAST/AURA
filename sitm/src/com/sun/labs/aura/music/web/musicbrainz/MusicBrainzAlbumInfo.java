@@ -52,11 +52,11 @@ public class MusicBrainzAlbumInfo {
         trackMap = new HashMap<Integer, MusicBrainzTrackInfo>();
     }
 
-    public String getId() {
+    public String getMbid() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setMbid(String id) {
         this.id = id;
     }
 
@@ -101,7 +101,7 @@ public class MusicBrainzAlbumInfo {
     }
 
     public void setReleaseDate(long rd) {
-        this.releaseDate = rd;
+        releaseDate = new Long(rd);
     }
 
     public void addArtistId(String artistId) {
@@ -117,9 +117,15 @@ public class MusicBrainzAlbumInfo {
         System.out.println("======" + title + " =========");
         System.out.println("id\t" + id);
         System.out.println("asin\t" + asin);
-        System.out.println("release\t" + new SimpleDateFormat("yyyy-MM-dd").format(new Date(releaseDate)));
+        if (releaseDate != null) {
+            System.out.println("release\t" + new SimpleDateFormat("yyyy-MM-dd").format(new Date(releaseDate)));
+        }
         for (String type : urlMap.keySet()) {
             System.out.println("url-" + type + "\t" + urlMap.get(type));
+        }
+        System.out.println("Artists:");
+        for (String aId : artistIds) {
+            System.out.println("  "+aId);
         }
         System.out.println("Tracks:");
         int trackNo = 1;

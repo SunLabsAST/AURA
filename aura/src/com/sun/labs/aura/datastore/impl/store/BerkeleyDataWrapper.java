@@ -334,6 +334,19 @@ public class BerkeleyDataWrapper {
             }
         }
 
+        //
+        // Same thing for users - make sure we have at least one user that
+        // has every field filled in before proceeding.
+        UserImpl badUser = UserImpl.INVALID_USER;
+        UserImpl storedUser = (UserImpl) getItem(badUser.getKey());
+        if (storedUser == null) {
+            try {
+                logger.fine("Storing the all-fields-filled user");
+                putItem(badUser);
+            } catch (AuraException e) {
+                logger.fine("Storing the all-fields-filled user failed!");
+            }
+        }
 
         //
         // Start evolving anything that needs evolving
@@ -747,6 +760,34 @@ public class BerkeleyDataWrapper {
 
         };
         return invokeCommand(cmd);
+    }
+
+    /**
+     * Puts a list of items into the entity store.  If an item already exists, it will
+     * be replaced.
+     *
+     * @param items the items to put in the store.
+     */
+    public void putItems(final List<ItemImpl> items) throws AuraException {
+        DBCommand<Void> cmd = new DBCommand<Void>() {
+            @Override
+            public Void run(Transaction txn) throws AuraException {
+                for(ItemImpl item : items) {
+                    itemByKey.putNoReturn(txn, item);
+                }
+                return null;
+            }
+
+            @Override
+            public String getDescription() {
+                if (items != null) {
+                    return "putItems(" + items.size() + " items)";
+                }
+                return "putItems{null)";
+            }
+
+        };
+        invokeCommand(cmd);
     }
 
     /**

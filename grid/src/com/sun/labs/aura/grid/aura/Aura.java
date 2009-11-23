@@ -32,6 +32,10 @@ import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
+import com.sun.caroline.platform.ResourceName;
+import com.sun.caroline.platform.RuntimeEnvironment;
+import com.sun.caroline.platform.SnapshotFileSystem;
+import com.sun.caroline.platform.SnapshotFileSystemConfiguration;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.DataStoreHead;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
@@ -46,6 +50,7 @@ import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -229,6 +234,36 @@ public abstract class Aura extends ServiceAdapter {
         }
     }
 
+    public void snapShotReplicants(String snapshotName) throws Exception {
+
+        //
+        // Snapshot the replicant file systems.
+        for(Map.Entry<String, FileSystem> e : repFSMap.entrySet()) {
+            BaseFileSystem bfs = (BaseFileSystem) e.getValue();
+            SnapshotFileSystem sfs = bfs.createSnapshot(ResourceName.getCSName(
+                    bfs.getName()) + "-" + snapshotName);
+            SnapshotFileSystemConfiguration sfsc =
+                    sfs.getConfiguration();
+            Map<String, String> md = sfsc.getMetadata();
+            if(md == null) {
+                md = new HashMap<String, String>();
+            }
+            String key = e.getKey();
+            //
+            // For HA, the key is prefix:nodeName
+            if (key.contains(":")) {
+                String[] parts = key.split(":", 2);
+                md.put("prefix", parts[0]);
+                md.put("nodeName", parts[1]);
+            } else {
+                md.put("prefix", e.getKey());
+            }
+            sfsc.setMetadata(md);
+            sfs.changeConfiguration(sfsc);
+        }
+        
+    }
+
     public String getDataStoreHeadName(int instanceNumber) {
         return "dsHead-" + instanceNumber;
     }
@@ -338,35 +373,29 @@ public abstract class Aura extends ServiceAdapter {
         return pc;
     }
     
-    protected ProcessConfiguration getTSRConfig(String prefix) throws Exception {
+    protected ProcessConfiguration getReplicantCollectConfig(String prefix) throws Exception {
         String[] cmdLine = new String[]{
-            "-Xmx3g",
-            "-DauraHome=" + GridUtil.auraDistMntPnt,
-            "-DauraGroup=" + instance + "-aura",
-            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
-            "/classifier/starting.idx",
-            "-Dprefix=" + prefix,
-            "-DdataFS=/files/data/" + prefix,
-            "-jar",
-            GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/util",
-            "replicantStarter",
-            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
+            GridUtil.auraDistMntPnt + "/bin/collectrep.pl",
+            instance + "-aura",
+            prefix
         };
 
-        List<FileSystemMountParameters> extraMounts =
-                Collections.singletonList(new FileSystemMountParameters(
+        List<FileSystemMountParameters> extraMounts = new ArrayList<FileSystemMountParameters>();
+        extraMounts.add(new FileSystemMountParameters(
                 repFSMap.get(prefix).getUUID(),
                 "data"));
         ProcessConfiguration pc = gu.getProcessConfig(
                 Replicant.class.getName(),
-                cmdLine, getReplicantName(
-                prefix), extraMounts);
+                cmdLine,
+                getReplicantName(prefix), extraMounts);
 
         // don't overlap with other replicants
+        pc.setRuntimeEnvironment(RuntimeEnvironment.PERL);
         pc.setLocationConstraint(
                 new ProcessRegistrationFilter.NameMatch(
                 Pattern.compile(instance + ".*-replicant-.*")));
+        pc.setHomeDirectory("/files/data");
+        pc.setWorkingDirectory("/files/data");
         Map<String, String> md = pc.getMetadata();
         md.put("prefix", prefix);
         md.put("monitor", "true");

@@ -27,6 +27,7 @@ package com.sun.labs.aura.grid.util;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.Grid;
 import com.sun.caroline.util.GridFinder;
+import java.util.Collection;
 
 /**
  *
@@ -36,8 +37,11 @@ public class DU {
     public static void main(String args[]) throws Exception {
         GridFinder gf = new GridFinder(null);
         Grid grid = gf.findGrid(0);
+        System.out.println(String.format("Got grid %s", grid));
         long total = 0;
-        for(FileSystem fs : grid.findAllFileSystems()) {
+        Collection<FileSystem> fses = grid.findAllFileSystems();
+        System.out.println(String.format("Found: %d file systems", fses.size()));
+        for(FileSystem fs : fses) {
             total += fs.getMetrics().getSpaceUsed();
         }
 

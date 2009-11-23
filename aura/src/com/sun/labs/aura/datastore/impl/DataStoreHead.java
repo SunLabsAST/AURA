@@ -44,7 +44,6 @@ import com.sun.labs.aura.util.ReverseScoredComparator;
 import com.sun.labs.aura.util.Scored;
 import com.sun.labs.aura.util.ScoredComparator;
 import com.sun.labs.aura.util.WordCloud;
-import com.sun.labs.minion.ClusterStatistics;
 import com.sun.labs.minion.DocumentVector;
 import com.sun.labs.minion.FieldFrequency;
 import com.sun.labs.minion.ResultsFilter;
@@ -103,7 +102,16 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     final private Set<String> allPrefixes = new HashSet<String>();
 
-    protected ExecutorService executor;
+    /**
+     * A map from prefixes to an exector service that will handle executing
+     * requests for that prefix.
+     */
+    private Map<PartitionCluster,ExecutorService> executors = new HashMap();
+
+    /**
+     * A pre-randomized list of orders in which to query the data store.
+     */
+    private List[] executionOrders;
 
     protected ConfigurationManager cm = null;
 
@@ -122,6 +130,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     private boolean parallelGet;
 
+    @ConfigInteger(defaultValue=40)
+    public static final String PROP_EXECUTOR_POOL_SIZE = "executorPoolSize";
+
+    private int executorPoolSize;
+
     /** A random number generator for picking partitions */
     protected Random random = new Random();
 
@@ -135,8 +148,6 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     private int parallelPause;
     
     public DataStoreHead() {
-        trie = new BinaryTrie<PartitionCluster>();
-        executor = Executors.newCachedThreadPool();
     }
 
     public void defineField(String fieldName)
@@ -160,13 +171,14 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // the sets.  No particular ordering is guaranteed so the merge is
         // simple.  First, set up the infrastructure to call all the clusters:
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Item>>> callers = new HashSet<Callable<List<Item>>>();
+        List<Future<List<Item>>> futures = new ArrayList();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller<List<Item>>(p) {
+            ExecutorService executor = executors.get(p);
+            futures.add(executor.submit(new PCCaller<List<Item>>(p) {
                 public List<Item> call() throws AuraException, RemoteException {
                     return pc.getAll(itemType);
                 }
-            });
+            }));
         }
 
         List<Item> ret = new ArrayList<Item>();
@@ -174,8 +186,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         //
         // Now issue the call and get the answers
         try {
-            List<Future<List<Item>>> results = executor.invokeAll(callers);
-            for (Future<List<Item>> future : results) {
+            for (Future<List<Item>> future : futures) {
                 ret.addAll(future.get());
             }
         } catch (InterruptedException e) {
@@ -196,22 +207,22 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // the sets.  No particular ordering is guaranteed so the merge is
         // simple.  First, set up the infrastructure to call all the clusters:
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<DBIterator<Item>>> callers = new HashSet<Callable<DBIterator<Item>>>();
-        for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller<DBIterator<Item>>(p) {
-                public DBIterator<Item> call() throws AuraException, RemoteException {
+        List<Future<DBIterator<Item>>> futures = new ArrayList();
+        for(PartitionCluster p : clusters) {
+            futures.add(executors.get(p).submit(new PCCaller<DBIterator<Item>>(p) {
+
+                public DBIterator<Item> call() throws AuraException,
+                        RemoteException {
                     return pc.getAllIterator(itemType);
                 }
-            });
+            }));
         }
 
         //
         // Try to run the whole thing and get a set of DBIterators out
         Set<DBIterator<Item>> iterators = new HashSet<DBIterator<Item>>();
         try {
-            List<Future<DBIterator<Item>>> results =
-                    executor.invokeAll(callers);
-            for (Future<DBIterator<Item>> future : results) {
+            for (Future<DBIterator<Item>> future : futures) {
                 iterators.add(future.get());
             }
         } catch (InterruptedException e) {
@@ -282,20 +293,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             
             if(parallelGet) {
                 
-                List<Callable<Collection<Item>>> callers = new ArrayList();
+                List<Future<Collection<Item>>> futures = new ArrayList();
                 //
                 // Run the gets in parallel
                 for(Map.Entry<PartitionCluster, List<String>> e : m.
                         entrySet()) {
-                    callers.add(new KeyCaller(e.getKey(), e.getValue()));
+                    futures.add(executors.get(e.getKey()).submit(new KeyCaller(e.getKey(), e.getValue())));
                 }
 
                 try {
-                    List<Future<Collection<Item>>> l = executor.invokeAll(
-                            callers);
                     ret = new ArrayList<Item>();
-                    for(Future<Collection<Item>> f : l) {
-                        ret.addAll(f.get());
+                    for(Future<Collection<Item>> future : futures) {
+                        ret.addAll(future.get());
                     }
                 } catch(InterruptedException ie) {
                     throw new AuraException("Interrupted while getting items",
@@ -317,11 +326,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
         nw.stop();
         if(logger.isLoggable(Level.FINE)) {
-            logger.fine(String.format("dsh T%s gIs for %d took %.3f key0: %s",
+            logger.fine(String.format("dsh T%s gIs for %d took %.3f",
                     Thread.currentThread().getId(),
                     keys.size(),
-                    nw.getTimeMillis(),
-                    keys.toArray()[0]));
+                    nw.getTimeMillis()));
         }
         return ret;
     }
@@ -358,7 +366,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
             if(parallelGet) {
                 
-                List<Callable<List<Scored<Item>>>> callers = new ArrayList();
+                List<Future<List<Scored<Item>>>> futures = new ArrayList();
                 int totalPause = 0;
                 //
                 // Run the gets in parallel
@@ -387,17 +395,15 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                             return ret;
                         }
                     };
+                    executors.get(e.getKey()).submit(caller);
                     caller.setPause(totalPause);
                     totalPause += parallelPause;
-                    callers.add(caller);
                 }
 
                 try {
-                    List<Future<List<Scored<Item>>>> l = executor.invokeAll(
-                            callers);
                     ret = new ArrayList<Scored<Item>>();
-                    for(Future<List<Scored<Item>>> f : l) {
-                        ret.addAll(f.get());
+                    for(Future<List<Scored<Item>>> future : futures) {
+                        ret.addAll(future.get());
                     }
                 } catch(InterruptedException ie) {
                     throw new AuraException("Interrupted while getting items",
@@ -503,21 +509,20 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Now tell everybody to delete the attention associated with that
         // key
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        Set<Future<Object>> futures = new HashSet();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public Object call() throws AuraException, RemoteException {
                     pc.removeAttention(itemKey);
                     return null;
                 }
-            });
+            }));
         }
 
         //
         // Run all the deletes
         try {
-            List<Future<Object>> results = executor.invokeAll(callers);
-            for (Future<Object> future: results) {
+            for (Future<Object> future: futures) {
                 future.get();
             }
         } catch (InterruptedException e) {
@@ -541,25 +546,23 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // an iterator across the whole thing.  First, create the callables
         // to do the job:
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<DBIterator<Item>>> callers =
-                new HashSet<Callable<DBIterator<Item>>>();
+        Set<Future<DBIterator<Item>>> futures =
+                new HashSet<Future<DBIterator<Item>>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
 
                 public DBIterator<Item> call()
                         throws AuraException, RemoteException {
                     return pc.getItemsAddedSince(type, timeStamp);
                 }
-            });
+            }));
         }
 
         //
         // Try to run the whole thing and get a set of DBIterators out
         Set<DBIterator<Item>> iterators = new HashSet<DBIterator<Item>>();
         try {
-            List<Future<DBIterator<Item>>> results =
-                    executor.invokeAll(callers);
-            for (Future<DBIterator<Item>> future : results) {
+            for (Future<DBIterator<Item>> future : futures) {
                 iterators.add(future.get());
             }
         } catch (InterruptedException e) {
@@ -624,18 +627,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Attention>>> callers =
-                new HashSet<Callable<List<Attention>>>();
+        Set<Future<List<Attention>>> futures =
+                new HashSet<Future<List<Attention>>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public List<Attention> call()
                         throws AuraException, RemoteException {
                     return pc.getAttention(ac);
                 }
-            });
+            }));
         }
 
-        return assembleAttentionList(executor, callers);
+        return assembleAttentionList(futures);
     }
 
     public DBIterator<Attention> getAttentionIterator(final AttentionConfig ac)
@@ -651,18 +654,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<DBIterator<Attention>>> callers =
-                new HashSet<Callable<DBIterator<Attention>>>();
+        Set<Future<DBIterator<Attention>>> futures =
+                new HashSet<Future<DBIterator<Attention>>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public DBIterator<Attention> call()
                         throws AuraException, RemoteException {
                     return pc.getAttentionIterator(ac);
                 }
-            });
+            }));
         }
 
-        return assembleAttentionIterator(executor, callers);
+        return assembleAttentionIterator(futures);
     }
 
     public Long getAttentionCount(final AttentionConfig ac)
@@ -671,22 +674,21 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
+        Set<Future<Long>> futures = new HashSet<Future<Long>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
 
                 public Long call() throws AuraException, RemoteException {
                     return pc.getAttentionCount(ac);
                 }
-            });
+            }));
         }
 
         //
         // Tally up the counts and return
         long count = 0;
         try {
-            List<Future<Long>> results = executor.invokeAll(callers);
-            for (Future<Long> future : results) {
+            for (Future<Long> future : futures) {
                 count += future.get();
             }
         } catch (InterruptedException e) {
@@ -704,13 +706,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         //
         // Call all the partitions to do their processing
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        Set<Future<Object>> futures = new HashSet<Future<Object>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                public Object call() throws AuraException, RemoteException {
                    return pc.processAttention(ac, script, language);
                }
-            });
+            }));
         }
 
         //
@@ -718,8 +720,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // collect method if there is one.
         List<Object> values = new ArrayList<Object>();
         try {
-            List<Future<Object>> results = executor.invokeAll(callers);
-            for (Future<Object> future : results) {
+            for (Future<Object> future : futures) {
                 values.add(future.get());
             }
         } catch (InterruptedException e) {
@@ -769,18 +770,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Attention>>> callers =
-                new HashSet<Callable<List<Attention>>>();
+        Set<Future<List<Attention>>> futures =
+                new HashSet<Future<List<Attention>>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public List<Attention> call()
                         throws AuraException, RemoteException {
                     return pc.getAttentionSince(ac, timeStamp);
                 }
-            });
+            }));
         }
 
-        return assembleAttentionList(executor, callers);
+        return assembleAttentionList(futures);
     }
 
     public DBIterator<Attention> getAttentionSinceIterator(
@@ -798,19 +799,19 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<DBIterator<Attention>>> callers =
-                new HashSet<Callable<DBIterator<Attention>>>();
+        Set<Future<DBIterator<Attention>>> futures =
+                new HashSet<Future<DBIterator<Attention>>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
 
                 public DBIterator<Attention> call()
                         throws AuraException, RemoteException {
                     return pc.getAttentionSinceIterator(ac, timeStamp);
                 }
-            });
+            }));
         }
 
-        return assembleAttentionIterator(executor, callers);
+        return assembleAttentionIterator(futures);
     }
 
     public Long getAttentionSinceCount(final AttentionConfig ac,
@@ -820,21 +821,20 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
+        Set<Future<Long>> futures = new HashSet<Future<Long>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public Long call() throws AuraException, RemoteException {
                     return pc.getAttentionSinceCount(ac, timeStamp);
                 }
-            });
+            }));
         }
 
         //
         // Tally up the counts and return
         long count = 0;
         try {
-            List<Future<Long>> results = executor.invokeAll(callers);
-            for (Future<Long> future : results) {
+            for (Future<Long> future : futures) {
                 count += future.get();
             }
         } catch (InterruptedException e) {
@@ -859,21 +859,19 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // Ask all the partitions to gather up their attention for this item.
         // Attentions are stored evenly across all partitions.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Attention>>> callers =
-                new HashSet<Callable<List<Attention>>>();
+        List<Future<List<Attention>>> futures =
+                new ArrayList<Future<List<Attention>>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public List<Attention> call()
                         throws AuraException, RemoteException {
                     return pc.getLastAttention(ac, count);
                 }
-            });
+            }));
         }
 
         try {
-            List<Future<List<Attention>>> results =
-                    executor.invokeAll(callers);
-            return sortAttention(results, count);
+            return sortAttention(futures, count);
         } catch (InterruptedException e) {
             throw new AuraException("Execution was interrupted", e);
         } catch (ExecutionException e) {
@@ -937,19 +935,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         // There isn't anything to return here, but we do want to make sure
         // that we didn't throw an exception, so we'll still use the Futures.
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        List<Future<Object>> futures = new ArrayList();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public Object call() throws AuraException, RemoteException {
                     pc.addItemListener(itemType, listener);
                     return null;
                 }
-            });
+            }));
         }
 
         try {
-            List<Future<Object>> results = executor.invokeAll(callers);
-            for (Future<Object> future : results) {
+            for (Future<Object> future : futures) {
                 //
                 // We call get, because that gives the executor a chance to
                 // throw an exception if there was one.
@@ -969,19 +966,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         //
         // Instruct all partition clusters to remove this listener
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+        List<Future<Object>> futures = new ArrayList<Future<Object>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public Object call() throws AuraException, RemoteException {
                     pc.removeItemListener(itemType, listener);
                     return null;
                 }
-            });
+            }));
         }
 
         try {
-            List<Future<Object>> results = executor.invokeAll(callers);
-            for (Future<Object> future : results) {
+            for (Future<Object> future : futures) {
                 //
                 // Call get to see if there were any exceptions thrown
                 future.get();
@@ -996,21 +992,20 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     public long getItemCount(final ItemType itemType)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<Long>> callers = new HashSet<Callable<Long>>();
+        List<Future<Long>> futures = new ArrayList<Future<Long>>();
         for (PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
                 public Long call() throws AuraException, RemoteException {
                     return pc.getItemCount(itemType);
                 }
-            });
+            }));
         }
 
         //
         // Tally up the counts and return
         long count = 0;
         try {
-            List<Future<Long>> results = executor.invokeAll(callers);
-            for (Future<Long> future : results) {
+            for (Future<Long> future : futures) {
                 count += future.get();
             }
         } catch (InterruptedException e) {
@@ -1032,18 +1027,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             final int n,
             final boolean ignoreCase) throws RemoteException, AuraException {
         Set<PartitionCluster> clusters = trie.getAll();
-        List<Callable<List<FieldFrequency>>> callers =
-                new ArrayList<Callable<List<FieldFrequency>>>();
+        List<Future<List<FieldFrequency>>> futures =
+                new ArrayList<Future<List<FieldFrequency>>>();
         //
         // Here's our list of callers to find similar.
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
 
                 public List<FieldFrequency> call()
                         throws AuraException, RemoteException {
                     return pc.getTopValues(field, n, ignoreCase);
                 }
-            });
+            }));
         }
 
         //
@@ -1051,7 +1046,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         try {
             Map<Object, FieldFrequency> m =
                     new HashMap<Object, FieldFrequency>();
-            for(Future<List<FieldFrequency>> f : executor.invokeAll(callers)) {
+            for(Future<List<FieldFrequency>> f : futures) {
                 for(FieldFrequency ff : f.get()) {
                     FieldFrequency c = m.get(ff.getVal());
                     if(c == null) {
@@ -1163,8 +1158,8 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         }
 
         Set<PartitionCluster> clusters = trie.getAll();
-        List<Callable<List<Scored<String>>>> callers =
-                new ArrayList<Callable<List<Scored<String>>>>();
+        List<Future<List<Scored<String>>>> futures =
+                new ArrayList<Future<List<Scored<String>>>>();
         //
         // Here's our list of callers to find similar.  Each one will be given
         // a handle to a countdown latch to watch when they finish.
@@ -1208,8 +1203,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                 }
             };
             caller.setPause(totalPause);
-            totalPause += parallelPause;
-            callers.add(caller);
+            futures.add(executors.get(p).submit(caller));
         }
 
         //
@@ -1220,11 +1214,6 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
             allw.start();
             fsw.start();
-            List<Future<List<Scored<String>>>> futures =
-                    new ArrayList<Future<List<Scored<String>>>>();
-            for(Callable c : callers) {
-                futures.add(executor.submit(c));
-            }
             List<Scored<String>> keys = sortScored("findSimilar", futures, config.getN(), latch);
             fsw.stop();
             List<Scored<Item>> ret = keysToItems(keys);
@@ -1236,9 +1225,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                         logger.finer(String.format(
                                 "dsh fs %s took %.3f actual fs: %.3f", ldv.getKey(),
                                 allw.getTimeMillis(), fsw.getTimeMillis()));
-                    } else {
-                        logger.fine(String.format("dsh fs %s took %.3f", ldv.getKey(),
-                                allw.getTimeMillis()));
+                    } else if(logger.isLoggable(Level.FINE)) {
+                        logger.fine(String.format("dsh fs %s took %.3f",
+                                                  ldv.getKey(),
+                                                  allw.getTimeMillis()));
                     }
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, "Error unmarshalling dv for logging", ex);
@@ -1271,15 +1261,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         
         Set<PartitionCluster> clusters = trie.getAll();
-        List<Callable<List<Counted<String>>>> callers =
-                new ArrayList<Callable<List<Counted<String>>>>();
+        List<Future<List<Counted<String>>>> futures =
+                new ArrayList<Future<List<Counted<String>>>>();
         //
         final PCLatch latch = new PCLatch(allPrefixes, clusters.size());
 
-        // Here's our list of callers to find similar.  Each one will be given
-        // a handle to a countdown latch to watch when they finish.
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, rf) {
+            futures.add(executors.get(p).submit(new PCCaller(p, rf) {
 
                 public List<Counted<String>> call()
                         throws AuraException, RemoteException {
@@ -1296,18 +1284,12 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                     }
 
                 }
-            });
+            }));
         }
 
         //
         // Run the computation, sort the results and return.
         try {
-            List<Future<List<Counted<String>>>> futures =
-                    new ArrayList<Future<List<Counted<String>>>>();
-            for(Callable c : callers) {
-                futures.add(executor.submit(c));
-            }
-
             List<Counted<String>> l = new ArrayList<Counted<String>>();
             for(Future<List<Counted<String>>> f : futures) {
                 l.addAll(f.get());
@@ -1331,6 +1313,20 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         PartitionCluster pc = trie.get(DSBitSet.parse(key.hashCode()));
         return pc.getExplanation(key, autoTag, n);
+    }
+
+    public float getSimilarity(String key1, String key2, String field)
+            throws AuraException, RemoteException {
+        SimilarityConfig config = new SimilarityConfig(field, 1);
+        PartitionCluster pc1 = trie.get(DSBitSet.parse(key1.hashCode()));
+        PartitionCluster pc2 = trie.get(DSBitSet.parse(key2.hashCode()));
+        try {
+            DocumentVector dv1 = pc1.getDocumentVector(key1, config).get();
+            DocumentVector dv2 = pc2.getDocumentVector(key2, config).get();
+            return dv1.getSimilarity(dv2);
+        } catch (Exception ex) {
+            throw new AuraException("Error unmarshalling vectors", ex);
+        }
     }
 
     public List<Scored<String>> explainSimilarity(String key1, String key2,
@@ -1374,7 +1370,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         }
     }
 
-    private List<Scored<String>> explainSimilarity(DocumentVector dv1,
+    public static List<Scored<String>> explainSimilarity(DocumentVector dv1,
             DocumentVector dv2, int n)
             throws AuraException, RemoteException {
         if(dv1 == null || dv2 == null) {
@@ -1405,11 +1401,10 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     public List<Scored<Item>> getAutotagged(final String autotag, final int n)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Scored<String>>>> callers =
-                new HashSet<Callable<List<Scored<String>>>>();
+        List<Future<List<Scored<String>>>> futures = new ArrayList();
         final PCLatch latch = new PCLatch(allPrefixes,clusters.size());
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p) {
+            futures.add(executors.get(p).submit(new PCCaller(p) {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
@@ -1420,14 +1415,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                         latch.countDown(pc.getPrefix().toString());
                     }
                 }
-            });
+            }));
         }
         try {
             NanoWatch sw = new NanoWatch();
             sw.start();
             List<Scored<Item>> res = keysToItems(sortScored("getAutotagged",
-                    executor.invokeAll(
-                    callers),
+                    futures,
                     n, latch));
             sw.stop();
             if(logger.isLoggable(Level.FINER)) {
@@ -1483,19 +1477,18 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             //
             // Inform all partition clusters that they should close down
             Set<PartitionCluster> clusters = trie.getAll();
-            Set<Callable<Object>> callers = new HashSet<Callable<Object>>();
+            List<Future<Object>> futures = new ArrayList();
             for (PartitionCluster p : clusters) {
-                callers.add(new PCCaller(p) {
+                futures.add(executors.get(p).submit(new PCCaller(p) {
                     public Object call() throws AuraException, RemoteException {
                         pc.close();
                         return null;
                     }
-                });
+                }));
             }
 
             try {
-                List<Future<Object>> results = executor.invokeAll(callers);
-                for (Future<Object> future : results) {
+                for (Future<Object> future : futures) {
                     future.get();
                 }
             } catch (InterruptedException e) {
@@ -1565,11 +1558,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         return ret;
     }
 
-    private List<Attention> sortAttention(List<Future<List<Attention>>> results,
+    private List<Attention> sortAttention(List<Future<List<Attention>>> futures,
             int n)
             throws InterruptedException, ExecutionException {
         PriorityQueue<Attention> sorter = new PriorityQueue<Attention>(n);
-        for(Future<List<Attention>> future : results) {
+        for(Future<List<Attention>> future : futures) {
             List<Attention> curr = future.get();
             if(curr != null) {
                 for(Attention attn : curr) {
@@ -1611,11 +1604,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
 
     public void newProperties(PropertySheet ps) throws PropertyException {
         properties = new String[] {"logLevel"};
+        trie = new BinaryTrie<PartitionCluster>();
         cm = ps.getConfigurationManager();
         logger = ps.getLogger();
         stop = (StopWords) ps.getComponent(PROP_STOPWORDS);
         parallelGet = ps.getBoolean(PROP_PARALLEL_GET);
         parallelPause = ps.getInt(PROP_PARALLEL_PAUSE);
+        executorPoolSize = ps.getInt(PROP_EXECUTOR_POOL_SIZE);
     }
 
     @Override
@@ -1666,6 +1661,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
         logger.info("Adding partition cluster: " + pc.getPrefix());
         trie.add(pc, pc.getPrefix());
         synchronized(allPrefixes) {
+            ExecutorService executor;
+            if(executorPoolSize <= 0) {
+                executor = Executors.newCachedThreadPool();
+            } else {
+                executor = Executors.newFixedThreadPool(executorPoolSize);
+            }
+            executors.put(pc, executor);
             allPrefixes.add(pc.getPrefix().toString());
         }
     }
@@ -1882,15 +1884,12 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
      * @return an iterator over the results
      */
     protected DBIterator<Attention> assembleAttentionIterator(
-            ExecutorService executor,
-            Set<Callable<DBIterator<Attention>>> callers)
+            Set<Future<DBIterator<Attention>>> futures)
             throws AuraException, RemoteException {
 
         Set<DBIterator<Attention>> ret = new HashSet<DBIterator<Attention>>();
         try {
-            List<Future<DBIterator<Attention>>> results =
-                    executor.invokeAll(callers);
-            for (Future<DBIterator<Attention>> future : results) {
+            for (Future<DBIterator<Attention>> future : futures) {
                 ret.add(future.get());
             }
         } catch (InterruptedException e) {
@@ -1908,15 +1907,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
     }
 
     protected List<Attention> assembleAttentionList(
-            ExecutorService executor,
-            Set<Callable<List<Attention>>> callers)
+            Set<Future<List<Attention>>> futures)
             throws AuraException, RemoteException {
         //
         // Run all the callables and collect up the results
         List<Attention> ret = new ArrayList<Attention>();
         try {
-            List<Future<List<Attention>>> results = executor.invokeAll(callers);
-            for (Future<List<Attention>> future : results) {
+            for (Future<List<Attention>> future : futures) {
                 ret.addAll(future.get());
             }
         } catch (InterruptedException e) {
@@ -1951,11 +1948,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             final int n, final ResultsFilter rf)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Scored<String>>>> callers =
-                new HashSet<Callable<List<Scored<String>>>>();
+        List<Future<List<Scored<String>>>> futures =
+                new ArrayList<Future<List<Scored<String>>>>();
         final PCLatch latch = new PCLatch(allPrefixes,clusters.size());
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, rf) {
+            futures.add(executors.get(p).submit(new PCCaller(p, rf) {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
@@ -1966,13 +1963,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                         latch.countDown(pc.getPrefix().toString());
                     }
                 }
-            });
+            }));
         }
         try {
             NanoWatch sw = new NanoWatch();
             sw.start();
             List<Scored<Item>> res = keysToItems(sortScored("query",
-                    executor.invokeAll(callers), n, latch));
+                    futures, n, latch));
             sw.stop();
             if(logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("dsh q %s took %.3f", query, sw.
@@ -1997,11 +1994,11 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             final int n, final ResultsFilter rf)
             throws AuraException, RemoteException {
         Set<PartitionCluster> clusters = trie.getAll();
-        Set<Callable<List<Scored<String>>>> callers =
-                new HashSet<Callable<List<Scored<String>>>>();
+        List<Future<List<Scored<String>>>> futures =
+                new ArrayList<Future<List<Scored<String>>>>();
         final PCLatch latch = new PCLatch(allPrefixes,clusters.size());
         for(PartitionCluster p : clusters) {
-            callers.add(new PCCaller(p, rf) {
+            futures.add(executors.get(p).submit(new PCCaller(p, rf) {
 
                 public List<Scored<String>> call()
                         throws AuraException, RemoteException {
@@ -2012,13 +2009,13 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
                         latch.countDown(pc.getPrefix().toString());
                     }
                 }
-            });
+            }));
         }
         try {
             NanoWatch sw = new NanoWatch();
             sw.start();
             List<Scored<Item>> res = keysToItems(sortScored("query",
-                    executor.invokeAll(callers), n, latch));
+                    futures, n, latch));
             sw.stop();
             if(logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("dsh q %s took %.3f", query, sw.

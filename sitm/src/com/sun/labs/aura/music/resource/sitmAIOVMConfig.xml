@@ -95,6 +95,7 @@
         <property name="crawlerStateDir" value="${auraHome}/crawler.state"/>
         <property name="maxArtists" value="2000"/>
         <property name="logLevel" value="FINE"/>
+        <property name="crawlAlbumAndTracks" value="true"/>
         <property name="updateRateInSeconds" value="604800"/>
     </component>
     

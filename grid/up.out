@@ -1,0 +1,1424 @@
+Buildfile: build.xml
+
+create-filesystems:
+
+create-dist-collections:
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+
+-init-macrodef-debug:
+
+-init-macrodef-java:
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/Reuters/dist/lib.
+     [echo] To run this application from the command line without Ant, try:
+     [echo] java -jar "/tank/work/Projects/Aura/aura-dshead/Reuters/dist/Reuters.jar"
+
+-do-jar-with-libraries-without-manifest:
+
+-post-jar:
+
+jar:
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/sitm/build.xml:237: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/sitm/dist/lib.
+
+-post-jar:
+
+jar:
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/sitm/build.xml:237: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/sitm/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/SitmWebServicesAPI/dist/lib.
+
+-post-jar:
+
+jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/SitmLoadGenerator/dist/lib.
+     [echo] To run this application from the command line without Ant, try:
+     [echo] java -jar "/tank/work/Projects/Aura/aura-dshead/SitmLoadGenerator/dist/SitmLoadGenerator.jar"
+
+-do-jar-with-libraries-without-manifest:
+
+-post-jar:
+
+jar:
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/sitm/build.xml:237: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/sitm/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/SitmWebServicesAPI/dist/lib.
+
+-post-jar:
+
+jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/sitm/build.xml:237: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+  [taskdef] /tank/work/Projects/Aura/aura-dshead/aura/build.xml:92: Warning: taskdef class edu.umd.cs.findbugs.anttask.FindBugsTask cannot be found
+
+-pre-init:
+
+-init-private:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-macrodef-javac:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:javac
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:depend
+
+-init-macrodef-junit:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:junit
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:nbjpdastart
+
+-init-macrodef-debug:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/3:debug
+
+-init-macrodef-java:
+Trying to override old definition of task http://www.netbeans.org/ns/j2se-project/1:java
+
+-init-presetdef-jar:
+
+init:
+
+deps-jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/aura/dist/aura.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/aura/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-pre-pre-jar:
+
+-do-jar-with-manifest:
+[j2seproject1:jar] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+
+-do-jar-without-manifest:
+
+-do-jar-with-mainclass:
+
+-do-jar-with-libraries:
+
+-do-jar-with-libraries-without-manifest:
+ [copylibs] Building jar: /tank/work/Projects/Aura/aura-dshead/sitm/dist/sitm.jar
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/sitm/dist/lib.
+
+-post-jar:
+
+jar:
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-compile-depend:
+
+-do-compile:
+
+-post-compile:
+
+compile:
+
+-pre-pre-jar:
+
+-pre-jar:
+
+do-service-starter-jar-with-libraries:
+ [copylibs] Copy libraries to /tank/work/Projects/Aura/aura-dshead/grid/dist/lib.
+
+make-dist-jar-dir:
+     [copy] Copying 2 files to /tank/work/Projects/Aura/aura-dshead/grid/dist/dist/lib
+
+upload-dist:
+  [dav:put] Uploading to: https://dev.caroline.east.sun.com/aura/sjg-aura.dist/dist/
+  [dav:put] Omitted: grid.jar (uptodate)
+  [dav:put] Omitted: jsk-all.policy (uptodate)
+  [dav:put] Omitted: lib/EchoNestAPI.jar (uptodate)
+  [dav:put] Omitted: lib/Reuters.jar (uptodate)
+  [dav:put] Omitted: lib/SitmLoadGenerator.jar (uptodate)
+  [dav:put] Omitted: lib/SitmWebServicesAPI.jar (uptodate)
+  [dav:put] Omitted: lib/activation.jar (uptodate)
+  [dav:put] Omitted: lib/asm-2.2.3.jar (uptodate)
+  [dav:put] Omitted: lib/aura.jar (uptodate)
+  [dav:put] Omitted: lib/backport-util-concurrent.jar (uptodate)
+  [dav:put] Omitted: lib/caroline.jar (uptodate)
+  [dav:put] Omitted: lib/carolineunzip.jar (uptodate)
+  [dav:put] Omitted: lib/carolineutil.jar (uptodate)
+  [dav:put] Omitted: lib/commons-codec-1.3.jar (uptodate)
+  [dav:put] Omitted: lib/commons-httpclient-3.1.jar (uptodate)
+  [dav:put] Omitted: lib/commons-logging-1.1.jar (uptodate)
+  [dav:put] Omitted: lib/flickrapi-1.1.pbl.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-base-1.0.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-client-1.0.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-client-meta-1.0.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-core-1.0.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-media-1.0.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-youtube-2.0.jar (uptodate)
+  [dav:put] Omitted: lib/gdata-youtube-meta-2.0.jar (uptodate)
+  [dav:put] Omitted: lib/google-collect-1.0-rc2.jar (uptodate)
+  [dav:put] Omitted: lib/grid.jar (uptodate)
+  [dav:put] Omitted: lib/groovy-all-1.5.6.jar (uptodate)
+  [dav:put] Omitted: lib/groovy-engine.jar (uptodate)
+  [dav:put] Omitted: lib/jaskell-1.0.jar (uptodate)
+  [dav:put] Omitted: lib/jaskell-engine.jar (uptodate)
+  [dav:put] Omitted: lib/jaxb-api.jar (uptodate)
+  [dav:put] Omitted: lib/jaxb-impl.jar (uptodate)
+  [dav:put] Omitted: lib/jaxb-xjc.jar (uptodate)
+  [dav:put] Omitted: lib/jaxen-core.jar (uptodate)
+  [dav:put] Omitted: lib/jaxen-jdom.jar (uptodate)
+  [dav:put] Omitted: lib/jdom.jar (uptodate)
+  [dav:put] Omitted: lib/je-3.3.87.jar (uptodate)
+  [dav:put] Omitted: lib/jetty-6.1.12rc1.jar (uptodate)
+  [dav:put] Omitted: lib/jetty-util-6.1.12rc1.jar (uptodate)
+  [dav:put] Omitted: lib/jfunutil.jar (uptodate)
+  [dav:put] Omitted: lib/jini-core.jar (uptodate)
+  [dav:put] Omitted: lib/jini-ext.jar (uptodate)
+  [dav:put] Omitted: lib/jparsec.jar (uptodate)
+  [dav:put] Omitted: lib/jruby-engine.jar (uptodate)
+  [dav:put] Omitted: lib/jruby.jar (uptodate)
+  [dav:put] Omitted: lib/jsk-lib.jar (uptodate)
+  [dav:put] Omitted: lib/jsr173_1.0_api.jar (uptodate)
+  [dav:put] Omitted: lib/jython-engine.jar (uptodate)
+  [dav:put] Omitted: lib/jython.jar (uptodate)
+  [dav:put] Omitted: lib/mail.jar (uptodate)
+  [dav:put] Omitted: lib/minion.jar (uptodate)
+  [dav:put] Omitted: lib/reggie.jar (uptodate)
+  [dav:put] Omitted: lib/rome-0.9.jar (uptodate)
+  [dav:put] Omitted: lib/rome-fetcher-0.9.jar (uptodate)
+  [dav:put] Omitted: lib/saxpath.jar (uptodate)
+  [dav:put] Omitted: lib/scheme-engine.jar (uptodate)
+  [dav:put] Omitted: lib/servlet-api-2.5-6.1.12rc1.jar (uptodate)
+  [dav:put] Omitted: lib/sisc-lib.jar (uptodate)
+  [dav:put] Omitted: lib/sisc-opt.jar (uptodate)
+  [dav:put] Omitted: lib/sisc.jar (uptodate)
+  [dav:put] Omitted: lib/sitm.jar (uptodate)
+  [dav:put] Omitted: lib/slcut.jar (uptodate)
+  [dav:put] Omitted: lib/start.jar (uptodate)
+  [dav:put] Omitted: lib/sun-util.jar (uptodate)
+  [dav:put] Omitted: lib/tools.jar (uptodate)
+  [dav:put] Omitted: lib/typica.jar (uptodate)
+  [dav:put] Omitted: lib/xalan.jar (uptodate)
+  [dav:put] Omitted: lib/xerces.jar (uptodate)
+  [dav:put] Omitted: lib/xml-apis.jar (uptodate)
+  [dav:put] Omitted: lib/xstream-1.2.1.jar (uptodate)
+  [dav:put] Omitted: grid.jar (uptodate)
+  [dav:put] Omitted: aura.jar (uptodate)
+  [dav:put] Omitted: aardvark.jar (uptodate)
+  [dav:put] Uploading: sitm.jar
+  [dav:put] Omitted: rmilogging.properties (uptodate)
+  [dav:put] Puted 1 file to https://dev.caroline.east.sun.com/aura/sjg-aura.dist/dist/
+  [dav:put] Uploading to: https://dev.caroline.east.sun.com/aura/sjg-aura.dist/jini/
+  [dav:put] Omitted: browser.config (uptodate)
+  [dav:put] Omitted: fiddler.config (uptodate)
+  [dav:put] Omitted: jsk-all.policy (uptodate)
+  [dav:put] Omitted: lib-dl/browser-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/fiddler-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/group-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/jsk-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/mahalo-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/mercury-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/norm-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/outrigger-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/phoenix-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/reggie-dl.jar (uptodate)
+  [dav:put] Omitted: lib-dl/sdm-dl.jar (uptodate)
+  [dav:put] Omitted: lib/browser.jar (uptodate)
+  [dav:put] Omitted: lib/checkconfigurationfile.jar (uptodate)
+  [dav:put] Omitted: lib/checkser.jar (uptodate)
+  [dav:put] Omitted: lib/classdep.jar (uptodate)
+  [dav:put] Omitted: lib/classserver.jar (uptodate)
+  [dav:put] Omitted: lib/computedigest.jar (uptodate)
+  [dav:put] Omitted: lib/computehttpmdcodebase.jar (uptodate)
+  [dav:put] Omitted: lib/destroy.jar (uptodate)
+  [dav:put] Omitted: lib/envcheck.jar (uptodate)
+  [dav:put] Omitted: lib/fiddler.jar (uptodate)
+  [dav:put] Omitted: lib/group.jar (uptodate)
+  [dav:put] Omitted: lib/jarwrapper.jar (uptodate)
+  [dav:put] Omitted: lib/jini-core.jar (uptodate)
+  [dav:put] Omitted: lib/jini-ext.jar (uptodate)
+  [dav:put] Omitted: lib/jsk-debug-policy.jar (uptodate)
+  [dav:put] Omitted: lib/jsk-lib.jar (uptodate)
+  [dav:put] Omitted: lib/jsk-platform.jar (uptodate)
+  [dav:put] Omitted: lib/jsk-resources.jar (uptodate)
+  [dav:put] Omitted: lib/mahalo.jar (uptodate)
+  [dav:put] Omitted: lib/mercury.jar (uptodate)
+  [dav:put] Omitted: lib/norm.jar (uptodate)
+  [dav:put] Omitted: lib/outrigger-logstore.jar (uptodate)
+  [dav:put] Omitted: lib/outrigger-snaplogstore.jar (uptodate)
+  [dav:put] Omitted: lib/outrigger.jar (uptodate)
+  [dav:put] Omitted: lib/phoenix-group.jar (uptodate)
+  [dav:put] Omitted: lib/phoenix-init.jar (uptodate)
+  [dav:put] Omitted: lib/phoenix.jar (uptodate)
+  [dav:put] Omitted: lib/prebuilt-outrigger-logstore.jar (uptodate)
+  [dav:put] Omitted: lib/preferredlistgen.jar (uptodate)
+  [dav:put] Omitted: lib/reggie.jar (uptodate)
+  [dav:put] Omitted: lib/sharedvm.jar (uptodate)
+  [dav:put] Omitted: lib/start.jar (uptodate)
+  [dav:put] Omitted: lib/sun-util.jar (uptodate)
+  [dav:put] Omitted: lib/tools.jar (uptodate)
+  [dav:put] Omitted: nobrowse.config (uptodate)
+  [dav:put] Omitted: norm.config (uptodate)
+  [dav:put] Omitted: reggie.config (uptodate)
+  [dav:put] Omitted: start.config (uptodate)
+  [dav:put] Omitted: startReggie.sh (uptodate)
+  [dav:put] Puted 0 files to https://dev.caroline.east.sun.com/aura/sjg-aura.dist/jini/
+  [dav:put] Uploading to: https://dev.caroline.east.sun.com/aura/sjg-aura.dist/bin/
+
+BUILD FAILED
+/tank/work/Projects/Aura/aura-dshead/grid/build.xml:211: /tank/work/Projects/Aura/aura-dshead/grid/grid-deploy/on-grid-scripts/bin not found.
+
+Total time: 13 seconds

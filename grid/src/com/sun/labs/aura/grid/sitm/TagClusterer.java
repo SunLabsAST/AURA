@@ -25,6 +25,7 @@
 package com.sun.labs.aura.grid.sitm;
 
 import com.sun.labs.aura.AuraService;
+import com.sun.labs.aura.datastore.DBIterator;
 import com.sun.labs.aura.datastore.DataStore;
 import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.SimilarityConfig;
@@ -46,6 +47,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,10 +88,16 @@ public class TagClusterer implements AuraService, Configurable {
         if (!running) {
             running = true;
             try {
-                runjob();
-            } catch (AuraException ex) {
-                Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+
+                    //runFindSimilar();
+                    runGetTagCounts();
+
+
             } catch (RemoteException ex) {
+                Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                    Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (AuraException ex) {
                 Logger.getLogger(TagClusterer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -113,7 +121,44 @@ public class TagClusterer implements AuraService, Configurable {
     }
 
 
-    private void runjob() throws AuraException, RemoteException {
+    private void runGetTagCounts() throws AuraException, RemoteException, FileNotFoundException, IOException {
+
+        FileOutputStream fos = new FileOutputStream(fsPath + "/rawtags_count.txt");
+        OutputStreamWriter out = new OutputStreamWriter(fos);
+
+        int i=0;
+        for (FieldFrequency fF : getDataStore().getTopValues(TaggableItem.FIELD_SOCIAL_TAGS_RAW, Integer.MAX_VALUE, false)) {
+            out.write((String)fF.getVal() + "\t" + fF.getFreq());
+            if (i++ % 1000 == 0) {
+                logger.info("  Done "+i);
+            }
+        }
+
+        out.close();
+
+    }
+
+
+    private void runDeleteAllRawTags() throws AuraException, RemoteException {
+
+        int i = 0;
+        long total = getDataStore().getItemCount(Item.ItemType.ARTIST_TAG_RAW);
+        DBIterator<Item> it = getDataStore().getAllIterator(Item.ItemType.ARTIST_TAG_RAW);
+        try {
+            while (it.hasNext()) {
+                ArtistTagRaw atr = new ArtistTagRaw(it.next());
+                getDataStore().deleteItem(atr.getKey());
+                if (i++ % 100 == 0) {
+                    logger.info(i + "/" + total);
+                }
+            }
+        } finally {
+            it.close();
+        }
+    }
+    
+
+    private void runFindSimilar() throws AuraException, RemoteException {
         if (running) {
             long startTime = System.currentTimeMillis();
             logger.info("Populating list of tags...");
@@ -208,6 +253,12 @@ public class TagClusterer implements AuraService, Configurable {
         return s;
     }
 
+    public static LinkedList<String> readAllTags(String path) throws IOException, ClassNotFoundException {
+        File theFile = new File(path);
+        FileInputStream inStream = new FileInputStream(theFile);
+        ObjectInputStream objStream = new ObjectInputStream(inStream);
+        return (LinkedList<String>) objStream.readObject();
+    }
 
     public static Map<String, List<Scored<String>> > readMapSplit(String prefix, int splitNbr) throws IOException {
         return readMapSplit(prefix + "/tagsim-"+splitNbr+".objdump");

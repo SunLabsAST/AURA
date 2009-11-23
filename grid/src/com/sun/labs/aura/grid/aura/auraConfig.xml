@@ -28,11 +28,18 @@
 <config>
     
     <property name="auraInstance" value="live"/>
+    <property name="collectorPrefix" value="0000"/>
     
     <!-- <property name="logLevel" value="FINER"/> -->
     
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
+        <property name="defaultNumReplicants" value="16"/>
+    </component>
+
+    <component name="startAuraCopy" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="replicantConfig" value="/com/sun/labs/aura/resource/replicantCopyConfig.xml"/>
         <property name="defaultNumReplicants" value="16"/>
     </component>
 
@@ -67,6 +74,13 @@
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
         <property name="debugRMI" value="true"/>
+        <property name="defaultNumReplicants" value="4"/>
+    </component>
+
+    <component name="startCollectorAura" type="com.sun.labs.aura.grid.aura.StartAura">
+        <property name="instance" value="${auraInstance}"/>
+        <property name="numHeads" value="1"/>
+        <property name="collectorPrefix" value="${collectorPrefix}"/>
         <property name="defaultNumReplicants" value="4"/>
     </component>
 
@@ -121,6 +135,13 @@
         <property name="blockForShutdown" value="false"/>
     </component>
 
+    <component name="start-copy" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startAuraCopy</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
     <component name="start-replicated" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startReplicatedAura</item>
@@ -145,6 +166,13 @@
     <component name="start-debug" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
             <item>startDebugAura</item>
+        </propertylist>
+        <property name="blockForShutdown" value="false"/>
+    </component>
+
+    <component name="start-collector" type="com.sun.labs.aura.AuraServiceStarter">
+        <propertylist name="serviceComponents">
+            <item>startCollectorAura</item>
         </propertylist>
         <property name="blockForShutdown" value="false"/>
     </component>

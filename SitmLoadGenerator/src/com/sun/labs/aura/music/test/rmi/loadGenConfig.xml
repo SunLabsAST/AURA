@@ -31,7 +31,7 @@
     <property name="auraHome" value="/aura"/>
     <property name="auraDistDir" value="/aura/dist"/>
     <property name="auraInstance" value="live"/>
-    <property name="auraGroup" value="${auraInstance}-aura"/>
+    <property name="auraGroup" value="auraTest"/>
 
     <!-- Where the aura distribution jar was unpacked. -->
     <property name="auraDistDir" value="${auraHome}/dist"/>

@@ -111,6 +111,13 @@ public class SitmAPIDirectImpl extends SitmAPI {
             for (com.sun.labs.aura.util.Scored<String> scoredTag : vals) {
                 String tagName = scoredTag.getItem();
                 ArtistTag artistTag = mdb.artistTagLookup(ArtistTag.nameToKey(tagName));
+
+                //
+                // If we're running tests on a smaller data set, then we might
+                // get nulls.
+                if(artistTag == null) {
+                    continue;
+                }
                 result.add(new Scored<Item>(new Item(artistTag.getKey(), tagName), scoredTag.getScore()));
             }
             monitor.opFinish("artistSocialTags", start, 0);
@@ -274,10 +281,9 @@ public class SitmAPIDirectImpl extends SitmAPI {
     public List<Item> getItems(List<String> keys, boolean compact) throws IOException {
         try {
             long start = monitor.opStart();
-
+            
             List<Item> result = new ArrayList<Item>();
-            for (String key : keys) {
-                com.sun.labs.aura.datastore.Item item = mdb.getDataStore().getItem(key);
+            for(com.sun.labs.aura.datastore.Item item :  mdb.getDataStore().getItems(keys)) {
                 result.add(new Item(item.getKey(), item.getName()));
             }
 
