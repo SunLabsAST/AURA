@@ -24,14 +24,12 @@
  * information or have any questions.
  */
 -->
-
 <project xmlns="http://www.netbeans.org/ns/project/1">
     <type>org.netbeans.modules.web.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/web-project/3">
             <name>SitmWebServices</name>
             <minimum-ant-version>1.6</minimum-ant-version>
-            <explicit-platform explicit-source-supported="true"/>
             <web-module-libraries>
                 <library>
                     <file>${reference.sitm.jar}</file>
@@ -51,6 +49,10 @@
                 </library>
                 <library>
                     <file>${libs.SunLabsUtilities.classpath}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library>
+                    <file>${libs.BerkeleyDB.classpath}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>
