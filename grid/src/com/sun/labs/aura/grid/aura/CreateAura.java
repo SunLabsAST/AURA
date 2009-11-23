@@ -37,7 +37,7 @@ public class CreateAura extends Aura {
 
     public void start() {
         try {
-            createReplicantFileSystems();
+            createReplicantFileSystems(defaultNumPartitions);
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Error starting Aura", e);
         }

@@ -26,7 +26,6 @@ package com.sun.labs.aura.grid.aura;
 
 import com.sun.caroline.platform.BaseFileSystem;
 import com.sun.caroline.platform.BaseFileSystemConfiguration;
-import com.sun.caroline.platform.NetworkAddress;
 import com.sun.caroline.platform.ProcessConfiguration;
 import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.RunState;
@@ -35,9 +34,9 @@ import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 
 /**
@@ -232,14 +231,21 @@ public class StartAura extends Aura {
     
     public void start() {
         try {
-            int totalReps = defaultNumReplicants;
+            Set<String> prefixes = getPrefixes(repFSMap.keySet());
+            int totalParts = prefixes.size();
+            if (totalParts == 0) {
+                totalParts = defaultNumPartitions;
+            }
+
+            int totalReps = totalParts;
             if (isReplicated()) {
                 totalReps *= getGroupSize();
             }
+            
             if(repFSMap.size() != totalReps) {
                 //
                 // Make one filesystem per partition
-                createReplicantFileSystems();
+                createReplicantFileSystems(totalParts);
             }
             createLoginSvcFileSystem(instance);
             createAuraProcesses();
@@ -260,7 +266,7 @@ public class StartAura extends Aura {
      * @return a set of prefixes
      */
     public static Set<String> getPrefixes(Set<String> idStrings) {
-        Set<String> prefixes = new HashSet<String>();
+        Set<String> prefixes = new TreeSet<String>();
         for (String idStr : idStrings) {
             if (idStr.contains(":")) {
                 String prefix = idStr.substring(0, idStr.indexOf(':'));

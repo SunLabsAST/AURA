@@ -75,9 +75,8 @@ public abstract class Aura extends ServiceAdapter {
     private String dataStoreStarter;
 
     @ConfigInteger(defaultValue=16)
-    public static final String PROP_DEFAULT_NUM_REPLICANTS = "defaultNumReplicants";
-
-    protected int defaultNumReplicants;
+    public static final String PROP_DEFAULT_NUM_PARTITIONS = "defaultNumPartitions";
+    protected int defaultNumPartitions;
 
     @ConfigBoolean(defaultValue=false)
     public static final String PROP_REPLICATED = "replicated";
@@ -118,9 +117,9 @@ public abstract class Aura extends ServiceAdapter {
      * added by splitting.
      * @throws java.lang.Exception
      */
-    public void createReplicantFileSystems() throws Exception {
-        int numBits = Integer.toString(defaultNumReplicants, 2).length() - 1;
-        for(int i = 0; i < defaultNumReplicants; i++) {
+    public void createReplicantFileSystems(int numParts) throws Exception {
+        int numBits = Integer.toString(numParts, 2).length() - 1;
+        for(int i = 0; i < numParts; i++) {
             if (!isReplicated()) {
                 //
                 // Make one filesystem per partition
@@ -825,7 +824,7 @@ public abstract class Aura extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
-        defaultNumReplicants = ps.getInt(PROP_DEFAULT_NUM_REPLICANTS);
+        defaultNumPartitions = ps.getInt(PROP_DEFAULT_NUM_PARTITIONS);
         dataStoreStarter = ps.getString(PROP_DATA_STORE_STARTER);
         replicated = ps.getBoolean(PROP_REPLICATED);
         groupSize = ps.getInt(PROP_GROUP_SIZE);

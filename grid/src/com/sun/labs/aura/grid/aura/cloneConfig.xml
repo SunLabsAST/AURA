@@ -36,7 +36,7 @@
     
     <component name="clone" type="com.sun.labs.aura.grid.aura.CloneReplicants">
         <property name="instance" value="${auraInstance}"/>
-        <property name="defaultNumReplicants" value="16"/>
+        <property name="defaultNumPartitions" value="16"/>
         <property name="nBits" value="${nBits}"/>
         <property name="newInstance" value="${newInstance}"/>
         <property name="onGrid" value="false"/>

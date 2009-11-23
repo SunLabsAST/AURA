@@ -34,19 +34,19 @@
     
     <component name="startAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
-        <property name="defaultNumReplicants" value="16"/>
+        <property name="defaultNumPartitions" value="16"/>
     </component>
 
     <component name="startAuraCopy" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="replicantConfig" value="/com/sun/labs/aura/resource/replicantCopyConfig.xml"/>
-        <property name="defaultNumReplicants" value="16"/>
+        <property name="defaultNumPartitions" value="16"/>
     </component>
 
     <component name="startReplicatedAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
-        <property name="defaultNumReplicants" value="2"/>
+        <property name="defaultNumPartitions" value="2"/>
         <property name="replicated" value="true"/>
         <property name="replicantConfig" value="/com/sun/labs/aura/resource/replicantHAConfig.xml"/>
         <property name="groupSize" value="3"/>
@@ -55,7 +55,7 @@
     <component name="startComboAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="combinedReplicant" value="true"/>
-        <property name="defaultNumReplicants" value="16"/>
+        <property name="defaultNumPartitions" value="16"/>
     </component>
 
     <component name="startParallelAura" type="com.sun.labs.aura.grid.aura.StartAura">
@@ -67,21 +67,21 @@
     <component name="startSmallAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
-        <property name="defaultNumReplicants" value="4"/>
+        <property name="defaultNumPartitions" value="4"/>
     </component>
 
     <component name="startDebugAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
         <property name="debugRMI" value="true"/>
-        <property name="defaultNumReplicants" value="4"/>
+        <property name="defaultNumPartitions" value="4"/>
     </component>
 
     <component name="startCollectorAura" type="com.sun.labs.aura.grid.aura.StartAura">
         <property name="instance" value="${auraInstance}"/>
         <property name="numHeads" value="1"/>
         <property name="collectorPrefix" value="${collectorPrefix}"/>
-        <property name="defaultNumReplicants" value="4"/>
+        <property name="defaultNumPartitions" value="4"/>
     </component>
 
     <component name="createAura" type="com.sun.labs.aura.grid.aura.CreateAura">
@@ -90,7 +90,7 @@
     
     <component name="createSmallAura" type="com.sun.labs.aura.grid.aura.CreateAura">
         <property name="instance" value="${auraInstance}"/>
-        <property name="defaultNumReplicants" value="4"/>
+        <property name="defaultNumPartitions" value="4"/>
     </component>
 
     <component name="stopAura" type="com.sun.labs.aura.grid.aura.StopAura">
