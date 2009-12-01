@@ -725,7 +725,7 @@ public class BerkeleyDataWrapper {
 
             @Override
             public ItemImpl run(Transaction txn) throws AuraException {
-                return itemByKey.get(null, key, LockMode.READ_UNCOMMITTED);
+                return itemByKey.get(txn, key, LockMode.READ_UNCOMMITTED);
             }
 
             @Override
@@ -1741,6 +1741,18 @@ public class BerkeleyDataWrapper {
         return invokeCommand(cmd, true, true);
     }
 
+    /**
+     * Invoke a database command, passing in a transaction to use for
+     * operating on the database.  The configuration from the transaction
+     * is obtained from the command that is passed in.
+     *
+     * @param cmd the command object to invoke
+     * @param commit whether we should commit after running this transaction
+     * @param useCurrentTxn if the thread-local transaction should be used instead
+     *        of a new transaction
+     * @return the result of the run method
+     * @throws AuraException in the event of a failure
+     */
     protected <R> R invokeCommand(DBCommand<R> cmd,
                                   boolean commit,
                                   boolean useCurrentTxn)
@@ -1751,7 +1763,13 @@ public class BerkeleyDataWrapper {
             Transaction txn = null;
             CurrentTransaction currTxn = null;
             try {
+                //
+                // If the write lock on quiesce isn't held, we can continue
                 quiesce.readLock().lock();
+
+                //
+                // Fetch the transaction config and create a transaction or
+                // get the CurrentTransaction
                 TransactionConfig tconf = cmd.getTransactionConfig();
                 if (useCurrentTxn) {
                     currTxn = CurrentTransaction.getInstance(dbEnv);
@@ -1759,6 +1777,9 @@ public class BerkeleyDataWrapper {
                 } else {
                     txn = dbEnv.beginTransaction(null, tconf);
                 }
+
+                //
+                // Now run the command and commit if necessary.
                 R result = cmd.run(txn);
                 if (commit) {
                     if (useCurrentTxn) {
