@@ -125,7 +125,7 @@ public class GridProcessManager extends Aura implements ProcessManager {
     public PartitionCluster createPartitionCluster(DSBitSet prefix, DSBitSet owner) throws AuraException, RemoteException {
         try {
             ProcessConfiguration pcConfig = getPartitionClusterConfig(prefix.
-                    toString(), false, owner.toString());
+                    toString(), false, owner.toString(), false, false);
             ProcessRegistration pcReg = gu.createProcess(getPartitionName(
                     prefix.toString()), pcConfig);
             gu.startRegistration(pcReg);
@@ -168,9 +168,9 @@ public class GridProcessManager extends Aura implements ProcessManager {
             
             //
             // Make sure there's a filesystem for this replicant!
-            createReplicantFileSystem(prefixString, owner.toString());
+            createReplicantFileSystem(prefixString, null, owner.toString());
             ProcessConfiguration repConfig = getReplicantConfig(replicantConfig,
-                    prefixString);
+                    false, prefixString);
             ProcessRegistration repReg = gu.createProcess(getReplicantName(
                     prefixString), repConfig);
             gu.startRegistration(repReg);
@@ -227,7 +227,9 @@ public class GridProcessManager extends Aura implements ProcessManager {
                 getReplicantName(oldPrefix.toString()));
         try {
             ProcessConfiguration repConf =
-                    getReplicantConfig(replicantConfig, childPrefix1.toString());
+                    getReplicantConfig(replicantConfig,
+                                       false,
+                                       childPrefix1.toString());
             oldRep.changeConfiguration(repConf);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update replicant "
@@ -526,8 +528,14 @@ public class GridProcessManager extends Aura implements ProcessManager {
                                 getConfiguration().getMetadata();
                         if(mdm != null) {
                             String prefix = mdm.get("prefix");
-                            if(prefix != null && mdm.get(tag) != null) {
-                                mp(prefix, (SnapshotFileSystem) fs);
+                            String nodeName = mdm.get("nodeName");
+                            String idStr = prefix;
+                            if (nodeName != null) {
+                                idStr =
+                                    combinePrefixAndNodeName(prefix, nodeName);
+                            }
+                            if(idStr != null && mdm.get(tag) != null) {
+                                mp(idStr, (SnapshotFileSystem) fs);
                             }
                         }
                     }
@@ -538,11 +546,18 @@ public class GridProcessManager extends Aura implements ProcessManager {
             timer.scheduleAtFixedRate(this, this.interval, this.interval);
         }
 
-        private List<SnapshotFileSystem> mp(String prefix, SnapshotFileSystem fs) {
-            List<SnapshotFileSystem> l = snaps.get(prefix);
+        /**
+         * Add a new snapshot to be managed
+         *
+         * @param idStr the prefix, or the prefix:nodeName of the filesystem
+         * @param fs the filesystem itself
+         * @return the current filesystems with the same prefix (or prefix:nodeName)
+         */
+        private List<SnapshotFileSystem> mp(String idStr, SnapshotFileSystem fs) {
+            List<SnapshotFileSystem> l = snaps.get(idStr);
             if(l == null) {
                 l = new ArrayList<SnapshotFileSystem>();
-                snaps.put(prefix, l);
+                snaps.put(idStr, l);
             }
             l.add(fs);
             return l;
@@ -560,6 +575,12 @@ public class GridProcessManager extends Aura implements ProcessManager {
                             ResourceName.getCSName(fs.getName()), tag, t, t, t);
 
                     //
+                    // Get the existing metadata
+                    BaseFileSystemConfiguration baseconf =
+                            ((BaseFileSystem)fs).getConfiguration();
+                    Map<String, String> basemd = baseconf.getMetadata();
+
+                    //
                     // Make the snapshot and set up the metadata.
                     SnapshotFileSystem sfs = ((BaseFileSystem) fs).
                             createSnapshot(sname);
@@ -570,7 +591,10 @@ public class GridProcessManager extends Aura implements ProcessManager {
                         md = new HashMap<String, String>();
                     }
                     md.put(tag, "true");
-                    md.put("prefix", prefix);
+                    md.put("prefix", basemd.get("prefix"));
+                    md.put("nodeName", basemd.get("nodeName"));
+                    md.put("groupName", basemd.get("groupName"));
+
                     sfsc.setMetadata(md);
                     sfs.changeConfiguration(sfsc);
 

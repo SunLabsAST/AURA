@@ -138,4 +138,111 @@ public class AttentionConfig implements Serializable {
     public void setNumberVal(Long numberVal) {
         this.numberVal = numberVal;
     }
+
+    public boolean isEmpty() {
+        if (sourceKey == null &&
+                targetKey == null &&
+                type == null &&
+                stringVal == null &&
+                numberVal == null) {
+            return true;
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        if (isEmpty()) {
+            return 0;
+        }
+
+        //
+        // We'll base the hashcode just on the source and target key for
+        // this config if possible (since source and target make up the
+        // partitioning key for attentions)
+
+        String codeStr = "";
+        if (sourceKey != null) {
+            codeStr += sourceKey;
+        }
+        if (targetKey != null) {
+            codeStr += targetKey;
+        }
+        if (!codeStr.isEmpty()) {
+            return codeStr.hashCode();
+        }
+
+        //
+        // Move on to the other fields if necessary
+        if (type != null) {
+            return type.ordinal();
+        }
+
+        if (numberVal != null) {
+            return numberVal.intValue();
+        }
+
+        if (stringVal != null) {
+            return stringVal.hashCode();
+        }
+
+        return 0;
+    }
+
+    public boolean equals(Object other) {
+        if ((other instanceof AttentionConfig)) {
+            return false;
+        }
+        AttentionConfig o = (AttentionConfig)other;
+
+
+        if (xorNull(sourceKey, o.sourceKey)) {
+            return false;
+        } else {
+            if (sourceKey != null && !sourceKey.equals(o.sourceKey)) {
+                return false;
+            }
+        }
+
+        if (xorNull(targetKey, o.targetKey)) {
+            return false;
+        } else {
+            if (targetKey != null && !targetKey.equals(o.targetKey)) {
+                return false;
+            }
+        }
+
+        if (xorNull(type, o.type)) {
+            return false;
+        } else {
+            if (type != null && !type.equals(o.type)) {
+                return false;
+            }
+        }
+
+        if (xorNull(numberVal, o.numberVal)) {
+            return false;
+        } else {
+            if (numberVal != null && !numberVal.equals(o.numberVal)) {
+                return false;
+            }
+        }
+
+        if (xorNull(stringVal, o.stringVal)) {
+            return false;
+        } else {
+            if (stringVal != null && !stringVal.equals(o.stringVal)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected boolean xorNull(Object o1, Object o2) {
+        if ((o1 != null && o2 == null) ||
+                (o1 == null && o2 != null)) {
+            return true;
+        }
+        return false;
+    }
 }

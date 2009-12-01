@@ -27,6 +27,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sun.labs.aura.datastore.Attention;
 import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.datastore.DBIterator;
+import com.sun.labs.aura.datastore.Item;
 import com.sun.labs.aura.datastore.impl.store.BerkeleyDataWrapper;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
@@ -53,9 +54,15 @@ public class RewriteBDB {
 
     protected BerkeleyDataWrapper destination;
 
-    public RewriteBDB(String source, String destination) throws DatabaseException {
-        this(new BerkeleyDataWrapper(source, logger),
-                new BerkeleyDataWrapper(destination, logger));
+    public RewriteBDB(String srcDBEnv, String destDBEnv) {
+        try {
+            source = new BerkeleyDataWrapper(srcDBEnv, logger);
+            destination = new BerkeleyDataWrapper(destDBEnv, logger);
+        } catch (DatabaseException e) {
+            logger.log(Level.SEVERE, "Unable to open DBs", e);
+        } catch (AuraException e) {
+            logger.log(Level.SEVERE, "Unable to open DBs", e);
+        }
     }
 
     public RewriteBDB(BerkeleyDataWrapper source,
@@ -69,10 +76,10 @@ public class RewriteBDB {
         // Migrate all items
         logger.info("Migrating items");
         long itemCnt = 0;
-        DBIterator<ItemImpl> items = source.getItemIterator();
+        DBIterator<Item> items = source.getAllIterator(null);
         List<ItemImpl> toAdd = new ArrayList<ItemImpl>(1000);
         while(items.hasNext()) {
-            toAdd.add(items.next());
+            toAdd.add((ItemImpl)items.next());
             itemCnt++;
             if(toAdd.size() >= 3000) {
                 destination.putItems(toAdd);

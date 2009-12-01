@@ -48,7 +48,7 @@ public class RepLogDialog extends DialogBox {
     
     protected List<String> selected;
     
-    protected String prefix;
+    protected String idStr;
     
     protected List<CheckBox> checks;
 
@@ -56,9 +56,9 @@ public class RepLogDialog extends DialogBox {
     
     protected String initialLogLevel;
     
-    public RepLogDialog(String prefix, List<String> logNames, List<String> selected, String logLevel) {
+    public RepLogDialog(String idStr, List<String> logNames, List<String> selected, String logLevel) {
         super(false);
-        this.prefix = prefix;
+        this.idStr = idStr;
         this.logNames = logNames;
         this.selected = selected;
         initialLogLevel = logLevel;
@@ -129,7 +129,7 @@ public class RepLogDialog extends DialogBox {
         });
         mainPanel.add(cancel);
         
-        Button changeMe = new Button("Change " + prefix);
+        Button changeMe = new Button("Change " + this.idStr);
         changeMe.addClickListener(new ClickListener() {
             public void onClick(Widget w) {
                 doChange(false);
@@ -167,7 +167,7 @@ public class RepLogDialog extends DialogBox {
             }
         };
         
-        service.setRepSelectedLogNames(all ? null : prefix, selected, callback);
+        service.setRepSelectedLogNames(all ? null : idStr, selected, callback);
     }
 
     public void doChange2(boolean all) {
@@ -186,7 +186,7 @@ public class RepLogDialog extends DialogBox {
                 }
             };
 
-            service.setLogLevel(all ? null : prefix, logLevel, callback);
+            service.setLogLevel(all ? null : idStr, logLevel, callback);
 
         }
     }

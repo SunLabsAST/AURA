@@ -77,7 +77,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
 
     protected boolean statsDown = true;
     
-    protected HashMap<String,Replicant> prefixToRep =
+    protected HashMap<String,Replicant> idStringToRep =
             new HashMap<String,Replicant>();
     
     public void init(ServletConfig config) throws ServletException {
@@ -159,7 +159,7 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     
     public List getPCInfo() {
         List ret = new ArrayList();
-        prefixToRep = new HashMap<String,Replicant>();
+        idStringToRep = new HashMap<String,Replicant>();
         for (ServiceItem svc : svcs) {
             if (svc.service instanceof PartitionCluster) {
                 PartitionCluster pc = (PartitionCluster)svc.service;
@@ -178,15 +178,15 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         return ret;
     }
     
-    public RepStats getRepStats(String prefix) {
+    public RepStats getRepStats(String idStr) {
         RepStats stats = new RepStats();
         if (statService != null) {
             try {
                 for (Replicant.StatName name : Replicant.StatName.values()) {
                     stats.putRate(name.toString(),
                             statService.getAveragePerSecond(
-                                repStatName(prefix, name.toString())));
-                    Double d = statService.getDouble(repStatName(prefix, name.toString()) + "-time");
+                                repStatName(idStr, name.toString())));
+                    Double d = statService.getDouble(repStatName(idStr, name.toString()) + "-time");
                     if (d == null || d.isNaN() || d.isInfinite()) {
                         d = new Double(0);
                     }
@@ -204,19 +204,19 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         return stats;
     }
     
-    public void resetRepStats(String prefix) {
+    public void resetRepStats(String idStr) {
         if (statService != null) {
             try {
-                Set<String> prefixes = new HashSet<String>();
-                if (prefix != null) {
-                    prefixes = Collections.singleton(prefix);
+                Set<String> idStrs = new HashSet<String>();
+                if (idStr != null) {
+                    idStrs = Collections.singleton(idStr);
                 } else {
-                    prefixes = prefixToRep.keySet();
+                    idStrs = idStringToRep.keySet();
                 }
-                for (String currPrefix : prefixes) {
+                for (String currId : idStrs) {
                     for (Replicant.StatName name : Replicant.StatName.values()) {
-                       statService.set(repStatName(currPrefix, name.toString()), 0);
-                       statService.setDouble(repStatName(currPrefix, name.toString()) + "-time", 0);
+                       statService.set(repStatName(currId, name.toString()), 0);
+                       statService.setDouble(repStatName(currId, name.toString()) + "-time", 0);
                     }
                 }
                 statsDown = false;
@@ -289,8 +289,8 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         return result;
     }
     
-    public List<String> getRepSelectedLogNames(String prefix) {
-        Replicant rep = prefixToRep.get(prefix);
+    public List<String> getRepSelectedLogNames(String idStr) {
+        Replicant rep = idStringToRep.get(idStr);
         try {
             EnumSet<Replicant.StatName> curr = rep.getLoggedStats();
             ArrayList<String> result = new ArrayList<String>();
@@ -304,18 +304,18 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         }
     }
     
-    public void setRepSelectedLogNames(String prefix, List<String> selected) {
+    public void setRepSelectedLogNames(String idStr, List<String> selected) {
         EnumSet<Replicant.StatName> names = EnumSet.noneOf(Replicant.StatName.class);
         for (String val : selected) {
             names.add(Replicant.StatName.valueOf(val));
         }
 
         try {
-            if (prefix != null && !prefix.isEmpty()) {
-                Replicant rep = prefixToRep.get(prefix);
+            if (idStr != null && !idStr.isEmpty()) {
+                Replicant rep = idStringToRep.get(idStr);
                 rep.setLoggedStats(names);
             } else {
-                for (Replicant rep : prefixToRep.values()) {
+                for (Replicant rep : idStringToRep.values()) {
                     rep.setLoggedStats(names);
                 }
             }
@@ -327,11 +327,11 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     
 
     @Override
-    public String getLogLevel(String prefix) {
+    public String getLogLevel(String idStr) {
         String ret = "";
         try {
-            if (prefix != null && !prefix.isEmpty()) {
-                Replicant selected = prefixToRep.get(prefix);
+            if (idStr != null && !idStr.isEmpty()) {
+                Replicant selected = idStringToRep.get(idStr);
                 ret = selected.getLogLevel();
             }
         } catch (RemoteException e) {
@@ -342,14 +342,14 @@ public class VizServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public boolean setLogLevel(String prefix, String logLevel) {
+    public boolean setLogLevel(String idStr, String logLevel) {
         boolean worked = true;
         try {
-            if (prefix != null && !prefix.isEmpty()) {
-                Replicant selected = prefixToRep.get(prefix);
+            if (idStr != null && !idStr.isEmpty()) {
+                Replicant selected = idStringToRep.get(idStr);
                 worked = selected.setLogLevel(logLevel);
             } else {
-                for (Replicant selected : prefixToRep.values()) {
+                for (Replicant selected : idStringToRep.values()) {
                     if (!selected.setLogLevel(logLevel)) {
                         worked = false;
                     }
@@ -441,15 +441,15 @@ public class VizServiceImpl extends RemoteServiceServlet implements
                 typeToCount.put(type.toString(), pc.getItemCount(type));
             }
             ret.setTypeToCountMap(typeToCount);
-            /*for (ServiceItem svc : svcs) {
+            for (ServiceItem svc : svcs) {
                 if (svc.service instanceof Replicant) {
                     Replicant rep = (Replicant)svc.service;
                     if (rep.getPrefix().equals(pc.getPrefix())) {
                         ret.addRepInfo(newRepInfo(rep));
                     }
                 }
-            }*/
-            ret.addRepInfo(newRepInfo(pc.getReplicant()));
+            }
+            //ret.addRepInfo(newRepInfo(pc.getReplicant()));
         } catch (RemoteException e) {
             logger.log(Level.WARNING, "Failed to communicate with partition cluster", e);
             return null;
@@ -470,17 +470,17 @@ public class VizServiceImpl extends RemoteServiceServlet implements
         try {
            ret.setDBSize(rep.getDBSize());
            ret.setIndexSize(rep.getIndexSize());
-           String prefix = rep.getPrefix().toString();
-           ret.setPrefix(prefix);
-           
-           prefixToRep.put(prefix, rep);
+           ret.setPrefix(rep.getPrefix().toString());
+           String idStr = rep.getIdString();
+           ret.setIdString(idStr);
+           idStringToRep.put(idStr, rep);
         } catch (RemoteException e) {
             logger.warning("Failed to get rep info: " + e.getMessage());
         }
         return ret;
     }
     
-    private static String repStatName(String prefix, String statName) {
-        return "Rep-" + prefix + "-" + statName;
+    private static String repStatName(String idStr, String statName) {
+        return "Rep-" + idStr + "-" + statName;
     }
 }

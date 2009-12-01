@@ -1,0 +1,42 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+
+function usage {
+    echo 'Usage: fsMetaData -h [-f filesystem]'
+    echo ' filesystem defaults to "live-aura.dist"'
+}
+
+args=`getopt hf: $*`
+
+if [ $? != 0 ]
+then
+    usage
+    exit 2
+fi
+
+set -- $args
+
+DIR=`dirname $0`
+
+export FILESYSTEM="live-aura.dist"
+
+for i
+do
+    case "$i"
+	in
+	-h)
+	    usage
+	    exit;;
+	-f)
+	    FILESYSTEM=$2; shift;
+	    shift;;
+    esac
+done
+
+
+CPD=$DIR/../..
+export CP=$CPD/aura/dist/aura.jar:$CPD/grid/dist/grid.jar:$CPD/Libraries/caroline.jar:$CPD/Libraries/carolineutil.jar
+java -cp $CP -DauraInstance=$INSTANCE -DrelName=$RELNAME -Dfilesystem=$FILESYSTEM \
+    com.sun.labs.aura.AuraServiceStarter \
+    /com/sun/labs/aura/grid/util/fsMetaDataConfig.xml starter

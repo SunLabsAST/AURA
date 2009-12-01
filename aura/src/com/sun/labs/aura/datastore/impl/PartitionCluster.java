@@ -51,7 +51,24 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      * @param replicant the replicant to add
      */
     public void addReplicant(Replicant replicant) throws RemoteException;
-    
+
+    /**
+     * Add a replicant as part of a replication group
+     *
+     * @param replicant the replicant being added
+     * @param groupName the name of the replication group it is part of
+     * @param repName the symbolic name (in the group) of the replicant being
+     *                added
+     * @param helperHostStr the host name string used to identify the replicant
+     *                      that is registering as part of the group
+     * @throws RemoteException
+     */
+    public void addReplicant(Replicant replicant,
+                             String repGroupName,
+                             String repName,
+                             String helperHostStr)
+                             throws AuraException, RemoteException;
+
     /**
      * Gets a replicant managed by this cluster.
      * @return one of this cluster's replicants
@@ -71,7 +88,7 @@ public interface PartitionCluster extends ItemStore, LowLevelSearch, Component, 
      * @return the field descriptions in this partition
      */
     public Map<String,FieldDescription> getFieldDescriptions()
-            throws RemoteException;
+            throws AuraException, RemoteException;
 
     /**
      * Splits the data in this partition cluster.  A new partition cluster

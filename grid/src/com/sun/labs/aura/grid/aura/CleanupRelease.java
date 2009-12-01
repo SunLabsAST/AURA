@@ -57,30 +57,30 @@ public class CleanupRelease extends Aura {
 
         try {
             //
-            // Snapshot the dist file system.
+            // Destroy the dist file system snapshot.
             FileSystem fs = gu.getFS("aura.dist" + "-" + relName, false);
             if(fs != null) {
                 fs.destroy();
             }
 
             //
-            // Snapshot the logs.
+            // Destroy the logs snapshot.
             fs = gu.getFS("aura.logs" + "-" + relName, false);
             if(fs != null) {
                 fs.destroy();
             }
 
             //
-            // Snapshot the cache filesystem.
+            // Destroy the cache filesystem snapshot.
             fs = gu.getFS("cache" + "-" + relName, false);
             if(fs != null) {
                 fs.destroy();
             }
             
             //
-            // Snapshot the replicant file systems.
-            for(String prefix : repFSMap.keySet()) {
-                fs = gu.getFS("replicant" + "-" + prefix + "-" + relName, false);
+            // Destroy the replicant file system snapshots.
+            for(String idStr : repFSMap.keySet()) {
+                fs = gu.getFS(getReplicantName(idStr) + "-" + relName, false);
                 if(fs != null) {
                     fs.destroy();
                 }

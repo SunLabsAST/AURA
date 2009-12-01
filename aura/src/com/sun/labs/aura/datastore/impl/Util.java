@@ -24,9 +24,9 @@
 
 package com.sun.labs.aura.datastore.impl;
 
-import com.sun.labs.aura.datastore.AttentionConfig;
 import com.sun.labs.aura.util.AuraException;
 import java.util.BitSet;
+import java.util.UUID;
 
 /**
  * Utility methods for use in the Data Store
@@ -92,17 +92,6 @@ public class Util {
         return val;
     }
     
-
-    public static boolean isEmpty(AttentionConfig ac) {
-        if (ac.getSourceKey() == null &&
-                ac.getTargetKey() == null &&
-                ac.getType() == null &&
-                ac.getStringVal() == null &&
-                ac.getNumberVal() == null) {
-            return true;
-        }
-        return false;
-    }
     
     public static boolean keyIsLocal(int hashCode, 
                                      DSBitSet localPrefix,
@@ -121,6 +110,11 @@ public class Util {
                 + localPrefix + " or remote " + remotePrefix);
     }
 
+    public static String getRandGroupName() {
+        String groupName = UUID.randomUUID().toString();
+        groupName = groupName.replace('-', '0');
+        return groupName;
+    }
 
     public static void main(String args[]) {
         for(int i = 0; i < args.length; i++ ) {

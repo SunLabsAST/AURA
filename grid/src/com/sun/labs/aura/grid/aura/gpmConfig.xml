@@ -61,6 +61,7 @@
         </propertylist>
         <property name="loadMonitorPeriod" value="10000"/>
         <property name="statService" value="statService"/>
+        <property name="takeSnaps" value="false"/>
     </component>
     
     <component name="gpmStarter" type="com.sun.labs.aura.AuraServiceStarter">

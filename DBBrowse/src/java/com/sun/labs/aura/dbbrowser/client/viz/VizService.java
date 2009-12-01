@@ -51,12 +51,12 @@ public interface VizService extends RemoteService{
     /**
      * Gets stats about a replicant
      */
-    public RepStats getRepStats(String prefix);
+    public RepStats getRepStats(String idStr);
     
     /**
      * Reset the stats for a replicant
      */
-    public void resetRepStats(String prefix);
+    public void resetRepStats(String idStr);
     
     /**
      * Gets the cpu load percentage for each process
@@ -77,33 +77,33 @@ public interface VizService extends RemoteService{
     
     /**
      * Gets the list of log names that are currently being logged
-     * @param prefix which replicant to check
+     * @param idStr which replicant to check
      * @return
      */
-    public List<String> getRepSelectedLogNames(String prefix);
+    public List<String> getRepSelectedLogNames(String idStr);
     
     /**
      * Sets the list of log names that should be logged
-     * @param prefix which replicant to set, or null to set all replicants
+     * @param idStr which replicant to set, or null to set all replicants
      * @param selected
      */
-    public void setRepSelectedLogNames(String prefix, List<String> selected);
+    public void setRepSelectedLogNames(String idStr, List<String> selected);
     
     /**
      * Gets the current log level as a string for a specific replicant
      * 
-     * @param prefix which replicant to get the value from
+     * @param idStr which replicant to get the value from
      * @return
      */
-    public String getLogLevel(String prefix);
+    public String getLogLevel(String idStr);
 
     /**
      * Sets the log level
      * 
-     * @param prefix which replicant to set, or null to set all replicants
+     * @param idStr which replicant to set, or null to set all replicants
      * @param logLevel
      */
-    public boolean setLogLevel(String prefix, String logLevel);
+    public boolean setLogLevel(String idStr, String logLevel);
     
     public void haltPC(PCInfo pc);
     

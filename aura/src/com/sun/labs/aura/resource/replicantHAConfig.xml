@@ -36,18 +36,22 @@
     
     <!-- Where the aura distribution jar was unpacked. -->
     <property name="auraDistDir" value="${auraHome}/dist"/>
-
-    <property name="csPort" value="4401"/>
+    
+    <property name="csPort" value="3301"/>
     
     <property name="prefix" value="01"/>
     
-    <property name="owner" value=""/>
+    <property name="dataFS" value="${auraHome}/${prefix}"/>
 
-    <property name="replicated" value="false"/>
+    <property name="replicated" value="true"/>
+    
+    <property name="nodeName" value="A"/>
 
-    <property name="numReplicants" value="1"/>
+    <property name="nodeHostPort" value="localhost:5001"/>
 
-    <property name="nodeHostPort" value=""/>
+    <property name="nodeHelper" value="localhost:5001"/>
+
+    <property name="groupName" value=""/>
 
     <component name="prefixEntries" type="com.sun.labs.util.props.ConfigurationEntries">
         <propertylist name="entries">
@@ -67,49 +71,42 @@
             <item>minion.jar</item>
             <item>slcut.jar</item>
         </propertylist>
-        <property name="lookupTries" value="20"/>
-        <property name="lookupWait" value="2"/>
         <property name="securityPolicy" value="${auraPolicy}"/>
     </component>
     
-    <component name="processManager" type="com.sun.labs.aura.datastore.impl.ProcessManager"/>
-    
     <!-- The configuration for a partition cluster. -->
-    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
+    <component name="replicant" type="com.sun.labs.aura.datastore.impl.store.BerkeleyItemStore" export="true" entries="prefixEntries">
         <property name="prefix" value="${prefix}"/>
         <property name="replicated" value="${replicated}"/>
-        <property name="numReplicants" value="${numReplicants}"/>
-        <property name="nodeName" value="PC${prefix}"/>
+        <property name="nodeName" value="${nodeName}"/>
         <property name="nodeHostPort" value="${nodeHostPort}"/>
-        <propertylist name="dataStoreHeads">
-            <type>com.sun.labs.aura.datastore.DataStore</type>
-        </propertylist>
+        <property name="nodeHelper" value="${nodeHelper}"/>
+        <property name="groupName" value="${groupName}"/>
+        <property name="dbEnv" value="${dataFS}/db"/>
+        <property name="itemSearchEngine" value="itemSearchEngine"/>
+        <property name="partitionCluster" value="partitionCluster"/>
+        <property name="statService" value="statService"/>
         <property name="logLevel" value="INFO"/>
-        <property name="processManager" value="processManager"/>
-    </component>
-
-    <!-- The configuration for a partition cluster that won't register itself with a data store. -->
-    <component name="noRegPartitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionClusterImpl" export="true" entries="prefixEntries">
-        <property name="prefix" value="${prefix}"/>
-        <property name="replicated" value="${replicated}"/>
-        <propertylist name="dataStoreHeads">
-            <type>com.sun.labs.aura.datastore.DataStore</type>
-        </propertylist>
-        <property name="processManager" value="processManager"/>
-        <property name="register" value="false"/>
-        <property name="owner" value="${owner}"/>
-    </component>
-
-    <!-- A service starter for this cluster -->
-    <component name="partitionClusterStarter" type="com.sun.labs.aura.AuraServiceStarter">
-        <propertylist name="serviceComponents">
-            <item>partitionCluster</item>
+        <propertylist name="logMethods">
+            <item>FIND_SIM</item>
+            <item>GET_ITEMS</item>
+            <item>QUERY</item>
         </propertylist>
     </component>
     
-    <component name="noRegPartitionClusterStarter" type="com.sun.labs.aura.AuraServiceStarter">
+    <!-- The configuration for the search engine associated with this replicant -->
+    <component name="itemSearchEngine" type="com.sun.labs.aura.datastore.impl.store.ItemSearchEngine">
+        <property name="indexDir" value="${dataFS}/itemIndex.idx"/>
+        <property name="flushInterval" value="300000"/>
+    </component>
+
+    <component name="partitionCluster" type="com.sun.labs.aura.datastore.impl.PartitionCluster" entries="prefixEntries"/>
+    <component name="statService" type="com.sun.labs.aura.service.StatService"/>
+    
+    <!-- A service starter for this replicant -->
+    <component name="replicantStarter" type="com.sun.labs.aura.AuraServiceStarter">
         <propertylist name="serviceComponents">
-            <item>noRegPartitionCluster</item>
+            <item>replicant</item>
         </propertylist>
     </component>
     

@@ -65,7 +65,7 @@ public class ShellServiceImpl extends RemoteServiceServlet implements
 
         shell = new CommandInterpreter();
         try {
-            ShellUtils sutils = new ShellUtils(shell, getStore(), getStatService());
+            ShellUtils sutils = new ShellUtils(shell, dsrcm, statrcm);
         } catch (AuraException e) {
             logger.log(Level.INFO, "Failed to set up shell", e);
         }

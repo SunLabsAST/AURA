@@ -51,6 +51,7 @@ import com.sun.labs.util.props.ComponentListener;
 import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigComponent;
 import com.sun.labs.util.props.ConfigComponentList;
+import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.Configurable;
 import com.sun.labs.util.props.ConfigurableMXBean;
@@ -82,7 +83,19 @@ public class PartitionClusterImpl implements PartitionCluster,
     
     @ConfigString
     public static final String PROP_PREFIX = "prefix";
-    
+
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_REPLICATED = "replicated";
+
+    @ConfigInteger(defaultValue=0)
+    public static final String PROP_NUM_REPLICANTS = "numReplicants";
+
+    @ConfigString(defaultValue="")
+    public static final String PROP_NODE_NAME = "nodeName";
+
+    @ConfigString(defaultValue="")
+    public static final String PROP_NODE_HOSTPORT = "nodeHostPort";
+
     @ConfigComponentList(type=com.sun.labs.aura.datastore.DataStore.class)
     public static final String PROP_DATA_STORE_HEADS = "dataStoreHeads";
     
@@ -114,7 +127,24 @@ public class PartitionClusterImpl implements PartitionCluster,
 
     //protected List<BerkeleyItemStore> replicants;
     protected Replicant replicant;
-        
+
+    protected boolean replicated;
+
+    /**
+     * The intended number of replicants (replication group size)
+     */
+    protected Integer numReplicants;
+
+    /**
+     * The logical name used to identify us as part of a replication group
+     */
+    protected String nodeName;
+
+    /**
+     * The host and port used to communicate as part of a replication group.
+     */
+    protected String nodeHostPort;
+
     protected PCStrategy strategy;
     
     protected Logger logger;
@@ -151,7 +181,7 @@ public class PartitionClusterImpl implements PartitionCluster,
     }
     
     public Map<String,FieldDescription> getFieldDescriptions()
-            throws RemoteException {
+            throws AuraException, RemoteException {
         return replicant.getFieldDescriptions();
     }
 
@@ -419,6 +449,30 @@ public class PartitionClusterImpl implements PartitionCluster,
             logger.info("No ProcessManager was found, splitting will fail");
         }
         register = ps.getBoolean(PROP_REGISTER);
+        replicated = ps.getBoolean(PROP_REPLICATED);
+        if (replicated) {
+            numReplicants = ps.getInt(PROP_NUM_REPLICANTS);
+            if (!(numReplicants > 0)) {
+                throw new PropertyException(ps.getInstanceName(),
+                                            PROP_NUM_REPLICANTS,
+                                            "A replicated partition must " +
+                                            "specify a non-zero group size");
+            }
+            nodeName = ps.getString(PROP_NODE_NAME);
+            if (nodeName.isEmpty()) {
+                throw new PropertyException(ps.getInstanceName(),
+                                            PROP_NODE_NAME,
+                                            "A symbolic name for this " +
+                                            "partition must be provided.");
+            }
+            nodeHostPort = ps.getString(PROP_NODE_HOSTPORT);
+            if (nodeHostPort.isEmpty()) {
+                throw new PropertyException(ps.getInstanceName(),
+                                            PROP_NODE_HOSTPORT,
+                                            "A host address:port for this " +
+                                            "partition must be provided.");
+            }
+        }
         cm = ps.getConfigurationManager();
         if (register) {
             List<DataStore> heads = (List<DataStore>) ps.getComponentList(PROP_DATA_STORE_HEADS, this);
@@ -514,14 +568,49 @@ public class PartitionClusterImpl implements PartitionCluster,
                     prefixCode + " prefix added: " + replicant.getPrefix());
         }
     }
-    
+
+    @Override
+    public void addReplicant(Replicant replicant,
+                             String repGroupName,
+                             String repName,
+                             String helperHostStr)
+            throws AuraException, RemoteException {
+        logger.log(Level.INFO, "Adding HA replicant with prefix " + replicant.getPrefix());
+        if (replicated) {
+            if (strategy == null) {
+                strategy = new PCBDBHAStrategy(logger,
+                        numReplicants, nodeName, nodeHostPort);
+            }
+        } else {
+            throw new AuraException("Attempted to add a replicated replicant "
+                    + "to a non-replicated partition");
+        }
+        if (replicant.getPrefix().equals(prefixCode)) {
+            PCBDBHAStrategy haStrat = (PCBDBHAStrategy)strategy;
+            haStrat.addReplicant(replicant, repGroupName, repName, helperHostStr);
+        }
+    }
+
     public Replicant getReplicant() throws RemoteException {
-        return replicant;
+        if (!replicated) {
+            return replicant;
+        } else if (strategy != null && strategy instanceof PCBDBHAStrategy) {
+            PCBDBHAStrategy haStrat = (PCBDBHAStrategy)strategy;
+            return haStrat.getReplicant();
+        }
+        return null;
+        
     }
     
     public boolean isReady() {
         if (replicant != null && strategy != null) {
             return true;
+        }
+        if (replicated &&
+                strategy != null &&
+                strategy instanceof PCBDBHAStrategy) {
+            PCBDBHAStrategy haStrat = (PCBDBHAStrategy)strategy;
+            return haStrat.isReady();
         }
         return false;
     }

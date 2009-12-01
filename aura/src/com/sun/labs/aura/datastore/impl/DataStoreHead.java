@@ -618,7 +618,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         //
         // Make sure that some criteria was specified
-        if (Util.isEmpty(ac)) {
+        if (ac.isEmpty()) {
             throw new AuraException("At least one constraint must be set " +
                     "before calling getAttention(AttentionConfig)");
         }
@@ -645,7 +645,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         //
         // Make sure that some criteria was specified
-        if (Util.isEmpty(ac)) {
+        if (ac.isEmpty()) {
             throw new AuraException("At least one constraint must be set " +
                     "before calling getAttention(AttentionConfig)");
         }
@@ -761,7 +761,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         //
         // Make sure that some criteria was specified
-        if (Util.isEmpty(ac)) {
+        if (ac.isEmpty()) {
             throw new AuraException("At least one constraint must be set " +
                     "before calling getAttentionSince(AttentionConfig)");
         }
@@ -790,7 +790,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         //
         // Make sure that some criteria was specified
-        if (Util.isEmpty(ac)) {
+        if (ac.isEmpty()) {
             throw new AuraException("At least one constraint must be set " +
                     "before calling getAttentionSince(AttentionConfig)");
         }
@@ -850,7 +850,7 @@ public class DataStoreHead implements DataStore, Configurable, ConfigurableMXBea
             throws AuraException, RemoteException {
         //
         // Make sure that some criteria was specified
-        if (Util.isEmpty(ac)) {
+        if (ac.isEmpty()) {
             throw new AuraException("At least one constraint must be set " +
                     "before calling getAttentionSince(AttentionConfig)");
         }

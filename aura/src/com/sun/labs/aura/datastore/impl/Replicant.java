@@ -24,6 +24,8 @@
 
 package com.sun.labs.aura.datastore.impl;
 
+import com.sun.labs.aura.datastore.Item.FieldCapability;
+import com.sun.labs.aura.datastore.Item.FieldType;
 import com.sun.labs.aura.datastore.impl.store.ItemStore;
 import com.sun.labs.aura.datastore.impl.store.LowLevelSearch;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
@@ -90,6 +92,14 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
     public void setPrefix(DSBitSet newPrefix) throws RemoteException;
 
     /**
+     * Gets the string that this Replicant will use to identify itself
+     * in stat names.
+     * 
+     * @return a readable string that uniquely identifies this replicant
+     */
+    public String getIdString() throws RemoteException;
+
+    /**
      * Delete the attention that is related to the given item either as a 
      * source or a target.  (Generally: isSrc should be true for users and
      * otherwise false)
@@ -109,6 +119,31 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
     public void deleteAttention(List<Long> ids)
             throws AuraException, RemoteException;
     
+    /**
+     * Instructs the search engine part of the Replicant to grab a list
+     * of items from the database and to reindex them.
+     * 
+     * @param itemKeys the keys to reindex
+     * @throws AuraException
+     * @throws RemoteException
+     */
+    public void indexItemsSE(List<String> itemKeys)
+            throws AuraException, RemoteException;
+
+    /**
+     * Define a field in the search engine online
+     */
+    public void defineFieldSE(String fieldName,
+                              FieldType fieldType,
+                              EnumSet<FieldCapability> caps)
+            throws AuraException, RemoteException;
+
+    /**
+     * Delete an item from the search engine
+     */
+    public void deleteItemSE(final String itemKey)
+            throws AuraException, RemoteException;
+
     /**
      * Gets the on-disk size of the database component of the replicant in
      * bytes.
@@ -130,7 +165,7 @@ public interface Replicant extends ItemStore, LowLevelSearch, Component, Remote 
      * @return the field descriptions in this replicant
      */
     public Map<String,FieldDescription> getFieldDescriptions()
-            throws RemoteException;
+            throws AuraException, RemoteException;
     
     /**
      * Returns an enumset containing the currently logged stat names

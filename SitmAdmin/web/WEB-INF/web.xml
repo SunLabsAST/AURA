@@ -8,17 +8,9 @@
         <servlet-name>AdminService</servlet-name>
         <servlet-class>com.sun.labs.aura.music.admin.server.AdminServiceImpl</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>VizService</servlet-name>
-        <servlet-class>com.sun.labs.aura.music.admin.server.VizServiceImpl</servlet-class>
-    </servlet>
     <servlet-mapping>
         <servlet-name>AdminService</servlet-name>
         <url-pattern>/com.sun.labs.aura.music.admin.GWTMain/adminservice</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>VizService</servlet-name>
-        <url-pattern>/com.sun.labs.aura.music.admin.GWTMain/vizservice</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

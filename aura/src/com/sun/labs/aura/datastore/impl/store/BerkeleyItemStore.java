@@ -24,6 +24,7 @@
 package com.sun.labs.aura.datastore.impl.store;
 
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.rep.util.DbEnableReplication;
 import com.sun.labs.aura.AuraService;
 import com.sun.labs.aura.util.AuraException;
 import com.sun.labs.aura.datastore.Attention;
@@ -42,6 +43,7 @@ import com.sun.labs.aura.datastore.User;
 import com.sun.labs.aura.datastore.impl.DSBitSet;
 import com.sun.labs.aura.datastore.impl.PartitionCluster;
 import com.sun.labs.aura.datastore.impl.Replicant;
+import com.sun.labs.aura.datastore.impl.Util;
 import com.sun.labs.aura.datastore.impl.store.persist.FieldDescription;
 import com.sun.labs.aura.datastore.impl.store.persist.PersistentAttention;
 import com.sun.labs.aura.datastore.impl.store.persist.ItemImpl;
@@ -72,6 +74,8 @@ import com.sun.labs.util.props.PropertyException;
 import com.sun.labs.util.props.PropertySheet;
 import com.sun.management.OperatingSystemMXBean;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
@@ -90,6 +94,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -109,7 +114,7 @@ import javax.script.ScriptException;
  */
 public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableMXBean, ComponentListener, AuraService,
         IndexListener {
-
+    
     /**
      * Whether we should copy the database into a temporary directory before
      * opening the item store.
@@ -139,7 +144,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public static final String PROP_PREFIX = "prefix";
 
     private DSBitSet prefixCode;
-
+    
     private String prefixString;
 
     /**
@@ -173,14 +178,32 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     @ConfigComponent(type = com.sun.labs.aura.service.StatService.class)
     public static final String PROP_STAT_SERVICE = "statService";
-
     protected StatService statService;
 
     @ConfigStringList(mandatory = false, defaultList = {})
     public static final String PROP_LOG_METHODS = "logMethods";
-
     protected EnumSet<StatName> toLog;
 
+    @ConfigBoolean(defaultValue = false)
+    public static final String PROP_REPLICATED = "replicated";
+    protected boolean replicated;
+
+    @ConfigString(defaultValue = "")
+    public static final String PROP_NODE_NAME = "nodeName";
+    protected String nodeName;
+
+    @ConfigString(defaultValue = "")
+    public static final String PROP_NODE_HOSTPORT = "nodeHostPort";
+    protected String nodeHostPort;
+
+    @ConfigString(defaultValue="")
+    public static final String PROP_NODE_HELPER = "nodeHelper";
+    protected String nodeHelper;
+
+    @ConfigString(defaultValue="")
+    public static final String PROP_GROUP_NAME = "groupName";
+    protected String groupName;
+    
     /**
      * ComponentRegistry will be non-null if we're running in a RMI environment
      */
@@ -254,7 +277,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         statInvocationCounts = new AtomicInteger[StatName.values().length];
         statTimeHistory = new LinkedList[StatName.values().length];
         statTimeTotals = new double[StatName.values().length];
-        for(StatName name : StatName.values()) {
+        for (StatName name : StatName.values()) {
             statInvocationCounts[name.ordinal()] = new AtomicInteger(0);
             statTimeHistory[name.ordinal()] = new LinkedList<Double>();
             statTimeTotals[name.ordinal()] = 0;
@@ -288,9 +311,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // See if there are specific methods we need to log
         List<String> logs = ps.getStringList(PROP_LOG_METHODS);
-        if(logs != null && !logs.isEmpty()) {
+        if (logs != null && !logs.isEmpty()) {
             toLog = EnumSet.noneOf(StatName.class);
-            for(String val : logs) {
+            for (String val : logs) {
                 toLog.add(StatName.valueOf(val));
             }
         } else {
@@ -301,9 +324,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         // Get the database environment, copying it if necessary.
         dbEnvDir = ps.getString(PROP_DB_ENV);
         File f = new File(dbEnvDir);
+        boolean dbEnvDirExists = f.exists();
+        
 
-
-        if(!f.exists() && !f.mkdirs()) {
+        if(!dbEnvDirExists && !f.mkdirs()) {
             throw new PropertyException(ps.getInstanceName(), PROP_DB_ENV,
                                         "Unable to create new directory for db");
         }
@@ -333,9 +357,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 dbEnvDir = tds;
             } catch(IOException ex) {
                 throw new PropertyException(ex, ps.getInstanceName(),
-                                            PROP_COPY_DIR,
-                                            "Unable to copy DBD to directory: " +
-                        tds);
+                        PROP_COPY_DIR,
+                        "Unable to copy BDB to directory: " + tds);
             }
         }
 
@@ -344,16 +367,142 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         cacheSizeMemPercentage = ps.getInt(PROP_CACHE_SIZE_MEM_PERCENTAGE);
 
         //
-        // Configure and open the environment and entity store
+        // See if we're running in a replicated environment
+        replicated = ps.getBoolean(PROP_REPLICATED);
+
+        logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir +
+                " with" + (replicated? "" : "out") + " replication");
         try {
-            logger.info("Opening BerkeleyDataWrapper: " + dbEnvDir);
-            bdb = new BerkeleyDataWrapper(dbEnvDir, logger,
-                                          cacheSizeMemPercentage);
-            logger.info("Finished opening BerkeleyDataWrapper");
-        } catch(DatabaseException e) {
+            if (replicated) {
+                //
+                // See if we have existing names for this replication group.
+                // If they don't match what is provided, throw an exception
+                File propDir = new File(dbEnvDir).getParentFile();
+                File propFile = new File(propDir, "ha.properties");
+
+                nodeName = ps.getString(PROP_NODE_NAME);
+                nodeHostPort = ps.getString(PROP_NODE_HOSTPORT);
+                nodeHelper = ps.getString(PROP_NODE_HELPER);
+                groupName = ps.getString(PROP_GROUP_NAME);
+                
+                Properties haProps = new Properties();
+                if (propFile.exists()) {
+                    try {
+                        haProps.load(new FileReader(propFile));
+                        //
+                        // See if all the properties match
+
+                        //
+                        // If we didn't get a node name, use the stored one
+                        if (nodeName.isEmpty()) {
+                            nodeName = haProps.getProperty(PROP_NODE_NAME);
+                        } else {
+                            if (!haProps.getProperty(PROP_NODE_NAME).equals(nodeName)) {
+                                throw new PropertyException(ps.getInstanceName(),
+                                    PROP_NODE_NAME,
+                                    "Redefinition of nodeName not permitted.  " +
+                                    "Old: " + haProps.getProperty(PROP_NODE_NAME) +
+                                    " New: " + nodeName);
+                            }
+                        }
+
+                        //
+                        // If we didn't get a node hostport, use the stored one
+                        if (nodeHostPort.isEmpty()) {
+                            nodeHostPort = haProps.getProperty(PROP_NODE_HOSTPORT);
+                        } else {
+                            if (!haProps.getProperty(PROP_NODE_HOSTPORT).equals(nodeHostPort)) {
+                                throw new PropertyException(ps.getInstanceName(),
+                                    PROP_NODE_HOSTPORT,
+                                    "Redefinition of nodeHost not permitted.  " +
+                                    "Old: " + haProps.getProperty(PROP_NODE_HOSTPORT) +
+                                    " New: " + nodeHostPort);
+                            }
+                        }
+                        //
+                        // If we didn't get a group name, assume we'll use
+                        // the stored one.
+                        if (groupName.isEmpty()) {
+                            groupName = haProps.getProperty(PROP_GROUP_NAME);
+                        } else {
+                            if (!haProps.getProperty(PROP_GROUP_NAME).equals(groupName)) {
+                                throw new PropertyException(ps.getInstanceName(),
+                                    PROP_GROUP_NAME,
+                                    "Redefinition of groupName not permitted.  " +
+                                    "Old: " + haProps.getProperty(PROP_GROUP_NAME) +
+                                    " New: " + groupName);
+                            }
+                        }
+                    } catch (IOException e) {
+                        logger.log(Level.SEVERE, "Failed to load ha.properties", e);
+                        throw new PropertyException(e, ps.getInstanceName(),
+                                PROP_REPLICATED,
+                                "Replication properties exist and could not be read");
+                    }
+
+                    //
+                    // Open a BDB wrapper for an already replicated environment
+                    bdb = new BerkeleyDataWrapper(dbEnvDir, logger,
+                            cacheSizeMemPercentage, true, groupName, nodeName,
+                            nodeHostPort, nodeHelper);
+                } else {
+                    //
+                    // This should be a replicated environment.  Either it isn't
+                    // yet replicated, or maybe it just doesn't exist at all.
+                    // First we'll need a group name for this group if we
+                    // weren't passed in an existing one to use.  It should
+                    // be unique and not related to the prefix stored in it
+                    // since it is essentially immutable.  Since the name can
+                    // only consist of letters and numbers, we'll replace the
+                    // hyphens that this creates with a legal character.
+                    if (groupName == null || groupName.isEmpty()) {
+                        groupName = Util.getRandGroupName();
+                    }
+
+                    if (dbEnvDirExists) {
+                        //
+                        // Enable replication for the existing database.  This
+                        // is supposed to be a basically constant time operation.
+                        logger.info("Enabling replication for " + dbEnvDir);
+                        DbEnableReplication enabler = new DbEnableReplication(
+                                new File(dbEnvDir),
+                                groupName, nodeName, nodeHostPort);
+                        enabler.convert();
+                    }
+
+                    //
+                    // Write out the props used for this replication node.
+                    haProps.setProperty(PROP_GROUP_NAME, groupName);
+                    haProps.setProperty(PROP_NODE_NAME, nodeName);
+                    haProps.setProperty(PROP_NODE_HOSTPORT, nodeHostPort);
+                    haProps.setProperty(PROP_NODE_HELPER, nodeHelper);
+                    try {
+                        haProps.store(new FileWriter(propFile), "");
+                    } catch (IOException e) {
+                        throw new PropertyException(ps.getInstanceName(),
+                                PROP_REPLICATED,
+                                "Creating replicated environment failed while" +
+                                " writing properties file: " + e.getMessage());
+                    }
+
+
+                    bdb = new BerkeleyDataWrapper(dbEnvDir, logger,
+                            cacheSizeMemPercentage, true,
+                            groupName, nodeName, nodeHostPort, nodeHelper);
+                }
+            } else {
+                //
+                // Configure and open the stand-alone entity store
+                bdb = new BerkeleyDataWrapper(dbEnvDir, logger,
+                        cacheSizeMemPercentage, false);
+            }
+        } catch(AuraException e) {
             logger.severe("Failed to load the database environment at " +
                     dbEnvDir + ": " + e);
+            throw new PropertyException(ps.getInstanceName(),
+                    "", "Failed to load BDB at " + dbEnvDir + ": " + e.getMessage());
         }
+        logger.info("Finished opening BerkeleyDataWrapper");
 
         //
         // Get the search engine from the config system
@@ -379,16 +528,23 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                                         "Failed to define User fields");
         }
 
-        //
-        // See if we need to re-index the data.  We need to do this if there
-        // is data in the BDB, but the search engine was created from scratch.
-        if(!bdb.isEmpty() && searchEngine.engineWasInitialized()) {
-            Reindexer reindexer = new Reindexer(searchEngine, false);
-            try {
-                reindexer.reindex(dbEnvDir, bdb);
-            } catch(Exception ex) {
-                logger.log(Level.SEVERE, "Unable to re-index database", ex);
+        try {
+            //
+            // See if we need to re-index the data.  We need to do this if there
+            // is data in the BDB, but the search engine was created from scratch.
+            if(!bdb.isEmpty() && searchEngine.engineWasInitialized()) {
+                Reindexer reindexer = new Reindexer(searchEngine, false);
+                try {
+                    reindexer.reindex(dbEnvDir, bdb);
+                } catch (Exception ex) {
+                    logger.log(Level.SEVERE, "Unable to re-index database", ex);
+                }
             }
+        } catch (AuraException e) {
+            logger.log(Level.INFO,
+                    "Failed to check bdb.isEmpty before reindexing", e);
+            throw new PropertyException(ps.getInstanceName(), "reindex",
+                    "Failed to check bdb.isEmpty before reindexing");
         }
 
         searchEngine.getSearchEngine().addIndexListener(this);
@@ -410,7 +566,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // Get a handle to the stat service if we got one
         statService = (StatService) ps.getComponent(PROP_STAT_SERVICE, this);
-        }
+    }
 
     @Override
     public String[] getProperties() {
@@ -444,7 +600,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             try {
                 Level l = Level.parse(value);
                 logger.setLevel(l);
-            } catch(IllegalArgumentException ex) {
+            } catch (IllegalArgumentException ex) {
                 return false;
             }
             return true;
@@ -468,10 +624,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     private void register(PartitionCluster pc) {
         try {
             logger.info("Registering with partition: " + pc.getPrefix());
-            pc.addReplicant((Replicant) cm.getRemote(this, pc));
-        } catch(RemoteException rx) {
+            if (!replicated) {
+                pc.addReplicant((Replicant) cm.getRemote(this, pc));
+            } else {
+                pc.addReplicant((Replicant)cm.getRemote(this,pc), groupName, nodeName, nodeHostPort);
+            }
+        } catch (RemoteException rx) {
             throw new PropertyException(null, PROP_PARTITION_CLUSTER, "Unable to add " +
                     "replicant to partition cluster.");
+        } catch (AuraException ex) {
+            throw new PropertyException(ex, null, PROP_PARTITION_CLUSTER, "Unable " +
+                    " to add replicant to partition cluster.");
         }
     }
 
@@ -488,9 +651,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         return prefixCode;
     }
 
+    @Override
     public void setPrefix(DSBitSet prefixCode) {
         this.prefixCode = prefixCode;
         prefixString = prefixCode.toString();
+    }
+
+    @Override
+    public String getIdString() {
+        String id = prefixString;
+        if (replicated) {
+            id = id + ":" + nodeName;
+        }
+        return id;
     }
 
     /**
@@ -498,7 +671,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     @Override
     public synchronized void close() throws AuraException {
-        if(!closed) {
+        if (!closed) {
             closed = true;
             logger.info("Closing BDB for prefix: " + prefixString);
             bdb.close();
@@ -521,18 +694,25 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                             EnumSet<Item.FieldCapability> caps) throws
             AuraException, RemoteException {
         bdb.defineField(fieldName, fieldType, caps);
+        defineFieldSE(fieldName, fieldType, caps);
+    }
 
+    @Override
+    public void defineFieldSE(String fieldName,
+                              Item.FieldType fieldType,
+                              EnumSet<Item.FieldCapability> caps)
+            throws AuraException, RemoteException {
         //
         // If this field is going to be dealt with by the search engine, then
         // send it there.
-        if(caps != null && caps.contains(Item.FieldCapability.INDEXED)) {
+        if (caps != null && caps.contains(Item.FieldCapability.INDEXED)) {
             searchEngine.defineField(fieldName, fieldType, caps);
         }
     }
 
     @Override
-    public Map<String, FieldDescription> getFieldDescriptions()
-            throws RemoteException {
+    public Map<String,FieldDescription> getFieldDescriptions()
+            throws AuraException, RemoteException {
         return bdb.getFieldDescriptions();
     }
 
@@ -647,7 +827,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
             // we need to re-index this item.
             boolean mustIndex = false;
             Set<String> setFields = itemImpl.getModifiedFields();
-            for(Map.Entry<String, Serializable> e : itemImpl) {
+            for(Map.Entry<String,Serializable> e : itemImpl) {
                 FieldDescription fd;
                 try {
                     fd = bdb.fieldByName.get(e.getKey());
@@ -701,6 +881,19 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
     }
 
+    public void indexItemsSE(List<String> itemKeys)
+            throws AuraException, RemoteException {
+        //
+        // For each key, read it from the database and reindex it.  This
+        // currently means doing more indexing work than may be strictly
+        // necessary (since we may be reindexing even when indexed fields
+        // haven't changed).
+        for (String key : itemKeys) {
+            ItemImpl item = bdb.getItem(key);
+            searchEngine.index(item);
+        }
+    }
+
     @Override
     public User putUser(User user) throws AuraException {
         return (User) putItem(user);
@@ -719,8 +912,13 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      */
     @Override
     public void deleteItem(String itemKey) throws AuraException {
-        searchEngine.delete(itemKey);
+        deleteItemSE(itemKey);
         bdb.deleteItem(itemKey);
+    }
+
+    @Override
+    public void deleteItemSE(String itemKey) throws AuraException {
+        searchEngine.delete(itemKey);
     }
 
     @Override
@@ -733,7 +931,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     public List<Item> getItems(User user, Type attnType,
                                ItemType itemType)
             throws AuraException {
-        return bdb.getItems(user.getKey(), attnType, itemType);
+        throw new UnsupportedOperationException("This function has been removed");
     }
 
     @Override
@@ -745,7 +943,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
         DBIterator<Item> res =
                 bdb.getItemsAddedSince(type, timeStamp.getTime());
-        res = (DBIterator<Item>) cm.getRemote(res);
+        res = (DBIterator<Item>)cm.getRemote(res);
 
         exit(state);
         return res;
@@ -760,11 +958,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         DBIterator<Attention> attn = bdb.getAttentionIterator(ac);
         List<Attention> res = new ArrayList<Attention>();
         try {
-            while(attn.hasNext()) {
+            while (attn.hasNext()) {
                 res.add(attn.next());
             }
             attn.close();
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             throw new AuraException("Remote exception on local object!!", e);
         }
 
@@ -786,7 +984,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public Long getAttentionCount(AttentionConfig ac) {
+    public Long getAttentionCount(AttentionConfig ac)
+            throws AuraException {
         StatState state = new StatState();
         enter(StatName.GET_ATTN_CNT, state);
 
@@ -816,20 +1015,20 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         try {
             try {
                 engine.eval(script);
-                Invocable invoker = (Invocable) engine;
+                Invocable invoker = (Invocable)engine;
                 result = invoker.invokeFunction("process", attention);
-            } catch(ScriptException e) {
+            } catch (ScriptException e) {
                 throw new AuraException("An error occurred while executing " +
                         "the provided script.", e);
-            } catch(NoSuchMethodException e) {
+            } catch (NoSuchMethodException e) {
                 throw new AuraException("The \"process\" method was not " +
                         "defined in the script.", e);
             }
-        } catch(ClassCastException e) {
+        } catch (ClassCastException e) {
             //
             // We couldn't cast the engine to an invocable
-            throw new AuraException("The script engine for the specified language (" +
-                    language + ") does not support function invocation.");
+            throw new AuraException("The script engine for the specified language ("
+                    + language + ") does not support function invocation.");
         }
         exit(state);
         return result;
@@ -846,11 +1045,11 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 bdb.getAttentionSinceIterator(ac, timeStamp);
         List<Attention> res = new ArrayList<Attention>();
         try {
-            while(attn.hasNext()) {
+            while (attn.hasNext()) {
                 res.add(attn.next());
             }
             attn.close();
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             throw new AuraException("Remote exception on local object!!", e);
         }
 
@@ -892,7 +1091,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         enter(StatName.GET_LAST_ATTN, state);
 
         List<Attention> attn = getAttention(ac);
-        if(attn.isEmpty()) {
+        if (attn.isEmpty()) {
             return attn;
         }
 
@@ -911,8 +1110,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         //
         // Make a persistent attention and give it to the BDB
         Attention ret = null;
-        if(att instanceof PersistentAttention) {
-            bdb.putAttention((PersistentAttention) att);
+        if (att instanceof PersistentAttention) {
+            bdb.putAttention((PersistentAttention)att);
             ret = att;
         } else {
             PersistentAttention pa = new PersistentAttention(att);
@@ -931,11 +1130,10 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
 
         //
         // Make persistent attentions and feed them to the BDB
-        List<PersistentAttention> pas = new ArrayList<PersistentAttention>(
-                attns.size());
-        for(Attention a : attns) {
-            if(a instanceof PersistentAttention) {
-                pas.add((PersistentAttention) a);
+        List<PersistentAttention> pas = new ArrayList<PersistentAttention>(attns.size());
+        for (Attention a : attns) {
+            if (a instanceof PersistentAttention) {
+                pas.add((PersistentAttention)a);
             } else {
                 pas.add(new PersistentAttention(a));
             }
@@ -1055,12 +1253,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         enter(StatName.GET_DV_KEY, state);
 
         DocumentVector dv = searchEngine.getDocumentVector(key, config);
-
-        exit(state);
+        
         try {
-            return new MarshalledObject<DocumentVector>(dv);
-        } catch(IOException ex) {
+            if (dv != null) {
+                return new MarshalledObject<DocumentVector>(dv);
+            } else {
+                return null;
+            }
+        } catch (IOException ex) {
             throw new AuraException("Error marshalling dv for " + key, ex);
+        } finally {
+            exit(state);
         }
     }
 
@@ -1072,13 +1275,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         enter(StatName.GET_DV_CLOUD, state);
 
         DocumentVector dv = searchEngine.getDocumentVector(cloud, config);
-
-        exit(state);
+        
         try {
-            return new MarshalledObject<DocumentVector>(dv);
-        } catch(IOException ex) {
-            throw new AuraException("Error marshalling dv for " +
-                    cloud.toString(), ex);
+            if (dv != null) {
+                return new MarshalledObject<DocumentVector>(dv);
+            } else {
+                return null;
+            }
+        } catch (IOException ex) {
+            throw new AuraException("Error marshalling dv for " + cloud.toString(), ex);
+        } finally {
+            exit(state);
         }
     }
 
@@ -1237,7 +1444,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     @Override
-    public long getItemCount(ItemType type) {
+    public long getItemCount(ItemType type) throws AuraException {
         return bdb.getItemCount(type);
     }
 
@@ -1256,7 +1463,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         List<String> languages = new ArrayList<String>();
         ScriptEngineManager mgr = new ScriptEngineManager();
         List<ScriptEngineFactory> factories = mgr.getEngineFactories();
-        for(ScriptEngineFactory factory : factories) {
+        for (ScriptEngineFactory factory : factories) {
             languages.add(factory.getLanguageName());
         }
         return languages;
@@ -1454,8 +1661,8 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
                 continue;
             }
 
-            for(Iterator it = listenerMap.get(itemType).iterator(); it.hasNext();) {
-                ItemListener il = (ItemListener) it.next();
+            for(Iterator it = listenerMap.get(itemType).iterator(); it.hasNext(); ) {
+                ItemListener il = (ItemListener)it.next();
                 try {
                     il.itemCreated(new ItemEvent(l.toArray(new ItemImpl[0])));
                 } catch(RemoteException ex) {
@@ -1534,7 +1741,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
      * @param extra further string data to append to the log line
      */
     protected void exit(StatState state, String extra) {
-        if(logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
+        if (logger.isLoggable(Level.FINE) && toLog.contains(state.name)) {
             state.timer.stop();
             double time = state.timer.getTimeMillis();
             logger.fine(String.format(" rep %s T%s exit  %s after %.3f %s",
@@ -1556,13 +1763,9 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
     }
 
     protected class StatState {
-
         NanoWatch timer = new NanoWatch();
-
         int count = 1;
-
         StatName name;
-
     }
 
     @Override
@@ -1581,7 +1784,7 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         public void run() {
             //
             // Send each stat
-            for(StatName name : StatName.values()) {
+            for (StatName name : StatName.values()) {
                 int idx = name.ordinal();
                 int num = statInvocationCounts[idx].getAndSet(0);
                 sendStat(name.toString(), num, num);
@@ -1598,15 +1801,15 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
          * Only sends if n > 0.
          */
         private void sendStat(String statName, int incr, int n) {
-            if(n <= 0) {
+            if (n <= 0) {
                 return;
             }
 
-            if(statService != null) {
+            if (statService != null) {
                 try {
-                    statService.incr("Rep-" + getPrefix() + "-" + statName,
+                    statService.incr("Rep-" + getIdString() + "-" + statName,
                                      incr, n);
-                } catch(RemoteException e) {
+                } catch (RemoteException e) {
                     logger.finer("Failed to notify stat server for stat " +
                             statName);
                 }
@@ -1614,17 +1817,17 @@ public class BerkeleyItemStore implements Replicant, Configurable, ConfigurableM
         }
 
         private void sendTime(String statName, double averageTime) {
-            if(averageTime == 0 || averageTime == Double.NaN) {
+            if (averageTime == 0 || averageTime == Double.NaN) {
                 return;
             }
 
-            if(statService != null) {
+            if (statService != null) {
                 try {
-                    statService.setDouble("Rep-" + getPrefix() + "-" + statName +
-                            "-time", averageTime);
-                } catch(RemoteException e) {
-                    logger.finer("Failed to notify stat server " +
-                            "for timing of stat " + statName);
+                    statService.setDouble("Rep-" + getIdString() + "-"
+                            + statName + "-time", averageTime);
+                } catch (RemoteException e) {
+                    logger.finer("Failed to notify stat server "
+                            + "for timing of stat " + statName);
                 }
             }
         }

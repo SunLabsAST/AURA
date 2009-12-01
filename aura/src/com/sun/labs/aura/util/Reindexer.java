@@ -106,10 +106,10 @@ public class Reindexer implements IndexListener {
             String key = o.toString();
             List<Scored<String>> at = getAutoTags(key);
             if(at != null) {
-                ItemImpl item = bdw.getItem(key);
-                item.setField("autotag", (Serializable) at);
-                item.storeMap();
                 try {
+                    ItemImpl item = bdw.getItem(key);
+                    item.setField("autotag", (Serializable) at);
+                    item.storeMap();
                     bdw.putItem(item);
                 } catch(AuraException ae) {
                     logger.log(Level.SEVERE, "Error adding tags to " + key, ae);

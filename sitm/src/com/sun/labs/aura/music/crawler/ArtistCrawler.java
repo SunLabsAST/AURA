@@ -857,13 +857,13 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
         });
 
-        /*runner.add(new Commander("youtube") {
+        runner.add(new Commander("youtube") {
 
             @Override
             public void go() throws Exception {
                 addYoutubeVideos(artist);
             }
-        });*/
+        });
 
         runner.add(new Commander("upcoming") {
 
@@ -1432,7 +1432,7 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
                 if (io.getCode() == -1) {
                     // Service is probably unavailable. don't throw exception
                     // to prevent retries
-                    logger.info("EchoNest exception trying to get reviews for artist " + artist.getKey());
+                    logger.info("EchoNest exception trying to get blogs for artist " + artist.getKey());
                 } else {
                     throw io;
                 }

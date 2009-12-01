@@ -43,7 +43,6 @@ import com.google.gwt.user.client.ui.Widget;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import sun.font.TextLabel;
 
 /**
  *

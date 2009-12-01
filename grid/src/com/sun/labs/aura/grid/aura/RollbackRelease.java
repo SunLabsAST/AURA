@@ -70,7 +70,7 @@ public class RollbackRelease extends Aura {
 
         try {
             //
-            // Snapshot the dist file system.
+            // Rollback the dist file system.
             SnapshotFileSystem fs = (SnapshotFileSystem) gu.getFS("aura.dist" +
                     "-" + relName, false);
             if(fs != null) {
@@ -78,7 +78,7 @@ public class RollbackRelease extends Aura {
             }
 
             //
-            // Snapshot the logs.
+            // Rollback the logs.
             fs = (SnapshotFileSystem) gu.getFS("aura.logs" + "-" + relName,
                     false);
             if(fs != null) {
@@ -86,16 +86,16 @@ public class RollbackRelease extends Aura {
             }
 
             //
-            // Snapshot the cache filesystem.
+            // Rollback the cache filesystem.
             fs = (SnapshotFileSystem) gu.getFS("cache" + "-" + relName, false);
             if(fs != null) {
                 rollbackWithDestroy(fs);
             }
 
             //
-            // Snapshot the replicant file systems.
-            for(String prefix : repFSMap.keySet()) {
-                fs = (SnapshotFileSystem) gu.getFS("replicant" + "-" + prefix +
+            // Rollback the replicant file systems.
+            for(String idStr : repFSMap.keySet()) {
+                fs = (SnapshotFileSystem) gu.getFS(getReplicantName(idStr) +
                         "-" + relName, false);
                 if(fs != null) {
                     rollbackWithDestroy(fs);

@@ -30,6 +30,7 @@ import com.sun.labs.aura.grid.util.GridUtil;
 import com.sun.caroline.platform.FileSystem;
 import com.sun.caroline.platform.FileSystemMountParameters;
 import com.sun.caroline.platform.ProcessConfiguration;
+import com.sun.caroline.platform.ProcessRegistration;
 import com.sun.caroline.platform.ProcessRegistrationFilter;
 import com.sun.caroline.platform.ResourceName;
 import com.sun.caroline.platform.RuntimeEnvironment;
@@ -43,6 +44,7 @@ import com.sun.labs.aura.datastore.impl.Replicant;
 import com.sun.labs.aura.grid.ServiceAdapter;
 import com.sun.labs.aura.service.LoginService;
 import com.sun.labs.aura.service.StatService;
+import com.sun.labs.util.props.ConfigBoolean;
 import com.sun.labs.util.props.ConfigInteger;
 import com.sun.labs.util.props.ConfigString;
 import com.sun.labs.util.props.PropertyException;
@@ -73,16 +75,33 @@ public abstract class Aura extends ServiceAdapter {
     private String dataStoreStarter;
 
     @ConfigInteger(defaultValue=16)
-    public static final String PROP_DEFAULT_NUM_REPLICANTS = "defaultNumReplicants";
+    public static final String PROP_DEFAULT_NUM_PARTITIONS = "defaultNumPartitions";
+    protected int defaultNumPartitions;
 
-    private int defaultNumReplicants;
+    @ConfigBoolean(defaultValue=false)
+    public static final String PROP_REPLICATED = "replicated";
+    private boolean replicated;
+
+    @ConfigInteger(defaultValue=0)
+    public static final String PROP_GROUP_SIZE = "groupSize";
+    private int groupSize;
+
+    protected enum NodeNames {
+        A, B, C, D, E
+    }
 
     /**
-     * A map from prefixes to the file systems for those prefixes.  This map
+     * A map from prefixes (possibly with node names attached)
+     * to the file systems for those prefixes.  This map
      * stores all the active prefixes/filesystems.
      */
     protected Map<String, FileSystem> repFSMap = new HashMap<String, FileSystem>();
 
+    /**
+     * As above, but file systems in here are not active -- they're being
+     * managed by a partition that isn't their own, for the purpose of
+     * doing a split.  They'll get moved once the split finishes.
+     */
     protected Map<String, FileSystem> ownedFSMap = new HashMap<String, FileSystem>();
 
     protected FileSystem loginSvcFS = null;
@@ -98,25 +117,52 @@ public abstract class Aura extends ServiceAdapter {
      * added by splitting.
      * @throws java.lang.Exception
      */
-    public void createReplicantFileSystems() throws Exception {
-        int numBits = Integer.toString(defaultNumReplicants, 2).length() - 1;
-        for(int i = 0; i < defaultNumReplicants; i++) {
-            createReplicantFileSystem(DSBitSet.parse(i).setPrefixLength(numBits).toString());
+    public void createReplicantFileSystems(int numParts) throws Exception {
+        int numBits = Integer.toString(numParts, 2).length() - 1;
+        for(int i = 0; i < numParts; i++) {
+            if (!isReplicated()) {
+                //
+                // Make one filesystem per partition
+                createReplicantFileSystem(
+                        DSBitSet.parse(i).setPrefixLength(numBits).
+                                toString(),
+                        null,
+                        null);
+            } else {
+                //
+                // Make groupSize filesystems per partition
+                for (int j = 0; j < groupSize; j++) {
+                    createReplicantFileSystem(
+                            DSBitSet.parse(i).setPrefixLength(numBits).
+                                    toString(),
+                            NodeNames.values()[j].name(),
+                            null);
+                }
+            }
         }
     }
     
     /**
-     * Creates a replicant file system for a given prefix.
-     * @param prefix
-     * @throws java.lang.Exception
+     * Creates a filesystem for a replicant, possibly in an HA group or owned
+     * by a different partition
+     *
+     * @param prefix the prefix representing the partition
+     * @param nodeName this node's name in the HA group or null if not HA
+     * @param owner the owner prefix if this is for a split
+     * @throws Exception
      */
-    public void createReplicantFileSystem(String prefix) throws Exception {
-        createReplicantFileSystem(prefix, null);
-    }
-    
-    public void createReplicantFileSystem(String prefix, String owner) throws Exception {
-        logger.info("Creating replicant fs for " + prefix);
-        FileSystem fs = gu.getFS(getReplicantName(prefix), true);
+    public void createReplicantFileSystem(String prefix, String nodeName, String owner) throws Exception {
+        String idStr = prefix;
+        if (nodeName != null) {
+            idStr = combinePrefixAndNodeName(prefix, nodeName);
+        }
+        logger.info("Creating replicant fs for " + idStr);
+        FileSystem fs;
+        if (nodeName == null) {
+            fs = gu.getFS(getReplicantName(prefix), true);
+        } else {
+            fs = gu.getFS(getReplicantName(prefix, nodeName), true);
+        }
 
         //
         // Add metadata to taste.
@@ -126,11 +172,14 @@ public abstract class Aura extends ServiceAdapter {
         md.put("instance", instance);
         md.put("type", "replicant");
         md.put("prefix", prefix);
+        if (nodeName != null) {
+            md.put("nodeName", nodeName);
+        }
         if (owner != null && !owner.isEmpty()) {
-            ownedFSMap.put(prefix, fs);
+            ownedFSMap.put(idStr, fs);
             md.put("owner", owner);
         } else {
-            repFSMap.put(prefix, fs);
+            repFSMap.put(idStr, fs);
         }
         fsConfig.setMetadata(md);
         ((BaseFileSystem) fs).changeConfiguration(fsConfig);
@@ -148,7 +197,7 @@ public abstract class Aura extends ServiceAdapter {
             }
 
             //
-            // Add metadata for the prefix being handled.
+            // Check metadata for the prefix being handled.
             BaseFileSystemConfiguration fsConfig = ((BaseFileSystem) fs).getConfiguration();
             Map<String,String> md = fsConfig.getMetadata();
             
@@ -167,12 +216,19 @@ public abstract class Aura extends ServiceAdapter {
                 logger.warning("Replicant filesystem with no prefix metadata: " + fs.getName());
                 continue;
             }
+
+            String idStr = prefix;
+            String nodeName = md.get("nodeName");
+            if (nodeName != null) {
+                idStr = combinePrefixAndNodeName(prefix, nodeName);
+            }
             
             mdv = md.get("owner");
             if (mdv == null) {
-                repFSMap.put(prefix, fs);
+                logger.info("Putting " + idStr + " into repFSMap");
+                repFSMap.put(idStr, fs);
             } else {
-                ownedFSMap.put(prefix, fs);
+                ownedFSMap.put(idStr, fs);
             }
         }
     }
@@ -191,7 +247,16 @@ public abstract class Aura extends ServiceAdapter {
             if(md == null) {
                 md = new HashMap<String, String>();
             }
-            md.put("prefix", e.getKey());
+            String key = e.getKey();
+            //
+            // For HA, the key is prefix:nodeName
+            if (key.contains(":")) {
+                String[] parts = key.split(":", 2);
+                md.put("prefix", parts[0]);
+                md.put("nodeName", parts[1]);
+            } else {
+                md.put("prefix", e.getKey());
+            }
             sfsc.setMetadata(md);
             sfs.changeConfiguration(sfsc);
         }
@@ -212,6 +277,14 @@ public abstract class Aura extends ServiceAdapter {
 
     public String getReplicantName(String prefix) {
         return "replicant-" + prefix;
+    }
+
+    public String getReplicantName(String prefix, String nodeName) {
+        return "replicant-" + combinePrefixAndNodeName(prefix, nodeName);
+    }
+
+    public String combinePrefixAndNodeName(String prefix, String nodeName) {
+        return prefix + ":" + nodeName;
     }
 
     public String getStatServiceName() {
@@ -367,30 +440,50 @@ public abstract class Aura extends ServiceAdapter {
 
     protected ProcessConfiguration getPartitionClusterConfig(String prefix)
             throws Exception {
-        return getPartitionClusterConfig(prefix, true, null);
+        return getPartitionClusterConfig(prefix, true, null, false, false);
     }
     
     protected ProcessConfiguration getPartitionClusterConfig(String prefix, boolean register)
             throws Exception {
-        return getPartitionClusterConfig(prefix, register, null);
+        return getPartitionClusterConfig(prefix, register, null, false, false);
     }
     
-    protected ProcessConfiguration getPartitionClusterConfig(String prefix, boolean register, String owner)
+    protected ProcessConfiguration getPartitionClusterConfig(
+            String prefix, boolean register, String owner, boolean replicated, boolean debug)
             throws Exception {
-        String[] cmdLine = new String[]{
+        String hostName = gu.getInternalHostName(getPartitionName(prefix));
+        String[] defines = new String[]{
             "-DauraHome=" + GridUtil.auraDistMntPnt,
             "-DauraGroup=" + instance + "-aura",
             "-Dprefix=" + prefix,
             "-Downer=" + ((owner != null && !owner.isEmpty()) ? owner : "\"\""),
+            "-Dreplicated=" + replicated,
+            "-DnodeHostPort=" + hostName + ":23242",
+            "-DnumReplicants=" + getGroupSize(),
+        };
+
+        if (debug) {
+            String[] debugArgs = new String[] {
+                "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+                "/dist/rmilogging.properties",
+                "-verbose:gc",
+                "-XX:+PrintGCTimeStamps",
+                "-XX:+PrintGCDetails",
+            };
+            defines = append(defines, debugArgs);
+        }
+
+        String[] cmdLine = new String[]{
             "-jar",
             GridUtil.auraDistMntPnt + "/dist/grid.jar",
             "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
             register ? "partitionClusterStarter" : "noRegPartitionClusterStarter",
             String.format("%s/pc/part-%s.%%g.out", GridUtil.logFSMntPnt, prefix),
         };
+        cmdLine = append(defines, cmdLine);
 
         ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(),
-                cmdLine, getPartitionName(prefix), null, true);
+                cmdLine, getPartitionName(prefix), null, true, false);
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
         md.put("monitor", "true");
@@ -401,77 +494,50 @@ public abstract class Aura extends ServiceAdapter {
         return pc;
     }
 
-    protected ProcessConfiguration getPartitionClusterDebugConfig(String prefix)
-            throws Exception {
-        String[] cmdLine = new String[]{
-            "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
-            "/dist/rmilogging.properties",
-            "-verbose:gc",
-            "-XX:+PrintGCTimeStamps",
-            "-XX:+PrintGCDetails",
-            "-DauraHome=" + GridUtil.auraDistMntPnt,
-            "-DauraGroup=" + instance + "-aura",
-            "-Dprefix=" + prefix,
-            "-jar",
-            GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            "/com/sun/labs/aura/resource/partitionClusterConfig.xml",
-            "partitionClusterStarter",
-            String.format("%s/pc/part-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
-        };
-        
-        ProcessConfiguration pc = gu.getProcessConfig(PartitionCluster.class.getName(),
-                cmdLine, getPartitionName(
-                prefix), null, true);
-        Map<String, String> md = pc.getMetadata();
-        md.put("prefix", prefix);
-        md.put("monitor", "true");
-        pc.setMetadata(md);
-        return pc;
-    }
-
     protected ProcessConfiguration getReplicantConfig(String replicantConfig,
+            boolean debugRMI,
             String prefix)
             throws Exception {
 
         String deleteProp = System.getProperty("deleteIndexDir");
 
-        String[] cmdLine;
-        
-        if(deleteProp == null) {
-            cmdLine = new String[]{
-                        "-Xmx3g",
-                        "-DauraHome=" + GridUtil.auraDistMntPnt,
-                        "-DauraGroup=" + instance + "-aura",
-                        "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
-                        "/classifier/starting.idx",
-                        "-Dprefix=" + prefix,
-                        "-DdataFS=/files/data",
-                        "-jar",
-                        GridUtil.auraDistMntPnt + "/dist/grid.jar",
-                        replicantConfig,
-                        "replicantStarter",
-                        String.format("%s/rep/rep-%s.%%g.out",
-                                      GridUtil.logFSMntPnt, prefix)
-                    };
-        } else {
-            cmdLine = new String[]{
-                        "-Xmx3g",
-                        "-DauraHome=" + GridUtil.auraDistMntPnt,
-                        "-DauraGroup=" + instance + "-aura",
-                        "-DdeleteIndexDir=" + deleteProp,
-                        "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
-                        "/classifier/starting.idx",
-                        "-Dprefix=" + prefix,
-                        "-DdataFS=/files/data",
-                        "-jar",
-                        GridUtil.auraDistMntPnt + "/dist/grid.jar",
-                        replicantConfig,
-                        "replicantStarter",
-                        String.format("%s/rep/rep-%s.%%g.out",
-                                      GridUtil.logFSMntPnt, prefix)
-            };
+        String[] defines = new String[]{
+                "-Xmx3g",
+                "-DauraHome=" + GridUtil.auraDistMntPnt,
+                "-DauraGroup=" + instance + "-aura",
+                "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+                    "/classifier/starting.idx",
+                "-Dprefix=" + prefix,
+                "-DdataFS=/files/data",
+        };
 
+        
+        if(deleteProp != null) {
+            String[] delCmd = new String[] {
+                "-DdeleteIndexDir=" + deleteProp,
+            };
+            defines = append(defines, delCmd);
         }
+
+        if (debugRMI) {
+            String[] debugCmd = new String[] {
+                "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+                "/dist/rmilogging.properties",
+            };
+            defines = append(defines, debugCmd);
+        }
+
+
+        String[] cmd = new String[]{
+                "-jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
+                replicantConfig,
+                "replicantStarter",
+                String.format("%s/rep/rep-%s.%%g.out",
+                              GridUtil.logFSMntPnt, prefix)
+        };
+
+        String[] cmdLine = append(defines, cmd);
 
         FileSystem fs = repFSMap.get(prefix);
         if (fs == null) {
@@ -492,6 +558,175 @@ public abstract class Aura extends ServiceAdapter {
                 Pattern.compile(instance + ".*-replicant-.*")));
         Map<String,String> md = pc.getMetadata();
         md.put("prefix", prefix);
+        md.put("monitor", "true");
+        pc.setMetadata(md);
+        return pc;
+    }
+
+    protected ProcessRegistration createReplicantGroupProcesses(
+            String replicantConfig, boolean debugRMI, String prefix)
+    throws Exception {
+        ProcessRegistration lastReg = null;
+        //
+        // Get the meta data from the first filesystem of the group.  We'll
+        // need to ensure that there is a group name we can use for all the
+        // replicants in this group.
+        String firstFSId =
+                combinePrefixAndNodeName(prefix, NodeNames.values()[0].name());
+        BaseFileSystem firstFS = (BaseFileSystem)repFSMap.get(firstFSId);
+        BaseFileSystemConfiguration firstFSConf = firstFS.getConfiguration();
+        Map<String,String> md = firstFSConf.getMetadata();
+        String groupName = md.get("groupName");
+        if (groupName == null) {
+            groupName =
+                    com.sun.labs.aura.datastore.impl.Util.getRandGroupName();
+        }
+
+        //
+        // The last nodeHost, to be used as the helper host for the n+1th node
+        String prevNodeHostName = null;
+
+        //
+        // Now create the registrations for each of the n replicants
+        for (int i = 0; i < getGroupSize(); i++) {
+            //
+            // Make sure the group is set in the filesystem metadata
+            String nodeName = NodeNames.values()[i].name();
+            String idStr = combinePrefixAndNodeName(prefix, nodeName);
+            logger.info("Setting groupName MD for " + idStr);
+            BaseFileSystem fs = (BaseFileSystem)repFSMap.get(idStr);
+            BaseFileSystemConfiguration fsConf = fs.getConfiguration();
+            Map<String,String> metaData = fsConf.getMetadata();
+            metaData.put("groupName", groupName);
+            fsConf.setMetadata(metaData);
+            fs.changeConfiguration(fsConf);
+
+            //
+            // Create the registration
+            ProcessConfiguration pc =
+                                getReplicantHAConfig(replicantConfig,
+                                                     debugRMI,
+                                                     prefix,
+                                                     nodeName,
+                                                     prevNodeHostName,
+                                                     groupName);
+            prevNodeHostName = gu.getInternalHostName(
+                    getReplicantName(prefix + nodeName));
+
+            //
+            // Make the registration
+            ProcessRegistration repReg =
+                gu.createProcess(getReplicantName(prefix, nodeName),
+                                 pc);
+
+            //
+            // And start it.
+            gu.startRegistration(repReg, false);
+            lastReg = repReg;
+
+        }
+        return lastReg;
+
+    }
+
+    /**
+     * Get a configuration for a replicated replicant
+     *
+     * @param replicantConfig the config file to use
+     * @param debugRMI should we include RMI debugging info?
+     * @param prefix the prefix (partition) that this replicant belongs to
+     * @param nodeName the logical node name in the replication group
+     * @param nodeHelperHostName the host name of the helper to use
+     * @param groupName the logical group name for this replication gorup
+     * @return the config
+     * @throws Exception
+     */
+    protected ProcessConfiguration getReplicantHAConfig(
+                                                    String replicantConfig,
+                                                    boolean debugRMI,
+                                                    String prefix,
+                                                    String nodeName,
+                                                    String nodeHelperHostName,
+                                                    String groupName)
+            throws Exception {
+
+        //
+        // What will this node be called?
+        String nodeHostName =
+                gu.getInternalHostName(getReplicantName(prefix + nodeName));
+
+        //
+        // Did we get a nodeHelperHostName?  If not, use our own name
+        if (nodeHelperHostName == null) {
+            nodeHelperHostName = nodeHostName;
+        }
+
+        String deleteProp = System.getProperty("deleteIndexDir");
+
+        String[] defines = new String[]{
+                "-Xmx3g",
+                "-DauraHome=" + GridUtil.auraDistMntPnt,
+                "-DauraGroup=" + instance + "-aura",
+                "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
+                    "/classifier/starting.idx",
+                "-Dprefix=" + prefix,
+                "-DdataFS=/files/data",
+                "-DnodeName=" + nodeName,
+                "-DnodeHostPort=" + nodeHostName + ":23242",
+                "-DnodeHelper=" + nodeHelperHostName + ":23242",
+                "-DgroupName=" + groupName,
+        };
+
+
+        if(deleteProp != null) {
+            String[] delCmd = new String[] {
+                "-DdeleteIndexDir=" + deleteProp,
+            };
+            defines = append(defines, delCmd);
+        }
+
+        if (debugRMI) {
+            String[] debugCmd = new String[] {
+                "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
+                "/dist/rmilogging.properties",
+            };
+            defines = append(defines, debugCmd);
+        }
+
+
+        String[] cmd = new String[]{
+                "-jar",
+                GridUtil.auraDistMntPnt + "/dist/grid.jar",
+                replicantConfig,
+                "replicantStarter",
+                String.format("%s/rep/rep-%s%s.%%g.out",
+                              GridUtil.logFSMntPnt, prefix, nodeName)
+        };
+
+        String[] cmdLine = append(defines, cmd);
+
+        String idStr = combinePrefixAndNodeName(prefix, nodeName);
+        FileSystem fs = repFSMap.get(idStr);
+        if (fs == null) {
+            fs = ownedFSMap.get(idStr);
+        }
+        List<FileSystemMountParameters> extraMounts =
+                Collections.singletonList(new FileSystemMountParameters(
+                fs.getUUID(),
+                "data"));
+        ProcessConfiguration pc = gu.getProcessConfig(
+                Replicant.class.getName(),
+                cmdLine, getReplicantName(
+                prefix + nodeName), extraMounts);
+
+        // don't overlap with other replicants
+        pc.setLocationConstraint(
+                new ProcessRegistrationFilter.NameMatch(
+                Pattern.compile(instance + ".*-replicant-.*")));
+        Map<String,String> md = pc.getMetadata();
+        md.put("prefix", prefix);
+        md.put("nodeName", nodeName);
+        md.put("groupName", groupName);
         md.put("monitor", "true");
         pc.setMetadata(md);
         return pc;
@@ -546,49 +781,6 @@ public abstract class Aura extends ServiceAdapter {
         return pc;
     }
 
-    protected ProcessConfiguration getDebugReplicantConfig(String replicantConfig,
-            String prefix)
-            throws Exception {
-        String[] cmdLine = new String[]{
-            "-Xmx3g",
-            "-Djava.util.logging.config.file=" + GridUtil.auraDistMntPnt +
-            "/dist/rmilogging.properties",
-            "-DauraHome=" + GridUtil.auraDistMntPnt,
-            "-DauraGroup=" + instance + "-aura",
-            "-DstartingDataDir=" + GridUtil.auraDistMntPnt +
-            "/classifier/starting.idx",
-            "-Dprefix=" + prefix,
-            "-DdataFS=/files/data",
-            "-jar",
-            GridUtil.auraDistMntPnt + "/dist/grid.jar",
-            replicantConfig,
-            "replicantStarter",
-            String.format("%s/rep/rep-%s.%%g.out", GridUtil.logFSMntPnt, prefix)
-        };
-
-        FileSystem fs = repFSMap.get(prefix);
-        if (fs == null) {
-            fs = ownedFSMap.get(prefix);
-        }
-        List<FileSystemMountParameters> extraMounts =
-                Collections.singletonList(new FileSystemMountParameters(
-                fs.getUUID(),
-                "data"));
-        ProcessConfiguration pc = gu.getProcessConfig(
-                Replicant.class.getName(),
-                cmdLine, getReplicantName(
-                prefix), extraMounts);
-
-        // don't overlap with other replicants
-        pc.setLocationConstraint(
-                new ProcessRegistrationFilter.NameMatch(
-                Pattern.compile(instance + ".*-replicant-.*")));
-        Map<String,String> md = pc.getMetadata();
-        md.put("prefix", prefix);
-        md.put("monitor", "true");
-        pc.setMetadata(md);
-        return pc;
-    }
 
     protected ProcessConfiguration getStatServiceConfig() throws Exception {
         String[] cmdLine = new String[]{
@@ -632,8 +824,16 @@ public abstract class Aura extends ServiceAdapter {
     public void newProperties(PropertySheet ps) throws PropertyException {
         super.newProperties(ps);
         replicantConfig = ps.getString(PROP_REPLICANT_CONFIG);
-        defaultNumReplicants = ps.getInt(PROP_DEFAULT_NUM_REPLICANTS);
+        defaultNumPartitions = ps.getInt(PROP_DEFAULT_NUM_PARTITIONS);
         dataStoreStarter = ps.getString(PROP_DATA_STORE_STARTER);
+        replicated = ps.getBoolean(PROP_REPLICATED);
+        groupSize = ps.getInt(PROP_GROUP_SIZE);
+
+        if (replicated && (groupSize < 2 || groupSize > 4)) {
+            throw new PropertyException(ps.getInstanceName(), PROP_GROUP_SIZE,
+                    "Group Size must be between 2 and 4");
+        }
+
         try {
             getReplicantFileSystems();
         } catch(Exception ex) {
@@ -645,5 +845,20 @@ public abstract class Aura extends ServiceAdapter {
         for(String dir : new String[] {"dshead", "rep", "pc", "pm", "other"}) {
             (new File(GridUtil.logFSMntPnt + "/" + dir)).mkdir();
         }
+    }
+
+    public static String[] append(String[] a1, String[] a2) {
+        String[] result = new String[a1.length + a2.length];
+        System.arraycopy(a1, 0, result, 0, a1.length);
+        System.arraycopy(a2, 0, result, a1.length, a2.length);
+        return result;
+    }
+
+    public boolean isReplicated() {
+        return replicated;
+    }
+
+    public int getGroupSize() {
+        return groupSize;
     }
 }
