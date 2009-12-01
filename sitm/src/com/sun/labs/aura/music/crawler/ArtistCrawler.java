@@ -857,13 +857,13 @@ public class ArtistCrawler extends QueueCrawler implements AuraService, Configur
             }
         });
 
-        /*runner.add(new Commander("youtube") {
+        runner.add(new Commander("youtube") {
 
             @Override
             public void go() throws Exception {
                 addYoutubeVideos(artist);
             }
-        });*/
+        });
 
         runner.add(new Commander("upcoming") {
 
